@@ -28,6 +28,7 @@ export type Team = {
   number: number;
   name: string;
   rank: number;
+  avatar?: string;
 };
 
 export type MatchType = "q" | "p" | "t" | "sf" | "f";

@@ -103,14 +103,16 @@ export class AudienceDisplayManager {
                 this.match.teams.red[i] = {
                     name: matchPreviewTeamRed.teamName,
                     number: matchPreviewTeamRed.teamNumber,
-                    rank: matchPreviewTeamRed.teamRank
+                    rank: matchPreviewTeamRed.teamRank,
+                    avatar: matchPreviewTeamRed.avatar
                 }
 
                 const matchPreviewTeamBlue = matchPreview.blueAlliance[`team${i+1}` as 'team1' | 'team2' | 'team3'];
                 this.match.teams.blue[i] = {
                     name: matchPreviewTeamBlue.teamName,
                     number: matchPreviewTeamBlue.teamNumber,
-                    rank: matchPreviewTeamBlue.teamRank
+                    rank: matchPreviewTeamBlue.teamRank,
+                    avatar: matchPreviewTeamBlue.avatar
                 }
             }
 

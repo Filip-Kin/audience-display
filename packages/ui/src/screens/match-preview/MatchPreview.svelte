@@ -4,6 +4,7 @@
     import { state } from "../../lib/state";
     import { createEventDispatcher, onMount } from "svelte";
     import { matchName } from "../../lib/matchNamer";
+    import { defaultAvatar } from "./avatar";
 
     let ready = false;
     const dispatcher = createEventDispatcher();
@@ -83,8 +84,9 @@
                             >
                                 <div
                                     style="width: 40px; height: 40px"
-                                    class="bg-white"
-                                ></div>
+                                >
+                                    <img src="data:image/png;base64,{team.avatar || defaultAvatar}" alt="{team.number} Icon" width="40px" height="40px" />
+                                </div>
                                 <span class="text-3xl">{team.number}</span>
                             </div>
                             <div
@@ -118,8 +120,9 @@
                             >
                                 <div
                                     style="width: 40px; height: 40px"
-                                    class="bg-white"
-                                ></div>
+                                >
+                                    <img src="data:image/png;base64,{team.avatar || defaultAvatar}" alt="{team.number} Icon" width="40px" height="40px" />
+                                </div>
                                 <span class="text-3xl">{team.number}</span>
                             </div>
                             <div
