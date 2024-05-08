@@ -1,6 +1,7 @@
 import type { Server } from "bun";
 import type { MatchState, Screen, EventDetails } from "lib";
 import { FMSSignalRConnection } from "../signalr/connection";
+import { LevelParam, type FMSMatchPreview } from "lib/types/FMS_API_audience";
 
 export class AudienceDisplayManager {
   private server: Server;
@@ -89,8 +90,37 @@ export class AudienceDisplayManager {
     this.fmsUrl = fmsUrl;
     this.fmsConnection = new FMSSignalRConnection(fmsUrl);
 
-    this.fmsConnection.on("videoSwitch", (screen) => {
+    this.fmsConnection.on("videoSwitch", async (screen) => {
       this.screen = screen;
+      
+      if (screen === "match-preview") {
+        if (this.match) {
+            this.match.details.matchType = "q";
+            const matchPreview = await this.getMatchPreview(LevelParam.Qual, 1);
+            this.match.details.matchNumber = matchPreview.matchNumber;
+            for (let i = 0; i < 3; i++) {
+                const matchPreviewTeamRed = matchPreview.redAlliance[`team${i+1}` as 'team1' | 'team2' | 'team3'];
+                this.match.teams.red[i] = {
+                    name: matchPreviewTeamRed.teamName,
+                    number: matchPreviewTeamRed.teamNumber,
+                    rank: matchPreviewTeamRed.teamRank
+                }
+
+                const matchPreviewTeamBlue = matchPreview.blueAlliance[`team${i+1}` as 'team1' | 'team2' | 'team3'];
+                this.match.teams.blue[i] = {
+                    name: matchPreviewTeamBlue.teamName,
+                    number: matchPreviewTeamBlue.teamNumber,
+                    rank: matchPreviewTeamBlue.teamRank
+                }
+            }
+
+
+            if (this.match.details.matchType === "q") {
+                this.eventDetails.matchCount = matchPreview.numberOfQualMatches ?? 0;
+            }
+        }
+      }
+
       this.broadcastState();
     });
   }
@@ -104,5 +134,10 @@ export class AudienceDisplayManager {
         match: this.match,
       }),
     );
+  }
+
+  private async getMatchPreview(level: LevelParam, matchNumber: number) {
+    const res = await fetch(`http://${this.fmsUrl}/api/v1.0/audience/get/Get${LevelParam[level]}MatchPreviewData/${matchNumber}`);
+    return await res.json() as FMSMatchPreview;
   }
 }
