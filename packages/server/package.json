@@ -1,12 +1,14 @@
 {
-  "name": "@rainbow-rumble/server",
+  "name": "server",
   "module": "index.ts",
   "type": "module",
+  "version": "0.0.0",
   "scripts": {
     "start": "bun src/index.ts",
     "dev": "bun --watch src/index.ts"
   },
   "dependencies": {
+    "@microsoft/signalr": "^8.0.0",
     "lib": "workspace:*"
   },
   "devDependencies": {

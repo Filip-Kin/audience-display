@@ -5,12 +5,13 @@ const defaultState: AudienceDisplayState = {
   connected: false,
   screen: "none",
   match: null,
+  eventDetails: null,
 };
 
 // Subscribe to the state of the WebSocket connection.
 // Automatically reconnects when the connection is lost.
 export const state = readable(defaultState, (set) => {
-  const ws = new WebSocket(`ws://${location.host}/ws`);
+  let ws = new WebSocket(`ws://${location.host}/ws`);
 
   ws.onopen = () => {
     console.log("Connected to server!");
@@ -25,7 +26,7 @@ export const state = readable(defaultState, (set) => {
     console.log("Disconnected from server!");
     set(defaultState);
     setTimeout(() => {
-      ws.close();
+      ws = new WebSocket(`ws://${location.host}/ws`);
     }, 1000);
   };
 

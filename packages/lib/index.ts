@@ -4,4 +4,6 @@ export type {
   Screen,
   Team,
   AudienceDisplayState,
+  EventDetails,
+  MatchType,
 } from "./types/audience_display";

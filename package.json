@@ -1,6 +1,7 @@
 {
   "name": "@rainbow-rumble/audience-display",
   "private": true,
+  "version": "0.0.0",
   "workspaces": ["packages/*"],
   "scripts": {
     "server:dev": "cd packages/server && bun dev",
@@ -9,5 +10,10 @@
     "ui:dev": "cd packages/ui && bun dev",
     "ui:build": "cd packages/ui && bun build",
     "ui:start": "cd packages/ui && bun start"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.3"
   }
 }

@@ -5,7 +5,9 @@ export type Screen =
   | "match-auton"
   | "match-transition"
   | "match-teleop"
+  | "match-endgame"
   | "match-end"
+  | "scores-ready"
   | "score-reveal";
 
 export type AllianceScore = {
@@ -28,6 +30,8 @@ export type Team = {
   rank: number;
 };
 
+export type MatchType = "q" | "p" | "t" | "sf" | "f";
+
 export type MatchState = {
   timer: number;
   score: {
@@ -38,10 +42,20 @@ export type MatchState = {
     red: Team[];
     blue: Team[];
   };
+  details: {
+    matchNumber: number;
+    matchType: MatchType;
+  };
+};
+
+export type EventDetails = {
+  name: string;
+  matchCount: number;
 };
 
 export type AudienceDisplayState = {
   connected: boolean;
   screen: Screen;
   match: MatchState | null;
+  eventDetails: EventDetails | null;
 };

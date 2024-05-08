@@ -1,5 +1,8 @@
 import { AudienceDisplayManager } from "./fms/audience_display";
 
+// Get FMS url from environment
+const FMS_URL = process.env.FMS_URL;
+
 const server = Bun.serve({
   fetch(request, server) {
     const url = new URL(request.url);
@@ -31,6 +34,9 @@ const server = Bun.serve({
   },
 });
 
-const audienceDisplay = new AudienceDisplayManager(server);
+const audienceDisplay = new AudienceDisplayManager(
+  server,
+  FMS_URL || "10.0.100.5",
+);
 
 console.log(`Listening on ${server.hostname}:${server.port}`);
