@@ -90,36 +90,49 @@ export class AudienceDisplayManager {
     this.fmsUrl = fmsUrl;
     this.fmsConnection = new FMSSignalRConnection(fmsUrl);
 
+    this.fmsConnection.on("timer", async (time) => {
+      if (this.match) {
+        this.match.timer = time;
+      }
+      this.broadcastState();
+    });
+
     this.fmsConnection.on("videoSwitch", async (screen) => {
       this.screen = screen;
-      
+
       if (screen === "match-preview") {
         if (this.match) {
-            this.match.details.matchType = "q";
-            const matchPreview = await this.getMatchPreview(LevelParam.Qual, 1);
-            this.match.details.matchNumber = matchPreview.matchNumber;
-            for (let i = 0; i < 3; i++) {
-                const matchPreviewTeamRed = matchPreview.redAlliance[`team${i+1}` as 'team1' | 'team2' | 'team3'];
-                this.match.teams.red[i] = {
-                    name: matchPreviewTeamRed.teamName,
-                    number: matchPreviewTeamRed.teamNumber,
-                    rank: matchPreviewTeamRed.teamRank,
-                    avatar: matchPreviewTeamRed.avatar
-                }
+          this.match.details.matchType = "q";
+          const matchPreview = await this.getMatchPreview(LevelParam.Qual, 3);
+          this.match.details.matchNumber = matchPreview.matchNumber;
+          for (let i = 0; i < 3; i++) {
+            const matchPreviewTeamRed =
+              matchPreview.redAlliance[
+                `team${i + 1}` as "team1" | "team2" | "team3"
+              ];
+            this.match.teams.red[i] = {
+              name: matchPreviewTeamRed.teamName,
+              number: matchPreviewTeamRed.teamNumber,
+              rank: matchPreviewTeamRed.teamRank,
+              avatar: matchPreviewTeamRed.avatar,
+            };
 
-                const matchPreviewTeamBlue = matchPreview.blueAlliance[`team${i+1}` as 'team1' | 'team2' | 'team3'];
-                this.match.teams.blue[i] = {
-                    name: matchPreviewTeamBlue.teamName,
-                    number: matchPreviewTeamBlue.teamNumber,
-                    rank: matchPreviewTeamBlue.teamRank,
-                    avatar: matchPreviewTeamBlue.avatar
-                }
-            }
+            const matchPreviewTeamBlue =
+              matchPreview.blueAlliance[
+                `team${i + 1}` as "team1" | "team2" | "team3"
+              ];
+            this.match.teams.blue[i] = {
+              name: matchPreviewTeamBlue.teamName,
+              number: matchPreviewTeamBlue.teamNumber,
+              rank: matchPreviewTeamBlue.teamRank,
+              avatar: matchPreviewTeamBlue.avatar,
+            };
+          }
 
-
-            if (this.match.details.matchType === "q") {
-                this.eventDetails.matchCount = matchPreview.numberOfQualMatches ?? 0;
-            }
+          if (this.match.details.matchType === "q") {
+            this.eventDetails.matchCount =
+              matchPreview.numberOfQualMatches ?? 0;
+          }
         }
       }
 
@@ -139,7 +152,9 @@ export class AudienceDisplayManager {
   }
 
   private async getMatchPreview(level: LevelParam, matchNumber: number) {
-    const res = await fetch(`http://${this.fmsUrl}/api/v1.0/audience/get/Get${LevelParam[level]}MatchPreviewData/${matchNumber}`);
-    return await res.json() as FMSMatchPreview;
+    const res = await fetch(
+      `http://${this.fmsUrl}/api/v1.0/audience/get/Get${LevelParam[level]}MatchPreviewData/${matchNumber}`,
+    );
+    return (await res.json()) as FMSMatchPreview;
   }
 }

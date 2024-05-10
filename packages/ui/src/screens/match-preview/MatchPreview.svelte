@@ -5,6 +5,7 @@
     import { createEventDispatcher, onMount } from "svelte";
     import { matchName } from "../../lib/matchNamer";
     import { defaultAvatar } from "./avatar";
+    import RobotShadow from "./RobotShadow.svelte";
 
     let ready = false;
     const dispatcher = createEventDispatcher();
@@ -19,7 +20,7 @@
         shutterSpring.set(50);
         setTimeout(() => {
             ready = true;
-        }, 500);
+        }, 1500);
     });
 
     $: if (exit) {
@@ -32,9 +33,20 @@
 </script>
 
 <div
-    class="w-full bg-red-800 h-full fixed -skew-x-12"
+    class="w-full bg-red-800 h-full fixed -skew-x-12 flex flex-row justify-end"
     style={`right: ${$shutterSpring}vw`}
-></div>
+>
+    <div
+        id="shadows"
+        class="skew-x-12 flex flex-col w-1/2 items-center justify-center"
+    >
+        {#if $state.match}
+            {#each $state.match.teams.red as team}
+                <RobotShadow teamNumber={team.number} />
+            {/each}
+        {/if}
+    </div>
+</div>
 <div
     class="w-full bg-blue-800 h-full fixed -skew-x-12"
     style={`left: ${$shutterSpring}vw`}
@@ -82,10 +94,14 @@
                             <div
                                 class="flex flex-row bg-red-600 text-white p-4 text-xl gap-4 align-middle"
                             >
-                                <div
-                                    style="width: 40px; height: 40px"
-                                >
-                                    <img src="data:image/png;base64,{team.avatar || defaultAvatar}" alt="{team.number} Icon" width="40px" height="40px" />
+                                <div style="width: 40px; height: 40px">
+                                    <img
+                                        src="data:image/png;base64,{team.avatar ||
+                                            defaultAvatar}"
+                                        alt="{team.number} Icon"
+                                        width="40px"
+                                        height="40px"
+                                    />
                                 </div>
                                 <span class="text-3xl">{team.number}</span>
                             </div>
@@ -118,10 +134,14 @@
                             <div
                                 class="flex flex-row bg-blue-600 text-white p-4 text-xl gap-4 align-middle"
                             >
-                                <div
-                                    style="width: 40px; height: 40px"
-                                >
-                                    <img src="data:image/png;base64,{team.avatar || defaultAvatar}" alt="{team.number} Icon" width="40px" height="40px" />
+                                <div style="width: 40px; height: 40px">
+                                    <img
+                                        src="data:image/png;base64,{team.avatar ||
+                                            defaultAvatar}"
+                                        alt="{team.number} Icon"
+                                        width="40px"
+                                        height="40px"
+                                    />
                                 </div>
                                 <span class="text-3xl">{team.number}</span>
                             </div>

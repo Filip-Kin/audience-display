@@ -1,6 +1,6 @@
 import { HubConnectionBuilder, type HubConnection } from "@microsoft/signalr";
 
-type Events = "videoSwitch";
+type Events = "videoSwitch" | "timer";
 
 export class FMSSignalRConnection {
   private fmsUrl: string;
@@ -8,6 +8,7 @@ export class FMSSignalRConnection {
 
   private eventCallbacks: { [key in Events]: Function[] } = {
     videoSwitch: [],
+    timer: [],
   };
 
   constructor(fmsUrl: string) {
@@ -78,6 +79,7 @@ export class FMSSignalRConnection {
     // Also countdown for breaks during playoffs in seconds
     this.infrastructureConnection.on("matchtimerchanged", (data) => {
       console.log("matchtimerchanged: ", data);
+      this.emit("timer", data);
     });
 
     // 20 seconds left
@@ -168,7 +170,7 @@ export class FMSSignalRConnection {
     });
   }
 
-  on(event: string, callback: (data: any) => void) {
+  on(event: Events, callback: (data: any) => void) {
     if (!this.eventCallbacks[event]) {
       this.eventCallbacks[event] = [];
     }

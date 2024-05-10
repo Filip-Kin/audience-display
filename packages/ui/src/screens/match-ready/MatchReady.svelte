@@ -46,6 +46,11 @@
         const remainingSeconds = seconds % 60;
         return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
     };
+
+    // TODO: Remove this when the server is set up to send amplification
+    // Temporary code to test the rainbow effect without having the server send it
+    let redRainbow = true;
+    let blueRainbow = true;
 </script>
 
 {#if $state.match}
@@ -55,7 +60,13 @@
     >
         <div class="flex flex-row justify-end justify-self-end">
             <div
-                class="bg-red-600 pr-16 -mr-16 rounded-l-xl overflow-hidden flex flex-row"
+                role="none"
+                on:click={() => {
+                    // Temporary code to test the rainbow effect without having the server send it
+                    redRainbow = !redRainbow;
+                }}
+                class="bg-red-600 pr-16 -mr-16 rounded-l-xl flex flex-row relative rainbow-shadow"
+                class:amplified={redRainbow}
             >
                 <div
                     class="flex flex-row"
@@ -83,28 +94,39 @@
                 </div>
             </div>
         </div>
-        <div class="w-32 bg-white rounded-full relative overflow-hidden">
+        <div
+            class="z-50 w-32 bg-gradient-to-r from-red-600 from-30% to-70% to-blue-600 relative overflow-hidden"
+        >
+            <div
+                class="top-0 my-4 mx-4 w-24 rounded-full aspect-square bg-gradient-to-r from-red-500 from-20% via-[#814589bf] to-80% to-blue-500 absolute z-0 overflow-hidden"
+            ></div>
             <img
                 src={logo}
                 alt=""
                 style={`transform: rotate(${($wingSpring / 50) * 360}deg)`}
             />
             <div
-                class="absolute text-black text-5xl font-bold top-0 left-0 w-32 h-32 grid place-items-center"
+                class="absolute text-white text-5xl font-bold top-0 left-0 w-32 h-32 grid place-items-center"
             >
                 {secondsToMinutes($state.match.timer)}
             </div>
         </div>
         <div class="flex flex-row justify-start">
             <div
-                class="bg-blue-600 flex flex-row pl-16 -ml-16 rounded-r-xl overflow-hidden"
+                role="none"
+                on:click={() => {
+                    // Temporary code to test the rainbow effect without having the server send it
+                    blueRainbow = !blueRainbow;
+                }}
+                class="bg-blue-600 flex flex-row pl-16 -ml-16 rounded-r-xl relative rainbow-shadow"
+                class:amplified={blueRainbow}
             >
                 <div
-                    class="flex flex-row"
+                    class="flex flex-row z-10 relative"
                     style={`max-width: ${$wingSpring / 2}vw; opacity: ${$opacityTween}`}
                 >
                     <div class="flex flex-col justify-center px-3 w-24">
-                        {#each $state.match.teams.red as team, index}
+                        {#each $state.match.teams.blue as team, index}
                             <span class="text-2xl text-center"
                                 >{team.number}</span
                             >
