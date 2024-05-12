@@ -2,6 +2,7 @@ import { AudienceDisplayManager } from "./fms/audience_display";
 
 // Get FMS url from environment
 const FMS_URL = process.env.FMS_URL;
+const FAKE_FMS = process.env.FAKE_FMS;
 
 const server = Bun.serve({
   fetch(request, server) {
@@ -34,9 +35,11 @@ const server = Bun.serve({
   },
 });
 
+console.log("Fake FMS:", FAKE_FMS);
+
 const audienceDisplay = new AudienceDisplayManager(
   server,
-  FMS_URL || "10.0.100.5",
+  FAKE_FMS ? "127.0.0.1:8080" : FMS_URL || "10.0.100.5",
 );
 
 console.log(`Listening on ${server.hostname}:${server.port}`);

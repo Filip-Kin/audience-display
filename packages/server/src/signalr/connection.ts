@@ -1,13 +1,26 @@
 import { HubConnectionBuilder, type HubConnection } from "@microsoft/signalr";
+import { type ScoreChangedData, type ScoringElementChangedData } from "lib";
 
-type Events = "videoSwitch";
+type Events =
+  | "videoSwitch"
+  | "timer"
+  | "blueScoreChanged"
+  | "redScoreChanged"
+  | "matchCommit"
+  | "showResults";
 
 export class FMSSignalRConnection {
   private fmsUrl: string;
   private infrastructureConnection: HubConnection;
+  private gameSpecificConnection: HubConnection;
 
   private eventCallbacks: { [key in Events]: Function[] } = {
     videoSwitch: [],
+    timer: [],
+    blueScoreChanged: [],
+    redScoreChanged: [],
+    matchCommit: [],
+    showResults: [],
   };
 
   constructor(fmsUrl: string) {
@@ -16,18 +29,18 @@ export class FMSSignalRConnection {
       .withUrl(`http://${fmsUrl}/infrastructureHub`)
       .withServerTimeout(30000) // 30 seconds, per FMS Audience Display
       .withKeepAliveInterval(15000) // 15 seconds per FMS Audience Display
-      // .configureLogging({
-      //   log: (logLevel, message) => {
-      //     [
-      //       console.debug,
-      //       console.debug,
-      //       console.log,
-      //       console.warn,
-      //       console.error,
-      //     ][logLevel](`[SignalR ${logLevel}] ${message}`);
-      //   },
-      // })
-      // .withHubProtocol(new MessagePackHubProtocol())
+      .withAutomaticReconnect({
+        nextRetryDelayInMilliseconds(retryContext) {
+          console.warn("Retrying SignalR connection...");
+          return Math.min(2_000 * retryContext.previousRetryCount, 120_000);
+        },
+      })
+      .build();
+
+    this.gameSpecificConnection = new HubConnectionBuilder()
+      .withUrl(`http://${fmsUrl}/gameSpecificHub`)
+      .withServerTimeout(30000) // 30 seconds, per FMS Audience Display
+      .withKeepAliveInterval(15000) // 15 seconds per FMS Audience Display
       .withAutomaticReconnect({
         nextRetryDelayInMilliseconds(retryContext) {
           console.warn("Retrying SignalR connection...");
@@ -47,7 +60,12 @@ export class FMSSignalRConnection {
       this.videoSwitch(option);
     });
 
+    this.gameSpecificConnection.start().then(() => {
+      console.log("Connected to FMS game specific hub");
+    });
+
     this.handleInfrastructureConnection();
+    this.handleGameSpecificConnection();
   }
 
   private handleInfrastructureConnection() {
@@ -78,6 +96,7 @@ export class FMSSignalRConnection {
     // Also countdown for breaks during playoffs in seconds
     this.infrastructureConnection.on("matchtimerchanged", (data) => {
       console.log("matchtimerchanged: ", data);
+      this.emit("timer", data);
     });
 
     // 20 seconds left
@@ -134,6 +153,9 @@ export class FMSSignalRConnection {
 
     this.infrastructureConnection.on("matchstatusinfochanged", (data) => {
       console.log("matchstatusinfochanged: ", data);
+      if (data.MatchState === "WaitingForPostResults") {
+        this.emit("matchCommit", null);
+      }
     });
 
     this.infrastructureConnection.on("matchstatuschanged", (data) => {
@@ -148,6 +170,7 @@ export class FMSSignalRConnection {
 
     this.infrastructureConnection.on("audienceshowmatchresult", (data) => {
       console.log("audienceshowmatchresult: ", data);
+      this.emit("showResults", null);
     });
 
     this.infrastructureConnection.on("matchstatuschanged", (data) => {
@@ -168,7 +191,37 @@ export class FMSSignalRConnection {
     });
   }
 
-  on(event: string, callback: (data: any) => void) {
+  private handleGameSpecificConnection() {
+    this.gameSpecificConnection.on(
+      "BlueScoreChanged",
+      (matchData: ScoreChangedData) => {
+        console.log("blueScoreChanged", matchData);
+        this.emit("blueScoreChanged", matchData);
+      },
+    );
+    this.gameSpecificConnection.on(
+      "RedScoreChanged",
+      (matchData: ScoreChangedData) => {
+        this.emit("redScoreChanged", matchData);
+      },
+    );
+    // Scoring elements changed
+    // Doesn't seem to work with offseason FMS?
+    this.gameSpecificConnection.on(
+      "BlueScoringElementsChanged",
+      (data: ScoringElementChangedData) => {
+        console.log("BlueScoringElementsChanged", data);
+      },
+    );
+    this.gameSpecificConnection.on(
+      "RedScoringElementsChanged",
+      (data: ScoringElementChangedData) => {
+        console.log("RedScoringElementsChanged", data);
+      },
+    );
+  }
+
+  on(event: Events, callback: (data: any) => void) {
     if (!this.eventCallbacks[event]) {
       this.eventCallbacks[event] = [];
     }
