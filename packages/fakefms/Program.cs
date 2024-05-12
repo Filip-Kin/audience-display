@@ -21,11 +21,11 @@ app.UseStaticFiles();
 
 app.UseRouting();
 app.MapControllers();
+app.MapHub<Hubs.InfrastructureHub>("/infrastructureHub");
+
 app.UseAuthorization();
 
 app.MapRazorPages();
-
-app.MapHub<Hubs.InfrastructureHub>("/infrastructureHub");
 
 
 

@@ -20,8 +20,9 @@ export type AllianceScore = {
   noteCount: number;
   noteRequirement: number;
   melodyRP: boolean;
-  harmonyRP: boolean;
+  ensambleRP: boolean;
   rainbowRP: boolean;
+  amplified: boolean;
 };
 
 export type Team = {

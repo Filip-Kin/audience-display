@@ -1,5 +1,11 @@
 import type { Server } from "bun";
-import type { MatchState, Screen, EventDetails } from "lib";
+import type {
+  MatchState,
+  Screen,
+  EventDetails,
+  ScoreChangedDataSignalRType,
+  ScoreChangedData,
+} from "lib";
 import { FMSSignalRConnection } from "../signalr/connection";
 import { LevelParam, type FMSMatchPreview } from "lib/types/FMS_API_audience";
 
@@ -20,7 +26,7 @@ export class AudienceDisplayManager {
         auto: 0,
         endgame: 0,
         fouls: 0,
-        harmonyRP: false,
+        ensambleRP: false,
         melodyRP: false,
         noteCount: 0,
         noteRequirement: 0,
@@ -33,7 +39,7 @@ export class AudienceDisplayManager {
         auto: 0,
         endgame: 0,
         fouls: 0,
-        harmonyRP: false,
+        ensambleRP: false,
         melodyRP: false,
         noteCount: 0,
         noteRequirement: 0,
@@ -136,6 +142,48 @@ export class AudienceDisplayManager {
         }
       }
 
+      this.broadcastState();
+    });
+
+    this.fmsConnection.on(
+      "blueScoreChanged",
+      async (data: ScoreChangedData) => {
+        if (this.match) {
+          this.match.score.blue = {
+            amp: data.TeleopAmpNotePoints + data.AutoAmpNotePoints,
+            auto: data.AutoPoints,
+            endgame: data.EndGameTotalStagePoints,
+            ensambleRP: data.EnsambleBonusAchieved,
+            fouls: data.FoulPoints,
+            melodyRP: data.MelodyBonusAchieved,
+            noteCount: data.TotalNoteCount,
+            noteRequirement: data.MelodyBonusThreshold,
+            score: data.TotalPoints,
+            speaker: data.AutoSpeakerNotePoints + data.TeleopSpeakerNotePoints,
+            rainbowRP: false,
+            amplified: true,
+          };
+        }
+        this.broadcastState();
+      },
+    );
+    this.fmsConnection.on("redScoreChanged", async (data: ScoreChangedData) => {
+      if (this.match) {
+        this.match.score.red = {
+          amp: data.TeleopAmpNotePoints + data.AutoAmpNotePoints,
+          auto: data.AutoPoints,
+          endgame: data.EndGameTotalStagePoints,
+          ensambleRP: data.EnsambleBonusAchieved,
+          fouls: data.FoulPoints,
+          melodyRP: data.MelodyBonusAchieved,
+          noteCount: data.TotalNoteCount,
+          noteRequirement: data.MelodyBonusThreshold,
+          score: data.TotalPoints,
+          speaker: data.AutoSpeakerNotePoints + data.TeleopSpeakerNotePoints,
+          rainbowRP: false,
+          amplified: false,
+        };
+      }
       this.broadcastState();
     });
   }

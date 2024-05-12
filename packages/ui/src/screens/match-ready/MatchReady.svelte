@@ -46,11 +46,6 @@
         const remainingSeconds = seconds % 60;
         return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
     };
-
-    // TODO: Remove this when the server is set up to send amplification
-    // Temporary code to test the rainbow effect without having the server send it
-    let redRainbow = true;
-    let blueRainbow = true;
 </script>
 
 {#if $state.match}
@@ -60,13 +55,8 @@
     >
         <div class="flex flex-row justify-end justify-self-end">
             <div
-                role="none"
-                on:click={() => {
-                    // Temporary code to test the rainbow effect without having the server send it
-                    redRainbow = !redRainbow;
-                }}
                 class="bg-red-600 pr-16 -mr-16 rounded-l-xl flex flex-row relative rainbow-shadow"
-                class:amplified={redRainbow}
+                class:amplified={$state.match.score.red.amplified}
             >
                 <div
                     class="flex flex-row"
@@ -78,7 +68,7 @@
                         {$state.match.score.red.score}
                     </div>
                     <div
-                        class="flex flex-col px-4 text-3xl justify-center text-nowrap"
+                        class="flex flex-col px-4 text-3xl justify-center text-center text-nowrap min-w-36"
                     >
                         <div class="text-5xl text-center">♫</div>
                         {$state.match.score.red.noteCount} / {$state.match.score
@@ -113,13 +103,8 @@
         </div>
         <div class="flex flex-row justify-start">
             <div
-                role="none"
-                on:click={() => {
-                    // Temporary code to test the rainbow effect without having the server send it
-                    blueRainbow = !blueRainbow;
-                }}
                 class="bg-blue-600 flex flex-row pl-16 -ml-16 rounded-r-xl relative rainbow-shadow"
-                class:amplified={blueRainbow}
+                class:amplified={$state.match.score.blue.amplified}
             >
                 <div
                     class="flex flex-row z-10 relative"
@@ -133,16 +118,15 @@
                         {/each}
                     </div>
                     <div
-                        class="flex flex-col px-4 text-3xl justify-center text-nowrap"
+                        class="flex flex-col px-4 text-3xl justify-center text-center text-nowrap min-w-36"
                     >
                         <div class="text-5xl text-center">♫</div>
-                        {$state.match.score.red.noteCount} / {$state.match.score
-                            .red.noteRequirement}
+                        {$state.match.score.blue.noteCount.toString()} / {$state.match.score.blue.noteRequirement.toString()}
                     </div>
                     <div
                         class="flex flex-col justify-center px-3 w-32 text-5xl font-bold text-center"
                     >
-                        {$state.match.score.red.score}
+                        {$state.match.score.blue.score}
                     </div>
                 </div>
             </div>
