@@ -7,7 +7,13 @@ type Events =
   | "blueScoreChanged"
   | "redScoreChanged"
   | "matchCommit"
-  | "showResults";
+  | "showResults"
+  | "endgameWarning"
+  | "matchStart"
+  | "matchEnd"
+  | "matchAbort"
+  | "teleopStart"
+  | "autoEnd";
 
 export class FMSSignalRConnection {
   private fmsUrl: string;
@@ -21,6 +27,12 @@ export class FMSSignalRConnection {
     redScoreChanged: [],
     matchCommit: [],
     showResults: [],
+    endgameWarning: [],
+    matchStart: [],
+    matchEnd: [],
+    matchAbort: [],
+    teleopStart: [],
+    autoEnd: [],
   };
 
   constructor(fmsUrl: string) {
@@ -102,6 +114,7 @@ export class FMSSignalRConnection {
     // 20 seconds left
     this.infrastructureConnection.on("matchtimerwarning1", (data) => {
       console.log("matchtimerwarning1: ", data);
+      this.emit("endgameWarning", null);
     });
 
     // 90 seconds left
@@ -153,6 +166,27 @@ export class FMSSignalRConnection {
 
     this.infrastructureConnection.on("matchstatusinfochanged", (data) => {
       console.log("matchstatusinfochanged: ", data);
+      // Match Started
+      if (data.MatchState === "MatchAuto") {
+        this.emit("matchStart", null);
+      }
+      // Auto Over
+      if (data.MatchState === "MatchTransition") {
+        this.emit("autoEnd", null);
+      }
+      // Teleop Started
+      if (data.MatchState === "MatchTeleop") {
+        this.emit("teleopStart", null);
+      }
+      // Match Over
+      if (data.MatchState === "WaitingForCommit") {
+        this.emit("matchEnd", null);
+      }
+      // Match Abort
+      if (data.MatchState === "MatchCancelled") {
+        this.emit("matchAbort", null);
+      }
+      // Scores committed
       if (data.MatchState === "WaitingForPostResults") {
         this.emit("matchCommit", null);
       }
@@ -195,7 +229,6 @@ export class FMSSignalRConnection {
     this.gameSpecificConnection.on(
       "BlueScoreChanged",
       (matchData: ScoreChangedData) => {
-        console.log("blueScoreChanged", matchData);
         this.emit("blueScoreChanged", matchData);
       },
     );

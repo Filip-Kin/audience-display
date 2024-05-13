@@ -34,7 +34,6 @@
         "scores-ready": null,
         "score-reveal": null,
     };
-    $: console.log($state.screen, activeScreen, transitioning);
 </script>
 
 {#if activeScreen in screens}

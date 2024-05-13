@@ -186,15 +186,46 @@ export class AudienceDisplayManager {
       }
       this.broadcastState();
     });
+    this.fmsConnection.on("matchStart", () => {
+      this.playSound("matchStart");
+    });
+    this.fmsConnection.on("autoEnd", () => {
+      this.playSound("autoEnd");
+    });
+    this.fmsConnection.on("teleopStart", () => {
+      this.playSound("teleopStart");
+    });
+    this.fmsConnection.on("endgameWarning", () => {
+      this.playSound("endgameWarning");
+    });
+    this.fmsConnection.on("matchEnd", () => {
+      this.playSound("matchEnd");
+    });
+    this.fmsConnection.on("matchAbort", () => {
+      this.playSound("matchAbort");
+    });
   }
 
   broadcastState() {
     this.server.publish(
       "audience-display",
       JSON.stringify({
-        connected: true,
-        screen: this.screen,
-        match: this.match,
+        type: "state",
+        data: {
+          connected: true,
+          screen: this.screen,
+          match: this.match,
+        },
+      }),
+    );
+  }
+
+  playSound(soundName: string) {
+    this.server.publish(
+      "audience-display",
+      JSON.stringify({
+        type: "sound",
+        data: soundName,
       }),
     );
   }
