@@ -56,7 +56,7 @@
         <div class="flex flex-row justify-end justify-self-end">
             <div
                 class="bg-red-600 pr-16 -mr-16 rounded-l-xl flex flex-row relative rainbow-shadow"
-                class:amplified={$state.match.score.red.amplified}
+                class:amplified={$state.match.timer % 16 < 10}
             >
                 <div
                     class="flex flex-row"
@@ -104,7 +104,7 @@
         <div class="flex flex-row justify-start">
             <div
                 class="bg-blue-600 flex flex-row pl-16 -ml-16 rounded-r-xl relative rainbow-shadow"
-                class:amplified={$state.match.score.blue.amplified}
+                class:amplified={$state.match.timer % 18 < 10}
             >
                 <div
                     class="flex flex-row z-10 relative"

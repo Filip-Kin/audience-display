@@ -30,6 +30,8 @@
             dispatcher("transitioned");
         }, 500);
     }
+
+    $: console.log($state.eventDetails);
 </script>
 
 <div
@@ -42,15 +44,26 @@
     >
         {#if $state.match}
             {#each $state.match.teams.red as team}
-                <RobotShadow teamNumber={team.number} />
+                <RobotShadow color="red" teamNumber={team.number} />
             {/each}
         {/if}
     </div>
 </div>
 <div
-    class="w-full bg-blue-800 h-full fixed -skew-x-12"
+    class="w-full bg-blue-800 h-full fixed -skew-x-12 flex flex-row justify-start"
     style={`left: ${$shutterSpring}vw`}
-></div>
+>
+    <div
+        id="shadows"
+        class="skew-x-12 flex flex-col w-1/2 items-center justify-center"
+    >
+        {#if $state.match}
+            {#each $state.match.teams.blue as team}
+                <RobotShadow color="blue" teamNumber={team.number} />
+            {/each}
+        {/if}
+    </div>
+</div>
 
 <div class="fixed flex flex-col w-full h-full justify-around">
     <div class="w-full flex flex-row justify-around py-16">

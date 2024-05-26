@@ -1,11 +1,5 @@
 import type { Server } from "bun";
-import type {
-  MatchState,
-  Screen,
-  EventDetails,
-  ScoreChangedDataSignalRType,
-  ScoreChangedData,
-} from "lib";
+import type { MatchState, Screen, EventDetails, ScoreChangedData } from "lib";
 import { FMSSignalRConnection } from "../signalr/connection";
 import { LevelParam, type FMSMatchPreview } from "lib/types/FMS_API_audience";
 
@@ -33,6 +27,7 @@ export class AudienceDisplayManager {
         rainbowRP: false,
         score: 0,
         speaker: 0,
+        amplified: false,
       },
       blue: {
         amp: 0,
@@ -46,6 +41,7 @@ export class AudienceDisplayManager {
         rainbowRP: false,
         score: 0,
         speaker: 0,
+        amplified: false,
       },
     },
     timer: 15,
@@ -110,6 +106,7 @@ export class AudienceDisplayManager {
         if (this.match) {
           this.match.details.matchType = "q";
           const matchPreview = await this.getMatchPreview(LevelParam.Qual, 3);
+          console.log(matchPreview);
           this.match.details.matchNumber = matchPreview.matchNumber;
           for (let i = 0; i < 3; i++) {
             const matchPreviewTeamRed =
@@ -215,6 +212,7 @@ export class AudienceDisplayManager {
           connected: true,
           screen: this.screen,
           match: this.match,
+          eventDetails: this.eventDetails,
         },
       }),
     );
