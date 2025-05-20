@@ -17,9 +17,13 @@ export type AllianceScore = {
   algae: number;
   barge: number;
   fouls: number;
+  algaeCount: number;
   autoBonusRP: boolean;
   coralBonusRP: boolean;
+  coralBonusProgress: number;
+  coralBonusThreshold: number;
   bargeBonusRP: boolean;
+  coopertitionMet: boolean;
   coopertitionAchieved: boolean;
   rankingPoints: number;
 };

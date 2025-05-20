@@ -1,7 +1,7 @@
 import type { Server } from "bun";
 import type { MatchState, Screen, EventDetails, ScoreChangedData } from "lib";
 import { FMSSignalRConnection } from "../signalr/connection";
-import { LevelParam, type FMSMatchPreview } from "lib/types/FMS_API_audience";
+import { LevelParam, type FMSMatchPreview, type FMSMatchSchedule } from "lib/types/FMS_API_audience";
 
 export class AudienceDisplayManager {
   private server: Server;
@@ -9,10 +9,13 @@ export class AudienceDisplayManager {
   private fmsConnection: FMSSignalRConnection;
 
   private screen: Screen = "none";
+  private currentLevel: LevelParam = LevelParam.None;
+
   private eventDetails: EventDetails = {
     name: "Rainbow Rumble",
     matchCount: 80,
   };
+
   private match: MatchState | null = {
     score: {
       red: {
@@ -22,9 +25,13 @@ export class AudienceDisplayManager {
         algae: 0,
         barge: 0,
         fouls: 0,
+        algaeCount: 0,
         autoBonusRP: false,
         coralBonusRP: false,
+        coralBonusProgress: 0,
+        coralBonusThreshold: 4,
         bargeBonusRP: false,
+        coopertitionMet: false,
         coopertitionAchieved: false,
         rankingPoints: 0,
       },
@@ -35,9 +42,13 @@ export class AudienceDisplayManager {
         algae: 0,
         barge: 0,
         fouls: 0,
+        algaeCount: 0,
         autoBonusRP: false,
         coralBonusRP: false,
+        coralBonusProgress: 0,
+        coralBonusThreshold: 4,
         bargeBonusRP: false,
+        coopertitionMet: false,
         coopertitionAchieved: false,
         rankingPoints: 0,
       },
@@ -85,11 +96,27 @@ export class AudienceDisplayManager {
     },
   };
 
-
   constructor(server: Server, fmsUrl: string) {
     this.server = server;
     this.fmsUrl = fmsUrl;
     this.fmsConnection = new FMSSignalRConnection(fmsUrl);
+
+    this.getActiveTournamentLevel().then((level) => {
+      this.currentLevel = level;
+
+      if (level === LevelParam.Qual) {
+        this.getCurrentSchedule().then((schedule) => {
+          const matchCount = schedule.filter(
+            (match) => match.tournamentLevel === "Qual",
+          ).length;
+          this.eventDetails.matchCount = matchCount;
+        });
+      }
+    });
+
+    this.getEventName().then((eventName) => {
+      this.eventDetails.name = eventName;
+    });
 
     this.fmsConnection.on("timer", async (time) => {
       if (this.match) {
@@ -103,10 +130,30 @@ export class AudienceDisplayManager {
 
       if (screen === "match-preview") {
         if (this.match) {
-          this.match.details.matchType = "q";
-          const matchPreview = await this.getMatchPreview(LevelParam.Qual, 3);
+
+          // Get the current match number and tournament level
+          const { matchNumber, playNumber, level } = await this.getCurrentMatchAndPlayNumber();
+          this.match.details.matchNumber = matchNumber;
+          this.currentLevel = level;
+          switch (this.currentLevel) {
+            case LevelParam.Practice:
+              this.match.details.matchType = "p";
+              break;
+            case LevelParam.Qual:
+              this.match.details.matchType = "q";
+              break;
+            case LevelParam.DoubleElimFinal:
+              this.match.details.matchType = "f";
+              break;
+            default:
+              this.match.details.matchType = "sf";
+              break;
+          }
+
+          // Get the match preview data
+          const matchPreview = await this.getMatchPreview(this.currentLevel, matchNumber);
           console.log(matchPreview);
-          this.match.details.matchNumber = matchPreview.matchNumber;
+
           for (let i = 0; i < 3; i++) {
             const matchPreviewTeamRed =
               matchPreview.redAlliance[
@@ -142,9 +189,13 @@ export class AudienceDisplayManager {
     });
 
     this.fmsConnection.on("blueScoreChanged", async (data: ScoreChangedData) => {
+      console.log("blueScoreChanged", data);
       if (this.match) {
-        const isTie = data.TotalPoints === this.match.score.red.score;
-        const blueWins = data.TotalPoints > this.match.score.red.score;
+        let coralBonusProgress = 0;
+        if (data.TopRowCoralCount >= data.CoralBonusCoralThreshold) coralBonusProgress++;
+        if (data.MidRowCoralCount >= data.CoralBonusCoralThreshold) coralBonusProgress++;
+        if (data.BotRowCoralCount >= data.CoralBonusCoralThreshold) coralBonusProgress++;
+        if (data.TroughCoralCount >= data.CoralBonusCoralThreshold) coralBonusProgress++;
 
         this.match.score.blue = {
           score: data.TotalPoints,
@@ -153,17 +204,19 @@ export class AudienceDisplayManager {
           algae: data.AlgaePoints,
           barge: data.EndgameBargePoints,
           fouls: data.FoulPoints,
+          algaeCount: data.AlgaeCount,
           autoBonusRP: data.AutoBonusAchieved,
           coralBonusRP: data.CoralBonusAchieved,
+          coralBonusProgress: coralBonusProgress,
+          coralBonusThreshold: data.CoralBonusLevelsThreshold,
           bargeBonusRP: data.BargeBonusAchieved,
+          coopertitionMet: data.CoopertitionCriteriaMet,
           coopertitionAchieved: data.CoopertitionBonusAchieved,
           rankingPoints:
             (data.AutoBonusAchieved ? 1 : 0) +
             (data.CoralBonusAchieved ? 1 : 0) +
             (data.BargeBonusAchieved ? 1 : 0) +
-            (data.CoopertitionBonusAchieved ? 1 : 0) +
-            (isTie ? 1 : 0) +
-            (blueWins ? 2 : 0)
+            (data.CoopertitionBonusAchieved ? 1 : 0)
 
         };
       }
@@ -172,8 +225,11 @@ export class AudienceDisplayManager {
 
     this.fmsConnection.on("redScoreChanged", async (data: ScoreChangedData) => {
       if (this.match) {
-        const isTie = data.TotalPoints === this.match.score.blue.score;
-        const redWins = data.TotalPoints > this.match.score.blue.score;
+        let coralBonusProgress = 0;
+        if (data.TopRowCoralCount >= data.CoralBonusCoralThreshold) coralBonusProgress++;
+        if (data.MidRowCoralCount >= data.CoralBonusCoralThreshold) coralBonusProgress++;
+        if (data.BotRowCoralCount >= data.CoralBonusCoralThreshold) coralBonusProgress++;
+        if (data.TroughCoralCount >= data.CoralBonusCoralThreshold) coralBonusProgress++;
 
         this.match.score.red = {
           score: data.TotalPoints,
@@ -182,17 +238,19 @@ export class AudienceDisplayManager {
           algae: data.AlgaePoints,
           barge: data.EndgameBargePoints,
           fouls: data.FoulPoints,
+          algaeCount: data.AlgaeCount,
           autoBonusRP: data.AutoBonusAchieved,
           coralBonusRP: data.CoralBonusAchieved,
+          coralBonusProgress: coralBonusProgress,
+          coralBonusThreshold: data.CoralBonusLevelsThreshold,
           bargeBonusRP: data.BargeBonusAchieved,
+          coopertitionMet: data.CoopertitionCriteriaMet,
           coopertitionAchieved: data.CoopertitionBonusAchieved,
           rankingPoints:
             (data.AutoBonusAchieved ? 1 : 0) +
             (data.CoralBonusAchieved ? 1 : 0) +
             (data.BargeBonusAchieved ? 1 : 0) +
-            (data.CoopertitionBonusAchieved ? 1 : 0) +
-            (isTie ? 1 : 0) +
-            (redWins ? 2 : 0)
+            (data.CoopertitionBonusAchieved ? 1 : 0)
         };
       }
       this.broadcastState();
@@ -249,4 +307,60 @@ export class AudienceDisplayManager {
     );
     return (await res.json()) as FMSMatchPreview;
   }
+
+  private async getActiveTournamentLevel() {
+    const res = await fetch(
+      `http://${this.fmsUrl}/api/v1.0/systembase/get/get_CurrentlyActiveTournamentLevel`,
+    );
+    const data = await res.text();
+    switch (data) {
+      case '"None"':
+        return LevelParam.None;
+      case '"Practice"':
+        return LevelParam.Practice;
+      case '"Qualification"':
+        return LevelParam.Qual;
+      case '"Playoff"':
+        return LevelParam.Playoff;
+      case '"DoubleElimPlayoff"':
+        return LevelParam.DoubleElimPlayoff;
+      case '"DoubleElimFinal"':
+        return LevelParam.DoubleElimFinal;
+      default:
+        throw new Error(`Unknown tournament level: ${data}`);
+    }
+  }
+
+  private async getCurrentMatchAndPlayNumber() {
+    const res = await fetch(
+      `http://${this.fmsUrl}/FieldMonitor/MatchNumberAndPlay`,
+    );
+    const data = await res.json();
+    console.log(data);
+    return {
+      matchNumber: data[0],
+      playNumber: data[1],
+      level: data[2],
+    } as {
+      matchNumber: number;
+      playNumber: number;
+      level: LevelParam;
+    };
+  }
+
+  private async getEventName() {
+    const res = await fetch(
+      `http://${this.fmsUrl}/api/v1.0/systembase/get/get_CurrentlyActiveEventName`,
+    );
+    const data = await res.text();
+    return data.substring(1, data.length - 1);
+  }
+
+  private async getCurrentSchedule() {
+    const res = await fetch(
+      `http://${this.fmsUrl}/api/v1.0/match/get/GetCurrentSchedule`,
+    );
+    return (await res.json()) as FMSMatchSchedule[];
+  }
+
 }
