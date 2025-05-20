@@ -16,32 +16,30 @@ export class AudienceDisplayManager {
   private match: MatchState | null = {
     score: {
       red: {
-        amp: 0,
-        auto: 0,
-        endgame: 0,
-        fouls: 0,
-        ensambleRP: false,
-        melodyRP: false,
-        noteCount: 0,
-        noteRequirement: 0,
-        rainbowRP: false,
         score: 0,
-        speaker: 0,
-        amplified: false,
+        autoMobility: 0,
+        coral: 0,
+        algae: 0,
+        barge: 0,
+        fouls: 0,
+        autoBonusRP: false,
+        coralBonusRP: false,
+        bargeBonusRP: false,
+        coopertitionAchieved: false,
+        rankingPoints: 0,
       },
       blue: {
-        amp: 0,
-        auto: 0,
-        endgame: 0,
-        fouls: 0,
-        ensambleRP: false,
-        melodyRP: false,
-        noteCount: 0,
-        noteRequirement: 0,
-        rainbowRP: false,
         score: 0,
-        speaker: 0,
-        amplified: false,
+        autoMobility: 0,
+        coral: 0,
+        algae: 0,
+        barge: 0,
+        fouls: 0,
+        autoBonusRP: false,
+        coralBonusRP: false,
+        bargeBonusRP: false,
+        coopertitionAchieved: false,
+        rankingPoints: 0,
       },
     },
     timer: 15,
@@ -87,6 +85,7 @@ export class AudienceDisplayManager {
     },
   };
 
+
   constructor(server: Server, fmsUrl: string) {
     this.server = server;
     this.fmsUrl = fmsUrl;
@@ -111,7 +110,7 @@ export class AudienceDisplayManager {
           for (let i = 0; i < 3; i++) {
             const matchPreviewTeamRed =
               matchPreview.redAlliance[
-                `team${i + 1}` as "team1" | "team2" | "team3"
+              `team${i + 1}` as "team1" | "team2" | "team3"
               ];
             this.match.teams.red[i] = {
               name: matchPreviewTeamRed.teamName,
@@ -122,7 +121,7 @@ export class AudienceDisplayManager {
 
             const matchPreviewTeamBlue =
               matchPreview.blueAlliance[
-                `team${i + 1}` as "team1" | "team2" | "team3"
+              `team${i + 1}` as "team1" | "team2" | "team3"
               ];
             this.match.teams.blue[i] = {
               name: matchPreviewTeamBlue.teamName,
@@ -142,47 +141,63 @@ export class AudienceDisplayManager {
       this.broadcastState();
     });
 
-    this.fmsConnection.on(
-      "blueScoreChanged",
-      async (data: ScoreChangedData) => {
-        if (this.match) {
-          this.match.score.blue = {
-            amp: data.TeleopAmpNotePoints + data.AutoAmpNotePoints,
-            auto: data.AutoPoints,
-            endgame: data.EndGameTotalStagePoints,
-            ensambleRP: data.EnsambleBonusAchieved,
-            fouls: data.FoulPoints,
-            melodyRP: data.MelodyBonusAchieved,
-            noteCount: data.TotalNoteCount,
-            noteRequirement: data.MelodyBonusThreshold,
-            score: data.TotalPoints,
-            speaker: data.AutoSpeakerNotePoints + data.TeleopSpeakerNotePoints,
-            rainbowRP: false,
-            amplified: true,
-          };
-        }
-        this.broadcastState();
-      },
-    );
-    this.fmsConnection.on("redScoreChanged", async (data: ScoreChangedData) => {
+    this.fmsConnection.on("blueScoreChanged", async (data: ScoreChangedData) => {
       if (this.match) {
-        this.match.score.red = {
-          amp: data.TeleopAmpNotePoints + data.AutoAmpNotePoints,
-          auto: data.AutoPoints,
-          endgame: data.EndGameTotalStagePoints,
-          ensambleRP: data.EnsambleBonusAchieved,
-          fouls: data.FoulPoints,
-          melodyRP: data.MelodyBonusAchieved,
-          noteCount: data.TotalNoteCount,
-          noteRequirement: data.MelodyBonusThreshold,
+        const isTie = data.TotalPoints === this.match.score.red.score;
+        const blueWins = data.TotalPoints > this.match.score.red.score;
+
+        this.match.score.blue = {
           score: data.TotalPoints,
-          speaker: data.AutoSpeakerNotePoints + data.TeleopSpeakerNotePoints,
-          rainbowRP: false,
-          amplified: false,
+          autoMobility: data.AutoMobilityPoints,
+          coral: data.TotalCoralPoints,
+          algae: data.AlgaePoints,
+          barge: data.EndgameBargePoints,
+          fouls: data.FoulPoints,
+          autoBonusRP: data.AutoBonusAchieved,
+          coralBonusRP: data.CoralBonusAchieved,
+          bargeBonusRP: data.BargeBonusAchieved,
+          coopertitionAchieved: data.CoopertitionBonusAchieved,
+          rankingPoints:
+            (data.AutoBonusAchieved ? 1 : 0) +
+            (data.CoralBonusAchieved ? 1 : 0) +
+            (data.BargeBonusAchieved ? 1 : 0) +
+            (data.CoopertitionBonusAchieved ? 1 : 0) +
+            (isTie ? 1 : 0) +
+            (blueWins ? 2 : 0)
+
         };
       }
       this.broadcastState();
     });
+
+    this.fmsConnection.on("redScoreChanged", async (data: ScoreChangedData) => {
+      if (this.match) {
+        const isTie = data.TotalPoints === this.match.score.blue.score;
+        const redWins = data.TotalPoints > this.match.score.blue.score;
+
+        this.match.score.red = {
+          score: data.TotalPoints,
+          autoMobility: data.AutoMobilityPoints,
+          coral: data.TotalCoralPoints,
+          algae: data.AlgaePoints,
+          barge: data.EndgameBargePoints,
+          fouls: data.FoulPoints,
+          autoBonusRP: data.AutoBonusAchieved,
+          coralBonusRP: data.CoralBonusAchieved,
+          bargeBonusRP: data.BargeBonusAchieved,
+          coopertitionAchieved: data.CoopertitionBonusAchieved,
+          rankingPoints:
+            (data.AutoBonusAchieved ? 1 : 0) +
+            (data.CoralBonusAchieved ? 1 : 0) +
+            (data.BargeBonusAchieved ? 1 : 0) +
+            (data.CoopertitionBonusAchieved ? 1 : 0) +
+            (isTie ? 1 : 0) +
+            (redWins ? 2 : 0)
+        };
+      }
+      this.broadcastState();
+    });
+
     this.fmsConnection.on("matchStart", () => {
       this.playSound("matchStart");
     });

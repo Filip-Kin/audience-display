@@ -12,17 +12,16 @@ export type Screen =
 
 export type AllianceScore = {
   score: number;
-  auto: number;
-  amp: number;
-  speaker: number;
-  endgame: number;
+  autoMobility: number;
+  coral: number;
+  algae: number;
+  barge: number;
   fouls: number;
-  noteCount: number;
-  noteRequirement: number;
-  melodyRP: boolean;
-  ensambleRP: boolean;
-  rainbowRP: boolean;
-  amplified: boolean;
+  autoBonusRP: boolean;
+  coralBonusRP: boolean;
+  bargeBonusRP: boolean;
+  coopertitionAchieved: boolean;
+  rankingPoints: number;
 };
 
 export type Team = {
