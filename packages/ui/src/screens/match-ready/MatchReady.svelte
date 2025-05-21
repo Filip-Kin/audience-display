@@ -2,6 +2,7 @@
 	import { state } from "../../lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { spring, tweened } from "svelte/motion";
+	import { matchName } from "../../lib/matchNamer";
 
 	let positionSpring = spring(-400, {
 		stiffness: 0.1,
@@ -64,6 +65,21 @@
 			style={`transform: translateY(calc(${($logoSpring / 100) * 50}vh - 100px - 50vh)) scale(${420 - ($logoSpring / 100) * 300}%)`}
 		/>
 	</div>
+
+	<div class="fixed bg-primary-800 h-16 text-white flex justify-between mx-[15vw] w-[70vw]" style={`top: ${$positionSpring}px`}>
+		<img src="/sponsor.png" class="size-16" alt="sponsor" />
+		<div class="flex justify-center items-center">
+			<div class="text-2xl font-bold text-center">
+				{$state.eventDetails?.name || "Event Name"} - {matchName(
+					$state.match.details.matchNumber,
+					$state.eventDetails?.matchCount ?? 0,
+					$state.match.details.matchType
+				)}
+			</div>
+		</div>
+		<img src="/pitpodcast.png" class="size-16" alt="sponsor" />
+	</div>
+
 	<div class="fixed w-full grid grid-cols-realtimeScores" style={`bottom: ${$positionSpring}px`}>
 		<div class="flex flex-row justify-end justify-self-end">
 			<div class="bg-primary-700 pr-16 -mr-16 rounded-l-xl flex flex-row relative">
