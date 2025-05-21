@@ -9,5 +9,5 @@ export default {
 		},
 	},
 	plugins: [],
-	safelist: ["bg-gradient-to-r", "bg-gradient-to-l"],
+	safelist: ["bg-gradient-to-r", "bg-gradient-to-l", "rounded-l-xl", "rounded-r-xl"],
 };

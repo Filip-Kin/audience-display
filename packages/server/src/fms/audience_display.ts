@@ -1,7 +1,7 @@
 import type { Server } from "bun";
 import type { MatchState, Screen, EventDetails, ScoreChangedData } from "lib";
 import { FMSSignalRConnection } from "../signalr/connection";
-import { LevelParam, type FMSMatchPreview, type FMSMatchSchedule } from "lib/types/FMS_API_audience";
+import { LevelParam, type FMSMatchPreview, type FMSMatchSchedule, type FMSMatchScore } from "lib/types/FMS_API_audience";
 
 export class AudienceDisplayManager {
   private server: Server;
@@ -60,16 +60,19 @@ export class AudienceDisplayManager {
           name: "Hemlock's Gray Matter",
           number: 5712,
           rank: 1,
+          card: "None",
         },
         {
           name: "Hemlock's Gray Matter",
           number: 5712,
           rank: 1,
+          card: "None",
         },
         {
           name: "Hemlock's Gray Matter",
           number: 5712,
           rank: 1,
+          card: "None",
         },
       ],
       blue: [
@@ -77,16 +80,19 @@ export class AudienceDisplayManager {
           name: "Hemlock's Gray Matter",
           number: 5712,
           rank: 1,
+          card: "None",
         },
         {
           name: "Hemlock's Gray Matter",
           number: 5712,
           rank: 1,
+          card: "None",
         },
         {
           name: "Hemlock's Gray Matter",
           number: 5712,
           rank: 1,
+          card: "None",
         },
       ],
     },
@@ -129,7 +135,6 @@ export class AudienceDisplayManager {
 
     Promise.all(promises).then(async () => {
       const matchPreview = await this.getMatchPreview(this.currentLevel, this.match.details.matchNumber);
-      console.log(matchPreview);
       this.updateMatchPreview(matchPreview);
 
       this.broadcastState();
@@ -153,6 +158,7 @@ export class AudienceDisplayManager {
           this.match.details.matchNumber = matchNumber;
           this.currentLevel = level;
           this.match.details.matchType = this.getMatchTypeFromLevel(level);
+          this.match.score.winner = undefined;
 
           // Get the match preview data
           const matchPreview = await this.getMatchPreview(this.currentLevel, matchNumber);
@@ -232,7 +238,78 @@ export class AudienceDisplayManager {
     });
 
     this.fmsConnection.on("showResults", async (data: { matchNumber: number, level: keyof LevelParam; }) => {
-      console.log(await this.getMatchResults(LevelParam[data.level], data.matchNumber));
+      const results = await this.getMatchResults(LevelParam[data.level], data.matchNumber);
+
+      this.screen = "score-reveal";
+
+      for (let i = 0; i < 3; i++) {
+        const matchResultsTeamRed =
+          results.redAllianceData[
+          `team${i + 1}` as "team1" | "team2" | "team3"
+          ];
+        this.match.teams.red[i] = {
+          name: matchResultsTeamRed.teamName,
+          number: matchResultsTeamRed.teamNumber,
+          rank: matchResultsTeamRed.teamRank,
+          avatar: matchResultsTeamRed.avatar,
+          card: matchResultsTeamRed.cardCarryStatus,
+          rankChange: matchResultsTeamRed.teamRankChange,
+        };
+
+        const matchResultsTeamBlue =
+          results.blueAllianceData[
+          `team${i + 1}` as "team1" | "team2" | "team3"
+          ];
+        this.match.teams.blue[i] = {
+          name: matchResultsTeamBlue.teamName,
+          number: matchResultsTeamBlue.teamNumber,
+          rank: matchResultsTeamBlue.teamRank,
+          avatar: matchResultsTeamBlue.avatar,
+          card: matchResultsTeamBlue.cardCarryStatus,
+          rankChange: matchResultsTeamBlue.teamRankChange,
+        };
+      }
+
+      this.match.score.red = {
+        score: results.redAllianceData.scoreDetails.totalScore,
+        autoMobility: results.redAllianceData.scoreDetails.autoMobilityPoints,
+        coral: results.redAllianceData.scoreDetails.coralPoints,
+        algae: results.redAllianceData.scoreDetails.algaePoints,
+        barge: results.redAllianceData.scoreDetails.bargePoints,
+        fouls: results.redAllianceData.scoreDetails.penaltyPoints,
+        algaeCount: 0, // Does not matter for score results screen
+        autoBonusRP: results.redAllianceData.scoreDetails.autoBonusAchieved,
+        coralBonusRP: results.redAllianceData.scoreDetails.coralBonusAchieved,
+        coralBonusProgress: 0, // Does not matter for score results screen
+        coralBonusThreshold: 4, // Does not matter for score results screen
+        bargeBonusRP: results.redAllianceData.scoreDetails.bargeBonusAchieved,
+        coopertitionMet: results.redAllianceData.scoreDetails.coopertitionAchieved,
+        coopertitionAchieved: results.redAllianceData.scoreDetails.coopertitionAchieved,
+        rankingPoints: results.redAllianceData.scoreDetails.rankingPoints,
+      };
+
+      this.match.score.blue = {
+        score: results.blueAllianceData.scoreDetails.totalScore,
+        autoMobility: results.blueAllianceData.scoreDetails.autoMobilityPoints,
+        coral: results.blueAllianceData.scoreDetails.coralPoints,
+        algae: results.blueAllianceData.scoreDetails.algaePoints,
+        barge: results.blueAllianceData.scoreDetails.bargePoints,
+        fouls: results.blueAllianceData.scoreDetails.penaltyPoints,
+        algaeCount: 0, // Does not matter for score results screen
+        autoBonusRP: results.blueAllianceData.scoreDetails.autoBonusAchieved,
+        coralBonusRP: results.blueAllianceData.scoreDetails.coralBonusAchieved,
+        coralBonusProgress: 0, // Does not matter for score results screen
+        coralBonusThreshold: 4, // Does not matter for score results screen
+        bargeBonusRP: results.blueAllianceData.scoreDetails.bargeBonusAchieved,
+        coopertitionMet: results.blueAllianceData.scoreDetails.coopertitionAchieved,
+        coopertitionAchieved: results.blueAllianceData.scoreDetails.coopertitionAchieved,
+        rankingPoints: results.blueAllianceData.scoreDetails.rankingPoints,
+      };
+
+      this.match.details.matchNumber = results.matchNumber;
+      this.match.score.winner = results.matchWinner === null ? "Tie" : results.matchWinner;
+
+      this.broadcastState();
     });
 
     this.fmsConnection.on("matchReady", () => {
@@ -255,6 +332,11 @@ export class AudienceDisplayManager {
     });
     this.fmsConnection.on("matchAbort", () => {
       this.playSound("matchAbort");
+    });
+
+    this.fmsConnection.on("matchCommit", () => {
+      this.screen = "scores-ready";
+      this.broadcastState();
     });
   }
 
@@ -295,6 +377,7 @@ export class AudienceDisplayManager {
           number: matchPreviewTeamRed.teamNumber,
           rank: matchPreviewTeamRed.teamRank,
           avatar: matchPreviewTeamRed.avatar,
+          card: matchPreviewTeamRed.cardCarryStatus,
         };
 
         const matchPreviewTeamBlue =
@@ -306,6 +389,7 @@ export class AudienceDisplayManager {
           number: matchPreviewTeamBlue.teamNumber,
           rank: matchPreviewTeamBlue.teamRank,
           avatar: matchPreviewTeamBlue.avatar,
+          card: matchPreviewTeamBlue.cardCarryStatus,
         };
       }
     }
@@ -389,6 +473,6 @@ export class AudienceDisplayManager {
     const res = await fetch(
       `http://${this.fmsUrl}/api/v1.0/audience_gs/get/GetMatchResults${level === LevelParam.Qualification ? 'Qual' : LevelParam[level]}Data/${matchNumber}`,
     );
-    return (await res.json()) as FMSMatchPreview;
+    return (await res.json()) as FMSMatchScore;
   }
 }

@@ -7,6 +7,8 @@
 	import SettingsIcon from "../assets/settings.svg";
 	import SettingsModal from "../lib/SettingsModal.svelte";
 	import EnableAudioModal from "../lib/EnableAudioModal.svelte";
+	import ScoresReady from "./scores-ready/ScoresReady.svelte";
+	import ScoresReveal from "./score-reveal/ScoresReveal.svelte";
 
 	let transitioning = false;
 	let activeScreen: Screen = "none";
@@ -16,7 +18,7 @@
 	// transitioning to false and updating the active screen.
 	$: if ($state.screen !== activeScreen) {
 		transitioning = true;
-		console.log("Transitioning");
+		console.log("Transitioning to ", $state.screen);
 		setTimeout(() => {
 			if (transitioning) {
 				transitioning = false;
@@ -34,8 +36,8 @@
 		"match-teleop": null,
 		"match-endgame": null,
 		"match-end": null,
-		"scores-ready": null,
-		"score-reveal": null,
+		"scores-ready": ScoresReady,
+		"score-reveal": ScoresReveal,
 	};
 
 	let settingsOpen = false;

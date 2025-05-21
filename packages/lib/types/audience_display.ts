@@ -1,3 +1,5 @@
+import type { FMSMatchPreviewTeam, FMSMatchResultsTeam } from "./FMS_API_audience";
+
 export type Screen =
   | "none"
   | "match-preview"
@@ -33,6 +35,8 @@ export type Team = {
   name: string;
   rank: number;
   avatar?: string;
+  card: FMSMatchPreviewTeam["cardCarryStatus"];
+  rankChange?: FMSMatchResultsTeam["teamRankChange"];
 };
 
 export type MatchType = "q" | "p" | "t" | "sf" | "f";
@@ -42,6 +46,7 @@ export type MatchState = {
   score: {
     red: AllianceScore;
     blue: AllianceScore;
+    winner?: "Red" | "Blue" | "Tie";
   };
   teams: {
     red: Team[];

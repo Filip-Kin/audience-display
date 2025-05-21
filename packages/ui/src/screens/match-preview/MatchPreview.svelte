@@ -4,9 +4,9 @@
 	import { state } from "../../lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { matchName } from "../../lib/matchNamer";
-	import { defaultAvatar } from "./avatar";
 	import RobotShadow from "./RobotShadow.svelte";
 	import { settings } from "../../lib/settings";
+	import TeamCard from "../../lib/TeamCard.svelte";
 
 	let ready = false;
 	const dispatcher = createEventDispatcher();
@@ -21,7 +21,7 @@
 		shutterSpring.set(50);
 		setTimeout(() => {
 			ready = true;
-		}, 1500);
+		}, 500);
 	});
 
 	$: if (exit) {
@@ -61,7 +61,11 @@
 			{#if ready}
 				<div class="bg-black min-w-96 rounded px-32 py-8 text-center text-3xl" in:fly={{ y: -50, duration: 100 }} out:fade={{ duration: 100 }}>
 					<span class="text-transparent bg-clip-text bg-gradient-to-r rainbow-gradient font-bold">
-						{matchName($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType)}
+						{$state.eventDetails?.name || "Event Name"} - {matchName(
+							$state.match.details.matchNumber,
+							$state.eventDetails?.matchCount ?? 0,
+							$state.match.details.matchType
+						)}
 					</span>
 				</div>
 			{/if}
@@ -72,30 +76,7 @@
 		<div class="w-1/3 flex flex-col gap-8 justify-center">
 			{#if $state.match}
 				{#each $state.match.teams.blue as team, index}
-					{#if ready}
-						<div
-							class="flex flex-col shadow-xl"
-							in:fly={{
-								x: 100,
-								duration: 500,
-								delay: 150 * index,
-							}}
-							out:fly={{
-								x: 400,
-								duration: 100,
-							}}
-						>
-							<div class="flex flex-row bg-blue-600 text-white p-4 text-xl gap-4 align-middle">
-								<div style="width: 40px; height: 40px">
-									<img src="data:image/png;base64,{team.avatar || defaultAvatar}" alt="{team.number} Icon" width="40px" height="40px" />
-								</div>
-								<span class="text-3xl">{team.number}</span>
-							</div>
-							<div class="flex bg-white text-black p-4 text-2xl font-bold">
-								<span>{team.name}</span>
-							</div>
-						</div>
-					{/if}
+					<TeamCard alliance="blue" {ready} {index} {team} invert={!$settings.invert} />
 				{/each}
 			{/if}
 		</div>
@@ -103,30 +84,7 @@
 		<div class="w-1/3 flex flex-col gap-8 justify-center">
 			{#if $state.match}
 				{#each $state.match.teams.red as team, index}
-					{#if ready}
-						<div
-							class="flex flex-col shadow-xl"
-							in:fly={{
-								x: -100,
-								duration: 500,
-								delay: 150 * index,
-							}}
-							out:fly={{
-								x: -400,
-								duration: 100,
-							}}
-						>
-							<div class="flex flex-row bg-red-600 text-white p-4 text-xl gap-4 align-middle">
-								<div style="width: 40px; height: 40px">
-									<img src="data:image/png;base64,{team.avatar || defaultAvatar}" alt="{team.number} Icon" width="40px" height="40px" />
-								</div>
-								<span class="text-3xl">{team.number}</span>
-							</div>
-							<div class="flex bg-white text-black p-4 text-2xl font-bold">
-								<span>{team.name}</span>
-							</div>
-						</div>
-					{/if}
+					<TeamCard alliance="red" {ready} {index} {team} invert={$settings.invert} />
 				{/each}
 			{/if}
 		</div>
