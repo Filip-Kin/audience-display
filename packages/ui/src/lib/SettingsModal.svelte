@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { playSound } from "./audio";
 	import { settings } from "./settings"; // adjust if path is different
 	import { get } from "svelte/store";
 
@@ -10,6 +11,8 @@
 	function toggleSetting(key: keyof typeof currentSettings) {
 		settings.update((s) => ({ ...s, [key]: !s[key] }));
 	}
+
+	let testSound = "matchStart";
 </script>
 
 {#if settingsOpen}
@@ -39,6 +42,20 @@
 						<div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
 					</label>
 				</label>
+
+				<div class="flex flex-col gap-1">
+					<span>Play Sound </span>
+					<div class="flex items-center justify-between gap-2">
+						<select bind:value={testSound} class="bg-gray-200 rounded px-2 py-1 w-full">
+							<option value="matchStart">Match Start</option>
+							<option value="endgameWarning">Endgame Warning</option>
+							<option value="matchEnd">Match End</option>
+							<option value="teleopStart">Teleop Start</option>
+							<option value="matchAbort">Match Abort</option>
+						</select>
+						<button class="bg-blue-500 text-white rounded px-2 py-1 ml-2" on:click={() => playSound(testSound)}>Play</button>
+					</div>
+				</div>
 			</div>
 
 			<button class="mt-6 bg-blue-500 text-white rounded px-4 py-2 w-full" on:click={() => (settingsOpen = false)}> Close </button>
