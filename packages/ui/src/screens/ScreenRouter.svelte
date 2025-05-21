@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { type ComponentType } from "svelte";
+	import { onMount, type ComponentType } from "svelte";
 	import { state } from "../lib/state";
 	import type { Screen } from "lib";
 	import MatchPreview from "./match-preview/MatchPreview.svelte";
 	import MatchReady from "./match-ready/MatchReady.svelte";
 	import SettingsIcon from "../assets/settings.svg";
 	import SettingsModal from "../lib/SettingsModal.svelte";
+	import EnableAudioModal from "../lib/EnableAudioModal.svelte";
 
 	let transitioning = false;
 	let activeScreen: Screen = "none";
@@ -38,6 +39,46 @@
 	};
 
 	let settingsOpen = false;
+
+	let showUnlockPopup = false;
+	let audioContext: AudioContext;
+
+	async function tryPlaySilentAudio(): Promise<boolean> {
+		try {
+			audioContext = new AudioContext();
+
+			// Create silent oscillator
+			const osc = audioContext.createOscillator();
+			const gain = audioContext.createGain();
+			gain.gain.value = 0.001;
+
+			osc.connect(gain);
+			gain.connect(audioContext.destination);
+
+			osc.start();
+
+			if (audioContext.state !== "running") {
+				return false;
+			}
+
+			return true;
+		} catch (err) {
+			console.error("AudioContext error", err);
+			return false;
+		}
+	}
+
+	onMount(async () => {
+		const success = await tryPlaySilentAudio();
+		if (!success) {
+			showUnlockPopup = true;
+		}
+	});
+
+	function unlockManually() {
+		audioContext.resume();
+		showUnlockPopup = false;
+	}
 </script>
 
 {#if activeScreen in screens}
@@ -51,6 +92,10 @@
 			}}
 		/>
 	{/if}
+{/if}
+
+{#if showUnlockPopup}
+	<EnableAudioModal onUnlock={unlockManually} />
 {/if}
 
 <button

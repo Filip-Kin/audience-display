@@ -43,6 +43,17 @@
 					</label>
 				</label>
 
+				<label class="flex items-center justify-between">
+					<span>Match Ready Sound</span>
+					<label class="relative inline-flex items-center cursor-pointer">
+						<input type="checkbox" bind:checked={$settings.matchReadySound} class="sr-only peer" />
+						<div
+							class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:bg-blue-600 transition-colors"
+						></div>
+						<div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+					</label>
+				</label>
+
 				<div class="flex flex-col gap-1">
 					<span>Play Sound </span>
 					<div class="flex items-center justify-between gap-2">
@@ -52,6 +63,7 @@
 							<option value="matchEnd">Match End</option>
 							<option value="teleopStart">Teleop Start</option>
 							<option value="matchAbort">Match Abort</option>
+							<option value="matchReady">Match Ready</option>
 						</select>
 						<button class="bg-blue-500 text-white rounded px-2 py-1 ml-2" on:click={() => playSound(testSound)}>Play</button>
 					</div>

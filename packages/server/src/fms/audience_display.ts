@@ -16,7 +16,7 @@ export class AudienceDisplayManager {
     matchCount: 80,
   };
 
-  private match: MatchState | null = {
+  private match: MatchState = {
     score: {
       red: {
         score: 0,
@@ -101,21 +101,38 @@ export class AudienceDisplayManager {
     this.fmsUrl = fmsUrl;
     this.fmsConnection = new FMSSignalRConnection(fmsUrl);
 
-    this.getActiveTournamentLevel().then((level) => {
-      this.currentLevel = level;
+    let promises: Promise<void>[] = [];
 
-      if (level === LevelParam.Qual) {
+    promises.push(this.getActiveTournamentLevel().then((level) => {
+      this.currentLevel = level;
+      console.log("Current tournament level", level);
+      if (level === LevelParam.Qualification) {
         this.getCurrentSchedule().then((schedule) => {
           const matchCount = schedule.filter(
-            (match) => match.tournamentLevel === "Qual",
+            (match) => match.tournamentLevel === "Qualification",
           ).length;
+          console.log("Match count", matchCount);
           this.eventDetails.matchCount = matchCount;
         });
       }
-    });
+    }));
 
-    this.getEventName().then((eventName) => {
+    promises.push(this.getEventName().then((eventName) => {
       this.eventDetails.name = eventName;
+    }));
+
+    promises.push(this.getCurrentMatchAndPlayNumber().then((data) => {
+      this.match.details.matchNumber = data.matchNumber;
+      this.currentLevel = data.level;
+      this.match.details.matchType = this.getMatchTypeFromLevel(data.level);
+    }));
+
+    Promise.all(promises).then(async () => {
+      const matchPreview = await this.getMatchPreview(this.currentLevel, this.match.details.matchNumber);
+      console.log(matchPreview);
+      this.updateMatchPreview(matchPreview);
+
+      this.broadcastState();
     });
 
     this.fmsConnection.on("timer", async (time) => {
@@ -135,53 +152,11 @@ export class AudienceDisplayManager {
           const { matchNumber, playNumber, level } = await this.getCurrentMatchAndPlayNumber();
           this.match.details.matchNumber = matchNumber;
           this.currentLevel = level;
-          switch (this.currentLevel) {
-            case LevelParam.Practice:
-              this.match.details.matchType = "p";
-              break;
-            case LevelParam.Qual:
-              this.match.details.matchType = "q";
-              break;
-            case LevelParam.DoubleElimFinal:
-              this.match.details.matchType = "f";
-              break;
-            default:
-              this.match.details.matchType = "sf";
-              break;
-          }
+          this.match.details.matchType = this.getMatchTypeFromLevel(level);
 
           // Get the match preview data
           const matchPreview = await this.getMatchPreview(this.currentLevel, matchNumber);
-          console.log(matchPreview);
-
-          for (let i = 0; i < 3; i++) {
-            const matchPreviewTeamRed =
-              matchPreview.redAlliance[
-              `team${i + 1}` as "team1" | "team2" | "team3"
-              ];
-            this.match.teams.red[i] = {
-              name: matchPreviewTeamRed.teamName,
-              number: matchPreviewTeamRed.teamNumber,
-              rank: matchPreviewTeamRed.teamRank,
-              avatar: matchPreviewTeamRed.avatar,
-            };
-
-            const matchPreviewTeamBlue =
-              matchPreview.blueAlliance[
-              `team${i + 1}` as "team1" | "team2" | "team3"
-              ];
-            this.match.teams.blue[i] = {
-              name: matchPreviewTeamBlue.teamName,
-              number: matchPreviewTeamBlue.teamNumber,
-              rank: matchPreviewTeamBlue.teamRank,
-              avatar: matchPreviewTeamBlue.avatar,
-            };
-          }
-
-          if (this.match.details.matchType === "q") {
-            this.eventDetails.matchCount =
-              matchPreview.numberOfQualMatches ?? 0;
-          }
+          this.updateMatchPreview(matchPreview);
         }
       }
 
@@ -256,6 +231,13 @@ export class AudienceDisplayManager {
       this.broadcastState();
     });
 
+    this.fmsConnection.on("showResults", async (data: { matchNumber: number, level: keyof LevelParam; }) => {
+      console.log(await this.getMatchResults(LevelParam[data.level], data.matchNumber));
+    });
+
+    this.fmsConnection.on("matchReady", () => {
+      this.playSound("matchReady");
+    });
     this.fmsConnection.on("matchStart", () => {
       this.playSound("matchStart");
     });
@@ -301,9 +283,37 @@ export class AudienceDisplayManager {
     );
   }
 
+  private async updateMatchPreview(matchPreview: FMSMatchPreview) {
+    if (this.match) {
+      for (let i = 0; i < 3; i++) {
+        const matchPreviewTeamRed =
+          matchPreview.redAlliance[
+          `team${i + 1}` as "team1" | "team2" | "team3"
+          ];
+        this.match.teams.red[i] = {
+          name: matchPreviewTeamRed.teamName,
+          number: matchPreviewTeamRed.teamNumber,
+          rank: matchPreviewTeamRed.teamRank,
+          avatar: matchPreviewTeamRed.avatar,
+        };
+
+        const matchPreviewTeamBlue =
+          matchPreview.blueAlliance[
+          `team${i + 1}` as "team1" | "team2" | "team3"
+          ];
+        this.match.teams.blue[i] = {
+          name: matchPreviewTeamBlue.teamName,
+          number: matchPreviewTeamBlue.teamNumber,
+          rank: matchPreviewTeamBlue.teamRank,
+          avatar: matchPreviewTeamBlue.avatar,
+        };
+      }
+    }
+  }
+
   private async getMatchPreview(level: LevelParam, matchNumber: number) {
     const res = await fetch(
-      `http://${this.fmsUrl}/api/v1.0/audience/get/Get${LevelParam[level]}MatchPreviewData/${matchNumber}`,
+      `http://${this.fmsUrl}/api/v1.0/audience/get/Get${level === LevelParam.Qualification ? 'Qual' : LevelParam[level]}MatchPreviewData/${matchNumber}`,
     );
     return (await res.json()) as FMSMatchPreview;
   }
@@ -319,7 +329,7 @@ export class AudienceDisplayManager {
       case '"Practice"':
         return LevelParam.Practice;
       case '"Qualification"':
-        return LevelParam.Qual;
+        return LevelParam.Qualification;
       case '"Playoff"':
         return LevelParam.Playoff;
       case '"DoubleElimPlayoff"':
@@ -336,7 +346,6 @@ export class AudienceDisplayManager {
       `http://${this.fmsUrl}/FieldMonitor/MatchNumberAndPlay`,
     );
     const data = await res.json();
-    console.log(data);
     return {
       matchNumber: data[0],
       playNumber: data[1],
@@ -363,4 +372,23 @@ export class AudienceDisplayManager {
     return (await res.json()) as FMSMatchSchedule[];
   }
 
+  private getMatchTypeFromLevel(level: LevelParam) {
+    switch (level) {
+      case LevelParam.Practice:
+        return "p";
+      case LevelParam.Qualification:
+        return "q";
+      case LevelParam.DoubleElimFinal:
+        return "f";
+      default:
+        return "sf";
+    }
+  }
+
+  private async getMatchResults(level: LevelParam, matchNumber: number) {
+    const res = await fetch(
+      `http://${this.fmsUrl}/api/v1.0/audience_gs/get/GetMatchResults${level === LevelParam.Qualification ? 'Qual' : LevelParam[level]}Data/${matchNumber}`,
+    );
+    return (await res.json()) as FMSMatchPreview;
+  }
 }

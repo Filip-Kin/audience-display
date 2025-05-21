@@ -9,6 +9,7 @@ type Events =
   | "matchCommit"
   | "showResults"
   | "endgameWarning"
+  | "matchReady"
   | "matchStart"
   | "matchEnd"
   | "matchAbort"
@@ -28,6 +29,7 @@ export class FMSSignalRConnection {
     matchCommit: [],
     showResults: [],
     endgameWarning: [],
+    matchReady: [],
     matchStart: [],
     matchEnd: [],
     matchAbort: [],
@@ -166,6 +168,10 @@ export class FMSSignalRConnection {
 
     this.infrastructureConnection.on("matchstatusinfochanged", (data) => {
       console.log("matchstatusinfochanged: ", data);
+      if (data.MatchState === "WaitingForMatchStart") {
+        this.emit("matchReady", null);
+      }
+
       // Match Started
       if (data.MatchState === "MatchAuto") {
         this.emit("matchStart", null);
@@ -204,7 +210,10 @@ export class FMSSignalRConnection {
 
     this.infrastructureConnection.on("audienceshowmatchresult", (data) => {
       console.log("audienceshowmatchresult: ", data);
-      this.emit("showResults", null);
+      this.emit("showResults", {
+        matchNumber: data.MatchNumber,
+        level: data.TournamentLevel
+      });
     });
 
     this.infrastructureConnection.on("matchstatuschanged", (data) => {

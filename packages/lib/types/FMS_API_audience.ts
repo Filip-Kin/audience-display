@@ -1,7 +1,7 @@
 export enum LevelParam {
   None,
   Practice,
-  Qual,
+  Qualification,
   Playoff,
   DoubleElimPlayoff,
   DoubleElimFinal

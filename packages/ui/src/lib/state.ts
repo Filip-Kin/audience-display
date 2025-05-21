@@ -1,6 +1,7 @@
-import { readable } from "svelte/store";
+import { get, readable } from "svelte/store";
 import type { AudienceDisplayState } from "lib";
 import { playSound } from "./audio";
+import { settings } from "./settings";
 
 const defaultState: AudienceDisplayState = {
   connected: false,
@@ -29,7 +30,11 @@ export const state = readable(defaultState, (set) => {
     }
     if (message.type === "sound") {
       console.log("Playing sound:", message.data);
-      playSound(message.data);
+      if (message.data === "matchReady" && !get(settings).matchReadySound) {
+        console.log("Match ready sound is disabled in settings.");
+      } else {
+        playSound(message.data);
+      }
     }
   };
 
