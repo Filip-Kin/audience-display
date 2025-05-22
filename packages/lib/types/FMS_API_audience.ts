@@ -30,11 +30,12 @@ export interface FMSMatchPreviewTeam {
   teamName: string;
   teamRank: number;
   avatar: string;
-  cardCarryStatus: "None" | "Yellow" | "Red";
+  carryingCard: boolean;
 };
 
 export interface FMSMatchResultsTeam extends FMSMatchPreviewTeam {
   teamRankChange: "Up" | "Down" | null;
+  cardCarryStatus: "None" | "Yellow" | "Red";
   cardEffectiveStatus: "None" | "Yellow" | "Red";
 }
 

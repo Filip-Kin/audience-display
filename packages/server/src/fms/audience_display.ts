@@ -273,7 +273,7 @@ export class AudienceDisplayManager {
           number: matchResultsTeamRed.teamNumber,
           rank: matchResultsTeamRed.teamRank,
           avatar: matchResultsTeamRed.avatar,
-          card: matchResultsTeamRed.cardCarryStatus,
+          card: matchResultsTeamRed.cardEffectiveStatus,
           rankChange: matchResultsTeamRed.teamRankChange,
         };
 
@@ -286,7 +286,7 @@ export class AudienceDisplayManager {
           number: matchResultsTeamBlue.teamNumber,
           rank: matchResultsTeamBlue.teamRank,
           avatar: matchResultsTeamBlue.avatar,
-          card: matchResultsTeamBlue.cardCarryStatus,
+          card: matchResultsTeamBlue.cardEffectiveStatus,
           rankChange: matchResultsTeamBlue.teamRankChange,
         };
       }
@@ -404,6 +404,7 @@ export class AudienceDisplayManager {
   }
 
   private async updateMatchPreview(matchPreview: FMSMatchPreview) {
+    console.log(matchPreview.redAlliance);
     if (this.match) {
       for (let i = 0; i < 3; i++) {
         const matchPreviewTeamRed =
@@ -415,7 +416,7 @@ export class AudienceDisplayManager {
           number: matchPreviewTeamRed.teamNumber,
           rank: matchPreviewTeamRed.teamRank,
           avatar: matchPreviewTeamRed.avatar,
-          card: matchPreviewTeamRed.cardCarryStatus,
+          card: matchPreviewTeamRed.carryingCard,
         };
 
         const matchPreviewTeamBlue =
@@ -427,7 +428,7 @@ export class AudienceDisplayManager {
           number: matchPreviewTeamBlue.teamNumber,
           rank: matchPreviewTeamBlue.teamRank,
           avatar: matchPreviewTeamBlue.avatar,
-          card: matchPreviewTeamBlue.cardCarryStatus,
+          card: matchPreviewTeamBlue.carryingCard,
         };
       }
     }

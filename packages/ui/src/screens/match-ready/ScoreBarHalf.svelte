@@ -45,9 +45,9 @@
 					</div>
 				</div>
 
-				<div class="flex flex-col justify-center px-3 w-24">
+				<div class="flex flex-col justify-center px-3 w-24 gap-1">
 					{#each $state.match.teams[alliance] as team, index}
-						<span class="text-2xl text-center">{team.number}</span>
+						<span class="text-2xl text-center text-black rounded {team.card ? 'bg-yellow-200' : 'bg-white'}">{team.number}</span>
 					{/each}
 				</div>
 			</div>
