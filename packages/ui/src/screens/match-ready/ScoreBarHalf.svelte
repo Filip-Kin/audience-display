@@ -30,7 +30,7 @@
 					{/if}
 				</div>
 
-				<div class="flex flex-col px-4 text-2xl justify-center text-center text-nowrap min-w-24 gap-2">
+				<div class="flex flex-col px-4 text-2xl justify-center text-center text-nowrap min-w-24 gap-2 my-2">
 					<div class="flex justify-between bg-white text-black rounded-full py-2 px-4 items-center gap-3" class:flex-row-reverse={invert}>
 						<span class="grow text-center mb-1">{score.algaeCount}</span>
 						<img src="/algea.png" alt="algea" class="size-8" />

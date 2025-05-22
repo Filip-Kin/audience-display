@@ -58,6 +58,15 @@
 	<!-- Top bar with event name and match number -->
 	<SmallTopBar {positionSpring} />
 
+	<div class="w-screen h-screen flex justify-center items-end">
+		<img
+			src="/logo.png"
+			alt=""
+			class="size-32 z-50"
+			style={`transform: translateY(calc(${($logoSpring / 100) * 50}vh - 120px - 50vh)) scale(${420 - ($logoSpring / 100) * 300}%)`}
+		/>
+	</div>
+
 	<div
 		class="fixed w-full flex items-stretch justify-center"
 		style={`${$settings.top ? "top" : "bottom"}: ${$positionSpring}px`}

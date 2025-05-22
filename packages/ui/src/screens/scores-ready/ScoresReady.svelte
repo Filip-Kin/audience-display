@@ -5,7 +5,6 @@
 	import { createEventDispatcher, onMount } from "svelte";
 	import { matchName } from "../../lib/matchNamer";
 	import { settings } from "../../lib/settings";
-	import logo from "../../assets/rr-logo.png";
 
 	let ready = false;
 	const dispatcher = createEventDispatcher();
@@ -62,13 +61,15 @@
 	</div>
 
 	{#if ready}
-		<img
-			src={logo}
-			alt="Logo"
-			class="animate-spin size-48 mx-auto"
-			style="animation-duration: 2s;"
-			in:fly={{ y: 100, duration: 300 }}
-			out:fly={{ y: -400, duration: 200 }}
-		/>
+		<div class="glint-container">
+			<img
+				src="/logo.png"
+				alt="Logo"
+				class="size-48 mx-auto glint-image"
+				style="animation-duration: 2s;"
+				in:fly={{ y: 100, duration: 300 }}
+				out:fly={{ y: -400, duration: 200 }}
+			/>
+		</div>
 	{/if}
 </div>

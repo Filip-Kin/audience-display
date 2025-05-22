@@ -104,3 +104,47 @@ body,
 .rainbow-gradient {
   background-image: linear-gradient(90deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff);
 }
+
+.glint-container {
+  position: relative;
+  display: inline-block;
+}
+
+.glint-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  mask-image: url('/logo.png');
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  -webkit-mask-image: url('/logo.png');
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  position: relative;
+}
+
+.glint-image::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.7) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: glint 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes glint {
+  0% {
+    left: -75%;
+  }
+  100% {
+    left: 125%;
+  }
+}
