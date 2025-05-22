@@ -3,6 +3,7 @@
 	import { state } from "../../lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
 	import SmallTopBar from "../../lib/SmallTopBar.svelte";
+	import logo from "../../assets/rr-logo.png";
 
 	let ready = false;
 	const dispatcher = createEventDispatcher();
@@ -29,6 +30,12 @@
 	}
 
 	$: console.log($state.ranking);
+
+	const secondsToMinutes = (seconds: number) => {
+		const minutes = Math.floor(seconds / 60);
+		const remainingSeconds = seconds % 60;
+		return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+	};
 </script>
 
 <div class="w-full h-full fixed bg-gray-800"></div>
@@ -37,11 +44,11 @@
 
 <div class="absolute top-32 gap-8 px-8 w-full grid grid-cols-[.6fr_.4fr]">
 	<div class="flex flex-col gap-8">
-		<div class="grid grid-rows-6 grid-flow-col gap-x-4 gap-y-2 text-2xl">
+		<div class="grid grid-rows-4 grid-flow-col gap-x-4 gap-y-3 text-3xl">
 			{#each $state.ranking as team, index}
 				{#if !team.unavailableForSelection}
 					<div class="flex flex-row justify-between items-center bg-white border border-gray-800 rounded">
-						<span class="bg-blue-800 text-white font-semibold w-full h-full py-2 px-3 text-center max-w-12">
+						<span class="bg-blue-800 text-white font-semibold w-full h-full py-2 px-3 text-center max-w-16">
 							{team.rank}
 						</span>
 						<span class="text-gray-800 font-semibold p-2" class:bg-yellow-200={team.potentialCaptain}>
@@ -51,13 +58,16 @@
 				{/if}
 			{/each}
 		</div>
-
-		<div class="w-full aspect-video bg-fuchsia-500 z-10 rounded"></div>
+		<!-- Camera greenscreen -->
+		<div class="w-full aspect-video bg-fuchsia-500 z-10 rounded-xl"></div>
 	</div>
 
 	<div class="flex flex-col gap-4">
+		<div class="text-4xl text-center font-bold">Alliances</div>
 		{#each $state.alliances as alliance, index}
-			<div class="w-full flex flex-row justify-between items-center gap-4 bg-white text-black text-2xl rounded text-left border border-gray-800 rounded">
+			<div
+				class="w-full flex flex-row justify-between items-center gap-4 bg-white text-black text-3xl font-semibold text-left border border-gray-800 rounded"
+			>
 				<span class="p-2 px-4 bg-blue-800 font-semibold text-white">{alliance.allianceNumber}</span>
 				{#each alliance.teams as team, index}
 					<span class="w-1/4">{team.number}</span>
@@ -68,5 +78,20 @@
 				{/each}
 			</div>
 		{/each}
+
+		<div class="flex gap-4 justify-around items-center">
+			<div class="w-full">
+				<!-- Space for sponsor / logo -->
+				<img src={logo} alt="Logo" class="size-full max-h-80 object-contain animate-spin" style="animation-duration: 3s" />
+			</div>
+
+			<div class="h-full flex flex-col items-end justify-end">
+				<!-- TODO: Selection Timer -->
+				<div class="bg-black rounded-xl py-6 px-16 text-white font-bold text-7xl text-center flex flex-col gap-2">
+					<span class="text-2xl">TIMER</span>
+					<span>{secondsToMinutes($state.match?.timer ?? 0)}</span>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>
