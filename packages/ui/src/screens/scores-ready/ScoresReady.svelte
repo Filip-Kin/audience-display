@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { spring } from "svelte/motion";
-	import { fade, fly, scale } from "svelte/transition";
+	import { blur, fade, fly } from "svelte/transition";
 	import { state } from "../../lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { matchName } from "../../lib/matchNamer";
@@ -55,9 +55,16 @@
 	</div>
 
 	{#if ready}
-		<div class="flex justify-center w-full">
-			<div class="glint-wrapper" in:scale={{ start: 0.2, duration: 300 }} out:fly={{ y: -400, duration: 200 }}>
-				<img src="/logo.png" alt="Logo" class="size-96 mx-auto glint-image" />
+		<div class="w-full flex justify-center" in:fly={{ y: -400, duration: 200 }} out:fly={{ y: 100, duration: 300 }}>
+			<div class:glint-wrapper={$state.screen === "scores-ready"}>
+				<img
+					src="/logo.png"
+					alt="Logo"
+					class="size-48 mx-auto"
+					class:glint-image={$state.screen === "scores-ready"}
+					class:animate-spin={$state.screen === "match-end"}
+					style="animation-duration: 2s;"
+				/>
 			</div>
 		</div>
 	{/if}

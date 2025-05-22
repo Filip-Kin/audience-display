@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { settings } from "../../lib/settings";
 	import { state } from "../../lib/state";
-	import logo from "../../assets/rr-logo.png";
 
 	export let wingSpring;
 

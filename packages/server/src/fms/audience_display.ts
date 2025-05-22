@@ -13,6 +13,7 @@ export class AudienceDisplayManager {
   private currentLevel: LevelParam = LevelParam.None;
   private alliances: AllianceSelection[] = [];
   private ranking: Omit<Team, 'name' | 'card'>[] = [];
+  private connected = false;
 
   private eventDetails: EventDetails = {
     name: "Rainbow Rumble",
@@ -357,6 +358,8 @@ export class AudienceDisplayManager {
     });
     this.fmsConnection.on("matchEnd", () => {
       this.playSound("matchEnd");
+      this.screen = "match-end";
+      this.broadcastState();
     });
     this.fmsConnection.on("matchAbort", () => {
       this.playSound("matchAbort");
@@ -374,6 +377,17 @@ export class AudienceDisplayManager {
       console.log(this.ranking);
       this.broadcastState();
     });
+
+    this.fmsConnection.on("connected", () => {
+      this.connected = true;
+      this.broadcastState();
+    });
+
+    this.fmsConnection.on("disconnected", () => {
+      console.log("Disconnected from FMS");
+      this.connected = false;
+      this.broadcastState();
+    });
   }
 
   broadcastState() {
@@ -382,7 +396,7 @@ export class AudienceDisplayManager {
       JSON.stringify({
         type: "state",
         data: {
-          connected: true,
+          connected: this.connected,
           screen: this.screen,
           match: this.match,
           eventDetails: this.eventDetails,
@@ -404,7 +418,6 @@ export class AudienceDisplayManager {
   }
 
   private async updateMatchPreview(matchPreview: FMSMatchPreview) {
-    console.log(matchPreview.redAlliance);
     if (this.match) {
       for (let i = 0; i < 3; i++) {
         const matchPreviewTeamRed =

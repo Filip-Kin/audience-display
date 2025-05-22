@@ -17,7 +17,7 @@
 
 {#if settingsOpen}
 	<div class="absolute top-0 left-0 w-full h-full bg-gray-900/50 z-10">
-		<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-lg p-6 text-black w-[300px]">
+		<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-lg p-6 text-black w-2xl">
 			<h2 class="text-xl font-bold mb-4">Settings</h2>
 
 			<div class="grid grid-cols-1 gap-6">
@@ -52,6 +52,14 @@
 						></div>
 						<div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
 					</label>
+				</label>
+
+				<label class="flex items-center justify-between gap-4">
+					<div class="flex flex-col gap-1">
+						<span>Transition to Waiting Screen</span>
+						<span>After Match End (-1 to disable)</span>
+					</div>
+					<input type="number" bind:value={$settings.transitionAfterMatchEnd} class="bg-gray-100 border border-gray-800 px-2 w-16" />
 				</label>
 
 				<div class="flex flex-col gap-1">
