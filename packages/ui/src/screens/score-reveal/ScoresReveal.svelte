@@ -104,7 +104,7 @@
 	</div>
 
 	<div class="w-full h-full flex flex-row justify-around" class:flex-row-reverse={$settings.invert}>
-		<div class="w-1/4 flex flex-col gap-4 justify-center">
+		<div class="w-[30%] flex flex-col gap-4 justify-center">
 			{#if $state.match}
 				{#each $state.match.teams.blue as team, index}
 					<TeamCard alliance="blue" {ready} {index} {team} invert={!$settings.invert} />
@@ -115,38 +115,48 @@
 		</div>
 
 		{#if ready}
-			<div class="w-1/3 flex flex-col items-center">
+			<div class="w-1/4 flex flex-col items-center">
 				<div
-					class="w-3/4 h-fit -mt-8 py-4 gap-8 justify-around bg-white text-black font-semibold text-3xl grid grid-cols-[.25fr_auto_.25fr] text-center"
+					class="w-full h-fit -mt-8 justify-around bg-white text-black font-semibold text-3xl flex flex-col text-center"
 					in:fade={{ duration: 100 }}
 					out:fade={{ duration: 100 }}
 				>
-					<span>{$state.match?.score.blue.autoMobility}</span>
-					<span>Auto Leave</span>
-					<span>{$state.match?.score.red.autoMobility}</span>
+					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
+						<span>{$state.match?.score.blue.autoMobility}</span>
+						<span>Auto Leave</span>
+						<span>{$state.match?.score.red.autoMobility}</span>
+					</div>
 
-					<span>{$state.match?.score.blue.coral}</span>
-					<span>Coral</span>
-					<span>{$state.match?.score.red.coral}</span>
+					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
+						<span>{$state.match?.score.blue.coral}</span>
+						<span>Coral</span>
+						<span>{$state.match?.score.red.coral}</span>
+					</div>
 
-					<span>{$state.match?.score.blue.algae}</span>
-					<span>Algae</span>
-					<span>{$state.match?.score.red.algae}</span>
+					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
+						<span>{$state.match?.score.blue.algae}</span>
+						<span>Algae</span>
+						<span>{$state.match?.score.red.algae}</span>
+					</div>
 
-					<span>{$state.match?.score.blue.barge}</span>
-					<span>Barge</span>
-					<span>{$state.match?.score.red.barge}</span>
+					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
+						<span>{$state.match?.score.blue.barge}</span>
+						<span>Barge</span>
+						<span>{$state.match?.score.red.barge}</span>
+					</div>
 
-					<span>{$state.match?.score.blue.fouls}</span>
-					<span>Penalty</span>
-					<span>{$state.match?.score.red.fouls}</span>
+					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
+						<span>{$state.match?.score.blue.fouls}</span>
+						<span>Penalty</span>
+						<span>{$state.match?.score.red.fouls}</span>
+					</div>
 				</div>
 
 				<img src="/logo.png" alt="logo" class="size-96" in:fly={{ y: 200, duration: 500 }} out:fly={{ y: -400, duration: 200 }} />
 			</div>
 		{/if}
 
-		<div class="w-1/4 flex flex-col gap-4 justify-center">
+		<div class="w-[30%] flex flex-col gap-4 justify-center">
 			{#if $state.match}
 				{#each $state.match.teams.red as team, index}
 					<TeamCard alliance="red" {ready} {index} {team} invert={$settings.invert} />

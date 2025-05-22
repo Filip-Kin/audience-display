@@ -12,7 +12,7 @@
 	class="fixed bg-primary-800 text-secondary-600 h-16 flex justify-between mx-[15vw] w-[70vw]"
 	style={`${$settings.top ? "bottom" : "top"}: ${$positionSpring || 40}px`}
 >
-	<span><img src="/sponsor.png" class="size-16" alt="sponsor" /></span>
+	<span><img src="/sponsor.png" class="h-16 p-3" alt="sponsor" /></span>
 	<div class="flex justify-center items-center">
 		<div class="text-2xl font-bold text-center">
 			{$state.eventDetails?.name || "Event Name"}

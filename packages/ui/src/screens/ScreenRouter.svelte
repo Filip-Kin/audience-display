@@ -31,17 +31,22 @@
 		if (activeScreen === "match-end" && $state.screen === "scores-ready" && $settings.transitionAfterMatchEnd > -1) {
 		} else {
 			// If the screen is match-end, wait 8 seconds before transitioning
-			if ($state.screen === "match-end" && $settings.transitionAfterMatchEnd > -1) {
-				setTimeout(() => {
-					transitioning = true;
-					activeScreen = $state.screen;
-				}, $settings.transitionAfterMatchEnd * 1000);
-				setTimeout(() => {
-					if (transitioning) {
-						transitioning = false;
+			if ($state.screen === "match-end") {
+				if ($settings.transitionAfterMatchEnd > -1) {
+					setTimeout(() => {
+						transitioning = true;
 						activeScreen = $state.screen;
-					}
-				}, 1000);
+					}, $settings.transitionAfterMatchEnd * 1000);
+					setTimeout(() => {
+						if (transitioning) {
+							transitioning = false;
+							activeScreen = $state.screen;
+						}
+					}, 1000);
+				} else {
+					// Don't transition if the setting is set to -1
+					transitioning = false;
+				}
 			} else {
 				// Standard transition
 				transitioning = true;

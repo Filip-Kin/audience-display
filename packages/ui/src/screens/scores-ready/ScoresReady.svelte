@@ -57,14 +57,7 @@
 	{#if ready}
 		<div class="w-full flex justify-center" in:fly={{ y: -400, duration: 200 }} out:fly={{ y: 100, duration: 300 }}>
 			<div class:glint-wrapper={$state.screen === "scores-ready"}>
-				<img
-					src="/logo.png"
-					alt="Logo"
-					class="size-48 mx-auto"
-					class:glint-image={$state.screen === "scores-ready"}
-					class:animate-spin={$state.screen === "match-end"}
-					style="animation-duration: 2s;"
-				/>
+				<img src="/logo.png" alt="Logo" class="size-96 mx-auto" class:glint-image={$state.screen === "scores-ready"} style="animation-duration: 2s;" />
 			</div>
 		</div>
 	{/if}
