@@ -3,6 +3,10 @@
 	import { createEventDispatcher, onMount } from "svelte";
 	import { spring, tweened } from "svelte/motion";
 	import { matchName } from "../../lib/matchNamer";
+	import { settings } from "../../lib/settings";
+	import ScoreBarTimer from "./ScoreBarTimer.svelte";
+	import ScoreBarHalf from "./ScoreBarHalf.svelte";
+	import SmallTopBar from "../../lib/SmallTopBar.svelte";
 
 	let positionSpring = spring(-400, {
 		stiffness: 0.1,
@@ -48,127 +52,24 @@
 			opacityTween.set(1);
 		}, 1200);
 	});
-
-	const secondsToMinutes = (seconds: number) => {
-		const minutes = Math.floor(seconds / 60);
-		const remainingSeconds = seconds % 60;
-		return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
-	};
 </script>
 
 {#if $state.match}
-	<div class="w-screen h-screen flex justify-center items-end">
-		<img
-			src="/logo.png"
-			alt=""
-			class="size-32 z-50"
-			style={`transform: translateY(calc(${($logoSpring / 100) * 50}vh - 100px - 50vh)) scale(${420 - ($logoSpring / 100) * 300}%)`}
-		/>
-	</div>
+	<!-- Top bar with event name and match number -->
+	<SmallTopBar {positionSpring} />
 
-	<div class="fixed bg-primary-800 h-16 text-white flex justify-between mx-[15vw] w-[70vw]" style={`top: ${$positionSpring}px`}>
-		<img src="/sponsor.png" class="size-16" alt="sponsor" />
-		<div class="flex justify-center items-center">
-			<div class="text-2xl font-bold text-center">
-				{$state.eventDetails?.name || "Event Name"} - {matchName(
-					$state.match.details.matchNumber,
-					$state.eventDetails?.matchCount ?? 0,
-					$state.match.details.matchType
-				)}
-			</div>
-		</div>
-		<img src="/pitpodcast.png" class="size-16" alt="sponsor" />
-	</div>
+	<div
+		class="fixed w-full flex items-stretch justify-center"
+		style={`${$settings.top ? "top" : "bottom"}: ${$positionSpring}px`}
+		class:flex-row-reverse={$settings.invert}
+	>
+		<!-- Red Alliance -->
+		<ScoreBarHalf {wingSpring} {opacityTween} alliance="red" invert={$settings.invert} />
 
-	<div class="fixed w-full grid grid-cols-realtimeScores" style={`bottom: ${$positionSpring}px`}>
-		<div class="flex flex-row justify-end justify-self-end">
-			<div class="bg-primary-700 pr-16 -mr-16 rounded-l-xl flex flex-row relative">
-				<div class="flex flex-row" style={`max-width: ${$wingSpring / 2}vw; opacity: ${$opacityTween}`}>
-					<div class="flex flex-col px-4 text-2xl justify-center text-center text-nowrap min-w-24 gap-2 my-2">
-						<div class="flex justify-between bg-white text-black rounded-full py-1 px-4 items-center gap-3">
-							<span class="grow text-center mb-1">{$state.match.score.red.algaeCount}</span>
-							<img src="/algea.png" alt="algea" class="size-8" />
-						</div>
-						<div
-							class="flex justify-between bg-white text-black rounded-full py-1 px-4 items-center gap-2"
-							class:bg-yellow-200={$state.match.score.red.coralBonusRP}
-						>
-							<span class="grow text-center mb-1">{$state.match.score.red.coralBonusProgress} / {$state.match.score.red.coralBonusThreshold}</span
-							>
-							<img src="/coral.png" alt="coral" class="size-8" />
-						</div>
-					</div>
+		<!-- Timer -->
+		<ScoreBarTimer {wingSpring} />
 
-					<div class="flex flex-col justify-center h-full min-w-12">
-						{#if $state.match.score.red.coopertitionMet}
-							<div
-								class="rounded-full bg-white text-black p-1.5 flex items-center justify-center gap-2 h-fit"
-								class:bg-yellow-200={$state.match.score.red.coopertitionAchieved}
-							>
-								<img src="/coop.png" alt="coop" class="size-8" />
-							</div>
-						{/if}
-					</div>
-
-					<div class="flex flex-col justify-center px-3 w-24">
-						{#each $state.match.teams.red as team, index}
-							<span class="text-2xl text-center text-nowrap">{team.number}</span>
-						{/each}
-					</div>
-
-					<div class="flex flex-col justify-center px-3 w-32 text-5xl font-bold text-center bg-red-600">
-						{$state.match.score.red.score}
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="z-50 w-32 relative bg-white" style={` opacity: ${$opacityTween}`}>
-			<div class="top-0 my-4 mx-4 w-24 rounded-full aspect-square absolute z-0 overflow-hidden"></div>
-			<div class="absolute text-black text-5xl font-bold top-0 left-0 w-32 h-32 grid place-items-center">
-				{secondsToMinutes($state.match.timer)}
-			</div>
-		</div>
-		<div class="flex flex-row justify-start">
-			<div class="bg-primary-700 flex flex-row pl-16 -ml-16 rounded-r-xl relative">
-				<div class="flex flex-row z-10 relative" style={`max-width: ${$wingSpring / 2}vw; opacity: ${$opacityTween}`}>
-					<div class="flex flex-col justify-center px-3 w-32 text-5xl font-bold text-center bg-blue-600">
-						{$state.match.score.blue.score}
-					</div>
-
-					<div class="flex flex-col justify-center px-3 w-24">
-						{#each $state.match.teams.blue as team, index}
-							<span class="text-2xl text-center">{team.number}</span>
-						{/each}
-					</div>
-
-					<div class="flex flex-col justify-center h-full min-w-12">
-						{#if $state.match.score.blue.coopertitionMet}
-							<div
-								class="rounded-full bg-white text-black p-1.5 flex items-center justify-center gap-2 h-fit"
-								class:bg-yellow-200={$state.match.score.blue.coopertitionAchieved}
-							>
-								<img src="/coop.png" alt="coop" class="size-8" />
-							</div>
-						{/if}
-					</div>
-
-					<div class="flex flex-col px-4 text-2xl justify-center text-center text-nowrap min-w-24 gap-2 my-2">
-						<div class="flex justify-between bg-white text-black rounded-full py-1 px-4 items-center gap-3">
-							<img src="/algea.png" alt="algea" class="size-8" />
-							<span class="grow text-center mb-1">{$state.match.score.blue.algaeCount}</span>
-						</div>
-						<div
-							class="flex justify-between bg-white text-black rounded-full py-1 px-4 items-center gap-2"
-							class:bg-yellow-200={$state.match.score.blue.coralBonusRP}
-						>
-							<img src="/coral.png" alt="coral" class="size-8" />
-							<span class="grow text-center mb-1"
-								>{$state.match.score.blue.coralBonusProgress} / {$state.match.score.blue.coralBonusThreshold}</span
-							>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
+		<!-- Blue Alliance -->
+		<ScoreBarHalf {wingSpring} {opacityTween} alliance="blue" invert={!$settings.invert} />
 	</div>
 {/if}

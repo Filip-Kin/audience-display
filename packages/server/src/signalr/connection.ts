@@ -9,11 +9,13 @@ type Events =
   | "matchCommit"
   | "showResults"
   | "endgameWarning"
+  | "matchReady"
   | "matchStart"
   | "matchEnd"
   | "matchAbort"
   | "teleopStart"
-  | "autoEnd";
+  | "autoEnd"
+  | "allianceSelectionChanged";
 
 export class FMSSignalRConnection {
   private fmsUrl: string;
@@ -28,6 +30,7 @@ export class FMSSignalRConnection {
     matchCommit: [],
     showResults: [],
     endgameWarning: [],
+    matchReady: [],
     matchStart: [],
     matchEnd: [],
     matchAbort: [],
@@ -119,7 +122,7 @@ export class FMSSignalRConnection {
 
     // 90 seconds left
     this.infrastructureConnection.on("matchtimerwarning2", (data) => {
-      //console.log('matchtimerwarning2: ', data);
+      // console.log('matchtimerwarning2: ', data);
     });
 
     // 60 seconds left (intended for timeouts but also played during matches lol)
@@ -166,6 +169,10 @@ export class FMSSignalRConnection {
 
     this.infrastructureConnection.on("matchstatusinfochanged", (data) => {
       console.log("matchstatusinfochanged: ", data);
+      if (data.MatchState === "WaitingForMatchStart") {
+        this.emit("matchReady", null);
+      }
+
       // Match Started
       if (data.MatchState === "MatchAuto") {
         this.emit("matchStart", null);
@@ -204,7 +211,10 @@ export class FMSSignalRConnection {
 
     this.infrastructureConnection.on("audienceshowmatchresult", (data) => {
       console.log("audienceshowmatchresult: ", data);
-      this.emit("showResults", null);
+      this.emit("showResults", {
+        matchNumber: data.MatchNumber,
+        level: data.TournamentLevel
+      });
     });
 
     this.infrastructureConnection.on("matchstatuschanged", (data) => {
@@ -214,6 +224,11 @@ export class FMSSignalRConnection {
     this.infrastructureConnection.on("pingaudiencescreen", (data) => {
       console.log("pingaudiencescreen: ", data);
       this.pingResponse(data);
+    });
+
+    this.infrastructureConnection.on("allianceselectionchanged", (data) => {
+      console.log("allianceselectionchanged: ", data);
+      this.emit("allianceSelectionChanged", null);
     });
 
     this.infrastructureConnection.onreconnected(() => {
@@ -287,6 +302,12 @@ export class FMSSignalRConnection {
       this.emit("videoSwitch", "match-ready");
     } else if (option === "MatchPreview") {
       this.emit("videoSwitch", "match-preview");
+    } else if (option === "MatchResults") {
+      this.emit("videoSwitch", "score-reveal");
+    } else if (option === "AllianceHybrid") {
+      this.emit("videoSwitch", "alliance-selection");
+    } else if (option === "AllianceFullscreen") {
+      this.emit("videoSwitch", "alliance-selection-fullscreen");
     }
   }
 }
