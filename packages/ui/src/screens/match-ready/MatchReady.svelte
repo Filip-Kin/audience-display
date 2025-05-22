@@ -2,7 +2,6 @@
 	import { state } from "../../lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { spring, tweened } from "svelte/motion";
-	import { matchName } from "../../lib/matchNamer";
 	import { settings } from "../../lib/settings";
 	import ScoreBarTimer from "./ScoreBarTimer.svelte";
 	import ScoreBarHalf from "./ScoreBarHalf.svelte";

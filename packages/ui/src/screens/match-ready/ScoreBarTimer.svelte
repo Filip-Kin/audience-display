@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { settings } from "../../lib/settings";
 	import { state } from "../../lib/state";
-	import logo from "../../assets/rr-logo.png";
 
 	export let wingSpring;
 
@@ -19,7 +18,7 @@
 				? 'l'
 				: 'r'} from-red-500 from-20% via-[#814589bf] to-80% to-blue-500 absolute z-0 overflow-hidden"
 		></div>
-		<img src={logo} alt="" style={`transform: rotate(${($wingSpring / 50) * 360}deg)`} />
+		<img src="/logo.png" alt="" style={`transform: rotate(${($wingSpring / 50) * 360}deg)`} />
 		<div class="absolute text-white text-5xl font-bold top-0 left-0 w-32 h-32 grid place-items-center drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
 			{secondsToMinutes($state.match.timer)}
 		</div>

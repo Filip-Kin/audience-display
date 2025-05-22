@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { spring } from "svelte/motion";
-	import { fade, fly } from "svelte/transition";
+	import { blur, fade, fly } from "svelte/transition";
 	import { state } from "../../lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { matchName } from "../../lib/matchNamer";
 	import { settings } from "../../lib/settings";
-	import logo from "../../assets/rr-logo.png";
 
 	let ready = false;
 	const dispatcher = createEventDispatcher();
@@ -62,13 +61,17 @@
 	</div>
 
 	{#if ready}
-		<img
-			src={logo}
-			alt="Logo"
-			class="animate-spin size-48 mx-auto"
-			style="animation-duration: 2s;"
-			in:fly={{ y: 100, duration: 300 }}
-			out:fly={{ y: -400, duration: 200 }}
-		/>
+		<div class="w-full flex justify-center" in:fly={{ y: -400, duration: 200 }} out:fly={{ y: 100, duration: 300 }}>
+			<div class:glint-wrapper={$state.screen === "scores-ready"}>
+				<img
+					src="/logo.png"
+					alt="Logo"
+					class="size-48 mx-auto"
+					class:glint-image={$state.screen === "scores-ready"}
+					class:animate-spin={$state.screen === "match-end"}
+					style="animation-duration: 2s;"
+				/>
+			</div>
+		</div>
 	{/if}
 </div>

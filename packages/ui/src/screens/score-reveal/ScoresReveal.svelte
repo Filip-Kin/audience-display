@@ -39,6 +39,8 @@
 		videoElm.addEventListener("canplay", () => {
 			videoElm.play();
 
+			dispatcher("loaded");
+
 			setTimeout(
 				() => {
 					ready = true;

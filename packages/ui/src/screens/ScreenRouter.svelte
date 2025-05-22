@@ -10,33 +10,61 @@
 	import ScoresReady from "./scores-ready/ScoresReady.svelte";
 	import ScoresReveal from "./score-reveal/ScoresReveal.svelte";
 	import AllianceSelection from "./alliance-selection/AllianceSelection.svelte";
+	import { settings } from "../lib/settings";
 
 	let transitioning = false;
 	let activeScreen: Screen = "none";
+	let preScoreReveal = false;
 
 	// When the screen changes, set transitioning to true,
 	// then wait for the transition to finish before setting
 	// transitioning to false and updating the active screen.
 	$: if ($state.screen !== activeScreen) {
-		transitioning = true;
-		console.log("Transitioning to ", $state.screen);
-		setTimeout(() => {
-			if (transitioning) {
-				transitioning = false;
-				activeScreen = $state.screen;
+		// If we're loading the score-reveal screen set this to true to hide the flicker when loading the animation
+		if ($state.screen === "score-reveal") {
+			preScoreReveal = true;
+		} else {
+			preScoreReveal = false;
+		}
+
+		// Don't transition to scores-ready if the active screen is match-end
+		if (activeScreen === "match-end" && $state.screen === "scores-ready" && $settings.transitionAfterMatchEnd > -1) {
+		} else {
+			// If the screen is match-end, wait 8 seconds before transitioning
+			if ($state.screen === "match-end" && $settings.transitionAfterMatchEnd > -1) {
+				setTimeout(() => {
+					transitioning = true;
+					activeScreen = $state.screen;
+				}, $settings.transitionAfterMatchEnd * 1000);
+				setTimeout(() => {
+					if (transitioning) {
+						transitioning = false;
+						activeScreen = $state.screen;
+					}
+				}, 1000);
+			} else {
+				// Standard transition
+				transitioning = true;
+				console.log("Transitioning to ", $state.screen);
+				setTimeout(() => {
+					if (transitioning) {
+						transitioning = false;
+						activeScreen = $state.screen;
+					}
+				}, 1000);
 			}
-		}, 1000);
+		}
 	}
 
 	const screens: { [key in Screen]: ComponentType | null } = {
 		none: null,
 		"match-preview": MatchPreview,
 		"match-ready": MatchReady,
-		"match-auton": null,
-		"match-transition": null,
-		"match-teleop": null,
-		"match-endgame": null,
-		"match-end": null,
+		"match-auton": MatchReady,
+		"match-transition": MatchReady,
+		"match-teleop": MatchReady,
+		"match-endgame": MatchReady,
+		"match-end": ScoresReady,
 		"scores-ready": ScoresReady,
 		"score-reveal": ScoresReveal,
 		"alliance-selection": AllianceSelection,
@@ -86,21 +114,47 @@
 	}
 </script>
 
+{#if preScoreReveal}
+	<div class="fixed w-full h-full">
+		<img class="w-full h-full object-contain" src="/animations/first-frame.png" alt="" />
+	</div>
+{/if}
+
 {#if activeScreen in screens}
 	{#if screens[activeScreen] !== null}
-		<svelte:component
-			this={screens[activeScreen]}
-			exit={transitioning}
-			on:transitioned={() => {
-				transitioning = false;
-				activeScreen = $state.screen;
-			}}
-		/>
+		{#if activeScreen === "score-reveal"}
+			<svelte:component
+				this={screens[activeScreen]}
+				exit={transitioning}
+				on:transitioned={() => {
+					transitioning = false;
+					activeScreen = $state.screen;
+				}}
+				on:loaded={() => {
+					preScoreReveal = false;
+				}}
+			/>
+		{:else}
+			<svelte:component
+				this={screens[activeScreen]}
+				exit={transitioning}
+				on:transitioned={() => {
+					transitioning = false;
+					activeScreen = $state.screen;
+				}}
+			/>
+		{/if}
 	{/if}
 {/if}
 
 {#if showUnlockPopup}
 	<EnableAudioModal onUnlock={unlockManually} />
+{/if}
+
+{#if !$state.connected}
+	<div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+		<h1 class="p-12 text-red-500 font-bold bg-gray-800 text-4xl">Disconnected</h1>
+	</div>
 {/if}
 
 <button

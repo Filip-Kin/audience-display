@@ -5,6 +5,7 @@ export type Settings = {
   invert: boolean;
   top: boolean;
   matchReadySound: boolean;
+  transitionAfterMatchEnd: number;
 };
 
 const browser = typeof window !== "undefined";
@@ -16,7 +17,8 @@ function parseQuerySettings(): Settings {
   return {
     invert: params.get("inverted") === "true",
     top: params.get("top") === "true",
-    matchReadySound: params.get("matchReadySound") === "false" ? false : true
+    matchReadySound: params.get("matchReadySound") === "false" ? false : true,
+    transitionAfterMatchEnd: parseInt(params.get("transitionAfterMatchEnd") || "-1", 10)
   };
 }
 
@@ -41,6 +43,12 @@ function updateQueryParams(settings: Settings) {
     params.set("matchReadySound", "false");
   } else {
     params.delete("matchReadySound");
+  }
+
+  if (settings.transitionAfterMatchEnd) {
+    params.set("transitionAfterMatchEnd", settings.transitionAfterMatchEnd.toString());
+  } else {
+    params.delete("transitionAfterMatchEnd");
   }
 
   url.search = params.toString();

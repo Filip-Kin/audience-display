@@ -15,7 +15,9 @@ type Events =
   | "matchAbort"
   | "teleopStart"
   | "autoEnd"
-  | "allianceSelectionChanged";
+  | "allianceSelectionChanged"
+  | "connected"
+  | "disconnected";
 
 export class FMSSignalRConnection {
   private fmsUrl: string;
@@ -36,6 +38,9 @@ export class FMSSignalRConnection {
     matchAbort: [],
     teleopStart: [],
     autoEnd: [],
+    allianceSelectionChanged: [],
+    connected: [],
+    disconnected: [],
   };
 
   constructor(fmsUrl: string) {
@@ -66,6 +71,7 @@ export class FMSSignalRConnection {
 
     this.infrastructureConnection.start().then(async () => {
       console.log("Connected to FMS infrastructure hub");
+      this.emit("connected", null);
 
       const videoSwitchOption = await fetch(
         `http://${this.fmsUrl}/api/v1.0/settings/get/get_VideoswitchOption`,
@@ -231,11 +237,18 @@ export class FMSSignalRConnection {
       this.emit("allianceSelectionChanged", null);
     });
 
+    this.infrastructureConnection.onreconnecting(() => {
+      this.emit("disconnected", null);
+      console.log("Reconnecting to FMS SignalR");
+    });
+
     this.infrastructureConnection.onreconnected(() => {
+      this.emit("connected", null);
       console.log("Reconnected to FMS SignalR");
     });
 
     this.infrastructureConnection.onclose(() => {
+      this.emit("disconnected", null);
       console.log("Disconnected from FMS SignalR");
     });
   }
@@ -288,7 +301,7 @@ export class FMSSignalRConnection {
     this.infrastructureConnection.invoke("AudienceScreenPingResponse", {
       UtcNow: new Date().toISOString(),
       MachineName: "RR-AD",
-      Version: "24.0.0",
+      Version: "25.0.0",
       IsMuted: false,
       Volume: 100,
       IsUsingWifi: false,
