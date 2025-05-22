@@ -7,6 +7,7 @@
 	import ScoreBarTimer from "./ScoreBarTimer.svelte";
 	import ScoreBarHalf from "./ScoreBarHalf.svelte";
 	import SmallTopBar from "../../lib/SmallTopBar.svelte";
+	import { fade } from "svelte/transition";
 
 	let positionSpring = spring(-400, {
 		stiffness: 0.1,
@@ -35,7 +36,8 @@
 		positionSpring.set(-400);
 		wingSpring.set(0);
 		opacityTween.set(0);
-		logoSpring.set(0);
+		logoSpring.set(40);
+		ready = false;
 		setTimeout(() => {
 			dispatcher("transitioned");
 		}, 500);
@@ -44,6 +46,7 @@
 	onMount(() => {
 		logoSpring.set(0);
 		positionSpring.set(32);
+		ready = true;
 		setTimeout(() => {
 			wingSpring.set(100);
 			logoSpring.set(100);
@@ -58,14 +61,18 @@
 	<!-- Top bar with event name and match number -->
 	<SmallTopBar {positionSpring} />
 
-	<div class="w-screen h-screen flex justify-center items-end">
-		<img
-			src="/logo.png"
-			alt=""
-			class="size-32 z-50"
-			style={`transform: translateY(calc(${($logoSpring / 100) * 50}vh - 120px - 50vh)) scale(${420 - ($logoSpring / 100) * 300}%)`}
-		/>
-	</div>
+	{#if ready}
+		<div class="w-screen h-screen flex justify-center items-end">
+			<img
+				src="/logo.png"
+				alt=""
+				class="size-32 z-10"
+				style={`transform: translateY(calc(${($logoSpring / 100) * 50}vh - 120px - 50vh)) scale(${420 - ($logoSpring / 100) * 300}%)`}
+				in:fade={{ duration: 300 }}
+				out:fade={{ duration: 300 }}
+			/>
+		</div>
+	{/if}
 
 	<div
 		class="fixed w-full flex items-stretch justify-center"

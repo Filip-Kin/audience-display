@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { spring } from "svelte/motion";
-	import { fade, fly } from "svelte/transition";
+	import { fade, fly, scale } from "svelte/transition";
 	import { state } from "../../lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { matchName } from "../../lib/matchNamer";
@@ -33,22 +33,16 @@
 	$: console.log($state.eventDetails);
 </script>
 
-<div
-	class="w-full {$settings.invert ? 'bg-red-800' : 'bg-blue-800'} h-full fixed -skew-x-12 flex flex-row justify-end"
-	style={`right: ${$shutterSpring}vw`}
-></div>
+<div class="w-full bg-primary-800 h-full fixed -skew-x-12 flex flex-row justify-end" style={`right: ${$shutterSpring}vw`}></div>
 
-<div
-	class="w-full {$settings.invert ? 'bg-blue-800' : 'bg-red-800'} h-full fixed -skew-x-12 flex flex-row justify-start"
-	style={`left: ${$shutterSpring}vw`}
-></div>
+<div class="w-full bg-primary-700 h-full fixed -skew-x-12 flex flex-row justify-start" style={`left: ${$shutterSpring}vw`}></div>
 
 <div class="fixed flex flex-col w-full h-full justify-around">
 	<div class="w-full flex flex-row justify-around py-16">
 		{#if $state.match}
 			{#if ready}
 				<div class="bg-black min-w-96 rounded px-32 py-8 text-center text-3xl" in:fly={{ y: -50, duration: 100 }} out:fade={{ duration: 100 }}>
-					<span class="text-transparent bg-clip-text bg-gradient-to-r rainbow-gradient font-bold">
+					<span class="text-secondary-600 font-bold">
 						{$state.eventDetails?.name || "Event Name"} - {matchName(
 							$state.match.details.matchNumber,
 							$state.eventDetails?.matchCount ?? 0,
@@ -61,15 +55,10 @@
 	</div>
 
 	{#if ready}
-		<div class="glint-container">
-			<img
-				src="/logo.png"
-				alt="Logo"
-				class="size-48 mx-auto glint-image"
-				style="animation-duration: 2s;"
-				in:fly={{ y: 100, duration: 300 }}
-				out:fly={{ y: -400, duration: 200 }}
-			/>
+		<div class="flex justify-center w-full">
+			<div class="glint-wrapper" in:scale={{ start: 0.2, duration: 300 }} out:fly={{ y: -400, duration: 200 }}>
+				<img src="/logo.png" alt="Logo" class="size-96 mx-auto glint-image" />
+			</div>
 		</div>
 	{/if}
 </div>

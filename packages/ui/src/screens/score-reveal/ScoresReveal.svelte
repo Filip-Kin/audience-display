@@ -68,15 +68,9 @@
 	</video>
 </div>
 
-<div
-	class="w-full {$settings.invert ? 'bg-red-800' : 'bg-blue-800'} h-full fixed -skew-x-12 flex flex-row justify-end"
-	style={`right: ${$shutterSpring}vw`}
-></div>
+<div class="w-full bg-primary-800 h-full fixed -skew-x-12 flex flex-row justify-end" style={`right: ${$shutterSpring}vw`}></div>
 
-<div
-	class="w-full {$settings.invert ? 'bg-blue-800' : 'bg-red-800'} h-full fixed -skew-x-12 flex flex-row justify-start"
-	style={`left: ${$shutterSpring}vw`}
-></div>
+<div class="w-full bg-primary-700 h-full fixed -skew-x-12 flex flex-row justify-start" style={`left: ${$shutterSpring}vw`}></div>
 
 <div class="fixed z-10 flex flex-col w-full h-full justify-around">
 	<div class="w-full flex flex-row justify-around py-8">
@@ -84,7 +78,7 @@
 			{#if ready}
 				<div class="min-w-96 text-center text-3xl" in:fly={{ y: -50, duration: 100 }} out:fade={{ duration: 100 }}>
 					<div class="bg-black py-6 px-32 rounded-t">
-						<span class="text-transparent bg-clip-text bg-gradient-to-r rainbow-gradient font-bold">
+						<span class="text-secondary-600 font-bold">
 							{$state.eventDetails?.name || "Event Name"} - {matchName(
 								$state.match.details.matchNumber,
 								$state.eventDetails?.matchCount ?? 0,
@@ -119,26 +113,34 @@
 		</div>
 
 		{#if ready}
-			<div class="w-1/3 h-fit -mt-8 py-4 gap-8 justify-around bg-white text-black font-semibold text-3xl grid grid-cols-[.25fr_auto_.25fr] text-center">
-				<span>{$state.match?.score.blue.autoMobility}</span>
-				<span>Auto Leave</span>
-				<span>{$state.match?.score.red.autoMobility}</span>
+			<div class="w-1/3 flex flex-col items-center">
+				<div
+					class="w-3/4 h-fit -mt-8 py-4 gap-8 justify-around bg-white text-black font-semibold text-3xl grid grid-cols-[.25fr_auto_.25fr] text-center"
+					in:fade={{ duration: 100 }}
+					out:fade={{ duration: 100 }}
+				>
+					<span>{$state.match?.score.blue.autoMobility}</span>
+					<span>Auto Leave</span>
+					<span>{$state.match?.score.red.autoMobility}</span>
 
-				<span>{$state.match?.score.blue.coral}</span>
-				<span>Coral</span>
-				<span>{$state.match?.score.red.coral}</span>
+					<span>{$state.match?.score.blue.coral}</span>
+					<span>Coral</span>
+					<span>{$state.match?.score.red.coral}</span>
 
-				<span>{$state.match?.score.blue.algae}</span>
-				<span>Algae</span>
-				<span>{$state.match?.score.red.algae}</span>
+					<span>{$state.match?.score.blue.algae}</span>
+					<span>Algae</span>
+					<span>{$state.match?.score.red.algae}</span>
 
-				<span>{$state.match?.score.blue.barge}</span>
-				<span>Barge</span>
-				<span>{$state.match?.score.red.barge}</span>
+					<span>{$state.match?.score.blue.barge}</span>
+					<span>Barge</span>
+					<span>{$state.match?.score.red.barge}</span>
 
-				<span>{$state.match?.score.blue.fouls}</span>
-				<span>Penalty</span>
-				<span>{$state.match?.score.red.fouls}</span>
+					<span>{$state.match?.score.blue.fouls}</span>
+					<span>Penalty</span>
+					<span>{$state.match?.score.red.fouls}</span>
+				</div>
+
+				<img src="/logo.png" alt="logo" class="size-96" in:fly={{ y: 200, duration: 500 }} out:fly={{ y: -400, duration: 200 }} />
 			</div>
 		{/if}
 
