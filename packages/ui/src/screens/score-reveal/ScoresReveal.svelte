@@ -70,7 +70,22 @@
 	</video>
 </div>
 
-<div class="w-full bg-primary-800 h-full fixed -skew-x-12 flex flex-row justify-end" style={`right: ${$shutterSpring}vw`}></div>
+<div class="w-full bg-primary-800 h-full fixed -skew-x-12 flex flex-row justify-start" style={`right: ${$shutterSpring}vw`}></div>
+
+{#if ready}
+	<div
+		class="w-screen fixed top-16 grid grid-cols-[20rem_auto_20rem] justify-between items-center px-36 z-10 gap-4"
+		in:fade={{ duration: 200 }}
+		out:fade={{ duration: 200 }}
+	>
+		<span class="text-3xl font-bold text-center">Event Sponsored By</span>
+		<span></span>
+		<span class="text-3xl font-bold text-center">Live Stream Partner</span>
+		<img src="/sponsor2.png" class="w-56 mx-auto" alt="sponsor" />
+		<span></span>
+		<img src="/pitpodcast.png" class="w-56 mx-auto" alt="sponsor" />
+	</div>
+{/if}
 
 <div class="w-full bg-primary-700 h-full fixed -skew-x-12 flex flex-row justify-start" style={`left: ${$shutterSpring}vw`}></div>
 
