@@ -8,6 +8,8 @@ const defaultState: AudienceDisplayState = {
   screen: "none",
   match: null,
   eventDetails: null,
+  alliances: [],
+  ranking: [],
 };
 
 // Subscribe to the state of the WebSocket connection.

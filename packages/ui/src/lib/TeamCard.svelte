@@ -37,9 +37,9 @@
 			<span class="flex gap-2 items-center justify-center">
 				<span>{team.rank}</span>
 				{#if team.rankChange}
-					{#if team.rankChange === "MovedUp"}
+					{#if team.rankChange === "Up"}
 						<img src={ArrowUp} alt="up" class="size-8 fill-black" />
-					{:else if team.rankChange === "MovedDown"}
+					{:else if team.rankChange === "Down"}
 						<img src={ArrowDown} alt="down" class="size-8 fill-black" />
 					{:else if team.rankChange === "NoChange"}
 						<img src={NoChange} alt="no change" class="size-8 fill-black" />

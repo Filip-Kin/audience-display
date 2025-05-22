@@ -62,12 +62,13 @@
 	</div>
 
 	{#if ready}
-		<img src={logo} alt="Logo" class="animate-spin size-48 mx-auto" in:fly={{ y: 100, duration: 300 }} out:fly={{ y: -400, duration: 200 }} />
+		<img
+			src={logo}
+			alt="Logo"
+			class="animate-spin size-48 mx-auto"
+			style="animation-duration: 2s;"
+			in:fly={{ y: 100, duration: 300 }}
+			out:fly={{ y: -400, duration: 200 }}
+		/>
 	{/if}
 </div>
-
-<style>
-	.rainbow-gradient {
-		background-image: linear-gradient(90deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff);
-	}
-</style>

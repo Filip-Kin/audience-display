@@ -1,7 +1,8 @@
 import type { Server } from "bun";
 import type { MatchState, Screen, EventDetails, ScoreChangedData } from "lib";
 import { FMSSignalRConnection } from "../signalr/connection";
-import { LevelParam, type FMSMatchPreview, type FMSMatchSchedule, type FMSMatchScore } from "lib/types/FMS_API_audience";
+import { LevelParam, type FMSAllianceSelection, type FMSMatchPreview, type FMSMatchSchedule, type FMSMatchScore, type FMSRankingTeam } from "lib/types/FMS_API_audience";
+import type { AllianceSelection, Team } from "lib/types/audience_display";
 
 export class AudienceDisplayManager {
   private server: Server;
@@ -10,6 +11,8 @@ export class AudienceDisplayManager {
 
   private screen: Screen = "none";
   private currentLevel: LevelParam = LevelParam.None;
+  private alliances: AllianceSelection[] = [];
+  private ranking: Omit<Team, 'name' | 'card'>[] = [];
 
   private eventDetails: EventDetails = {
     name: "Rainbow Rumble",
@@ -133,6 +136,11 @@ export class AudienceDisplayManager {
       this.match.details.matchType = this.getMatchTypeFromLevel(data.level);
     }));
 
+    promises.push(this.getAlliances().then(async (alliances) => {
+      this.ranking = await this.getRankings();
+      this.updateAllianceData(alliances);
+    }));
+
     Promise.all(promises).then(async () => {
       const matchPreview = await this.getMatchPreview(this.currentLevel, this.match.details.matchNumber);
       this.updateMatchPreview(matchPreview);
@@ -164,9 +172,24 @@ export class AudienceDisplayManager {
           const matchPreview = await this.getMatchPreview(this.currentLevel, matchNumber);
           this.updateMatchPreview(matchPreview);
         }
-      }
+        this.broadcastState();
+      } else if (screen === "match-reveal") {
+        // This ensures the scores post, even if already on the score screen
+        this.screen = "scores-ready";
+        this.broadcastState();
 
-      this.broadcastState();
+        setTimeout(() => {
+          this.screen = "score-reveal";
+          this.broadcastState();
+        }, 500);
+      } else if (screen === "alliance-selection" || screen === "alliance-selection-fullscreen") {
+        const alliances = await this.getAlliances();
+        this.ranking = await this.getRankings();
+        this.updateAllianceData(alliances);
+        this.broadcastState();
+      } else {
+        this.broadcastState();
+      }
     });
 
     this.fmsConnection.on("blueScoreChanged", async (data: ScoreChangedData) => {
@@ -240,8 +263,6 @@ export class AudienceDisplayManager {
     this.fmsConnection.on("showResults", async (data: { matchNumber: number, level: keyof LevelParam; }) => {
       const results = await this.getMatchResults(LevelParam[data.level], data.matchNumber);
 
-      this.screen = "score-reveal";
-
       for (let i = 0; i < 3; i++) {
         const matchResultsTeamRed =
           results.redAllianceData[
@@ -309,7 +330,14 @@ export class AudienceDisplayManager {
       this.match.details.matchNumber = results.matchNumber;
       this.match.score.winner = results.matchWinner === null ? "Tie" : results.matchWinner;
 
+      // This ensures the scores post, even if already on the score screen
+      this.screen = "scores-ready";
       this.broadcastState();
+
+      setTimeout(() => {
+        this.screen = "score-reveal";
+        this.broadcastState();
+      }, 500);
     });
 
     this.fmsConnection.on("matchReady", () => {
@@ -338,6 +366,14 @@ export class AudienceDisplayManager {
       this.screen = "scores-ready";
       this.broadcastState();
     });
+
+    this.fmsConnection.on("allianceSelectionChanged", async () => {
+      const alliances = await this.getAlliances();
+      this.ranking = await this.getRankings();
+      this.updateAllianceData(alliances);
+      console.log(this.ranking);
+      this.broadcastState();
+    });
   }
 
   broadcastState() {
@@ -350,6 +386,8 @@ export class AudienceDisplayManager {
           screen: this.screen,
           match: this.match,
           eventDetails: this.eventDetails,
+          alliances: this.alliances,
+          ranking: this.ranking,
         },
       }),
     );
@@ -474,5 +512,101 @@ export class AudienceDisplayManager {
       `http://${this.fmsUrl}/api/v1.0/audience_gs/get/GetMatchResults${level === LevelParam.Qualification ? 'Qual' : LevelParam[level]}Data/${matchNumber}`,
     );
     return (await res.json()) as FMSMatchScore;
+  }
+
+  private async getAlliances() {
+    const res = await fetch(
+      `http://${this.fmsUrl}/api/v1.0/audience/get/GetAlliances`,
+    );
+    return (await res.json()) as FMSAllianceSelection[];
+  }
+
+  private updateAllianceData(alliances: FMSAllianceSelection[]) {
+    this.alliances = [];
+
+    for (let i = 0; i < alliances.length; i++) {
+      const alliance = alliances[i];
+      const teams: Team[] = [];
+
+      if (alliance.captainTeamNumber) {
+        teams.push({
+          number: alliance.captainTeamNumber,
+          name: alliance.captainTeamNameShort,
+          avatar: alliance.captainAvatar,
+          rank: 0,
+          card: alliance.cardEffectiveStatus,
+          isCaptain: true,
+        });
+
+        const teamInRankings = this.ranking.find((team) => team.number === alliance.captainTeamNumber);
+        if (teamInRankings) {
+          teamInRankings.unavailableForSelection = true;
+        }
+      }
+
+      if (alliance.firstRoundTeamNumber) {
+        teams.push({
+          number: alliance.firstRoundTeamNumber,
+          name: alliance.firstRoundTeamNameShort,
+          avatar: alliance.firstRoundAvatar,
+          rank: 0,
+          card: alliance.cardEffectiveStatus,
+        });
+
+        const teamInRankings = this.ranking.find((team) => team.number === alliance.firstRoundTeamNumber);
+        if (teamInRankings) {
+          teamInRankings.unavailableForSelection = true;
+        }
+      }
+
+      if (alliance.secondRoundTeamNumber) {
+        teams.push({
+          number: alliance.secondRoundTeamNumber,
+          name: alliance.secondRoundTeamNameShort,
+          avatar: alliance.secondRoundAvatar,
+          rank: 0,
+          card: alliance.cardEffectiveStatus,
+        });
+
+        const teamInRankings = this.ranking.find((team) => team.number === alliance.secondRoundTeamNumber);
+        if (teamInRankings) {
+          teamInRankings.unavailableForSelection = true;
+        }
+      }
+
+      if (alliance.alternateTeamNumber) {
+        teams.push({
+          number: alliance.alternateTeamNumber,
+          name: alliance.alternateTeamNameShort,
+          avatar: alliance.alternateAvatar,
+          rank: 0,
+          card: alliance.cardEffectiveStatus,
+        });
+
+        const teamInRankings = this.ranking.find((team) => team.number === alliance.alternateTeamNumber);
+        if (teamInRankings) {
+          teamInRankings.unavailableForSelection = true;
+        }
+      }
+
+      this.alliances.push({
+        allianceNumber: alliance.allianceNumber,
+        allianceName: alliance.allianceName,
+        teams,
+        card: alliance.cardEffectiveStatus,
+      });
+    }
+  }
+
+  private async getRankings() {
+    const res = await fetch(
+      `http://${this.fmsUrl}/api/v1.0/audience/get/GetQualRankings`,
+    );
+    const rankings = (await res.json()) as FMSRankingTeam[];
+    return rankings.map((ranking) => ({
+      number: ranking.teamNumber,
+      rank: ranking.rank,
+      potentialCaptain: ranking.inPotentialCaptainPosition,
+    }));
   }
 }

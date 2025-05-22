@@ -6,6 +6,7 @@
 	import { settings } from "../../lib/settings";
 	import ScoreBarTimer from "./ScoreBarTimer.svelte";
 	import ScoreBarHalf from "./ScoreBarHalf.svelte";
+	import SmallTopBar from "../../lib/SmallTopBar.svelte";
 
 	let positionSpring = spring(-400, {
 		stiffness: 0.1,
@@ -47,19 +48,7 @@
 
 {#if $state.match}
 	<!-- Top bar with event name and match number -->
-	<div class="fixed bg-gray-700 h-16 text-white flex justify-between mx-[15vw] w-[70vw]" style={`${$settings.top ? "bottom" : "top"}: ${$positionSpring}px`}>
-		<span><!-- <img src="/sponsor.png" class="size-16" alt="sponsor" /> --></span>
-		<div class="flex justify-center items-center">
-			<div class="text-2xl font-bold text-center">
-				{$state.eventDetails?.name || "Event Name"} - {matchName(
-					$state.match.details.matchNumber,
-					$state.eventDetails?.matchCount ?? 0,
-					$state.match.details.matchType
-				)}
-			</div>
-		</div>
-		<span><!-- <img src="/pitpodcast.png" class="size-16" alt="sponsor" /> --></span>
-	</div>
+	<SmallTopBar {positionSpring} />
 
 	<div
 		class="fixed w-full flex items-stretch justify-center"

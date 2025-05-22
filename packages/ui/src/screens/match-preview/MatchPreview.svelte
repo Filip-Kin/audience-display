@@ -90,9 +90,3 @@
 		</div>
 	</div>
 </div>
-
-<style>
-	.rainbow-gradient {
-		background-image: linear-gradient(90deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff);
-	}
-</style>

@@ -34,7 +34,7 @@ export interface FMSMatchPreviewTeam {
 };
 
 export interface FMSMatchResultsTeam extends FMSMatchPreviewTeam {
-  teamRankChange: "MovedUp" | "MovedDown" | "NoChange";
+  teamRankChange: "Up" | "Down" | null;
   cardEffectiveStatus: "None" | "Yellow" | "Red";
 }
 
@@ -95,4 +95,35 @@ export type AllianceScoreDetails = {
   bargeBonusAchieved: boolean;
   coopertitionAchieved: boolean;
   rankingPoints: number;
+};
+
+export type FMSAllianceSelection = {
+  allianceNumber: number;
+  allianceName: string;
+  einsteinAlliance: string;
+  isEinstein: boolean;
+
+  captainTeamNumber: number | null;
+  captainTeamNameShort: string;
+  captainAvatar: string;
+
+  firstRoundTeamNumber: number | null;
+  firstRoundTeamNameShort: string;
+  firstRoundAvatar: string;
+
+  secondRoundTeamNumber: number | null;
+  secondRoundTeamNameShort: string;
+  secondRoundAvatar: string;
+
+  alternateTeamNumber: number | null;
+  alternateTeamNameShort: string;
+  alternateAvatar: string;
+
+  cardEffectiveStatus: "None" | "Yellow" | "Red";
+};
+
+export type FMSRankingTeam = {
+  rank: number;
+  teamNumber: number;
+  inPotentialCaptainPosition: boolean;
 };

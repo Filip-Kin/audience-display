@@ -9,6 +9,7 @@
 	import EnableAudioModal from "../lib/EnableAudioModal.svelte";
 	import ScoresReady from "./scores-ready/ScoresReady.svelte";
 	import ScoresReveal from "./score-reveal/ScoresReveal.svelte";
+	import AllianceSelection from "./alliance-selection/AllianceSelection.svelte";
 
 	let transitioning = false;
 	let activeScreen: Screen = "none";
@@ -38,6 +39,8 @@
 		"match-end": null,
 		"scores-ready": ScoresReady,
 		"score-reveal": ScoresReveal,
+		"alliance-selection": AllianceSelection,
+		"alliance-selection-fullscreen": AllianceSelection,
 	};
 
 	let settingsOpen = false;
@@ -101,7 +104,7 @@
 {/if}
 
 <button
-	class="absolute top-2 right-2 opacity-0 hover:opacity-75 border-gray-300/75 roudned-full p-1 transition-opacity duration-300 ease-in-out"
+	class="absolute top-2 right-2 z-50 opacity-0 hover:opacity-75 border-gray-300/75 roudned-full p-1 transition-opacity duration-300 ease-in-out"
 	on:click={() => (settingsOpen = !settingsOpen)}
 >
 	<img src={SettingsIcon} class="size-12" alt="Settings" />
