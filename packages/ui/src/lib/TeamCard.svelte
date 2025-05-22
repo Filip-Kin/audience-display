@@ -32,8 +32,14 @@
 			</div>
 			<span class="text-3xl">{team.number}</span>
 		</div>
-		<div class="flex bg-white text-black p-4 text-2xl font-bold justify-between">
+		<div class="grid grid-cols-[.6fr_.15fr_.25fr] bg-white text-black p-4 text-2xl font-bold justify-between">
 			<span>{team.name}</span>
+			{#if team.card && team.card !== "None"}
+				<span class="w-full h-8 text-2xl text-center text-black rounded border border-gray-800 {team.card === 'Red' ? 'bg-red-400' : 'bg-yellow-400'}"
+				></span>
+			{:else}
+				<span></span>
+			{/if}
 			<span class="flex gap-2 items-center justify-center">
 				<span>{team.rank}</span>
 				{#if team.rankChange}
