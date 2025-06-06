@@ -57,5 +57,9 @@ export const playSound = (sound: string) => {
     playAbortSound();
   } else if (sound === "matchReady") {
     playMatchReadySound();
+  } else if (sound === "timeoutWarning") {
+    playEndgameWarning();
+  } else if (sound === "timeoutEnd") {
+    playMatchEndSound();
   }
 };

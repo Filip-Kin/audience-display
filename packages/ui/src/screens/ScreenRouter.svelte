@@ -11,6 +11,7 @@
 	import ScoresReveal from "./score-reveal/ScoresReveal.svelte";
 	import AllianceSelection from "./alliance-selection/AllianceSelection.svelte";
 	import { settings } from "../lib/settings";
+	import Timeout from "./time-out/Timeout.svelte";
 
 	let transitioning = false;
 	let activeScreen: Screen = "none";
@@ -20,6 +21,7 @@
 	// then wait for the transition to finish before setting
 	// transitioning to false and updating the active screen.
 	$: if ($state.screen !== activeScreen) {
+		console.log("Screen changed to", $state.screen);
 		// If we're loading the score-reveal screen set this to true to hide the flicker when loading the animation
 		if ($state.screen === "score-reveal") {
 			preScoreReveal = true;
@@ -69,6 +71,7 @@
 		"score-reveal": ScoresReveal,
 		"alliance-selection": AllianceSelection,
 		"alliance-selection-fullscreen": AllianceSelection,
+		timeout: Timeout,
 	};
 
 	let settingsOpen = false;

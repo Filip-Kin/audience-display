@@ -17,7 +17,8 @@ type Events =
   | "autoEnd"
   | "allianceSelectionChanged"
   | "connected"
-  | "disconnected";
+  | "disconnected"
+  | "timeout";
 
 export class FMSSignalRConnection {
   private fmsUrl: string;
@@ -41,6 +42,7 @@ export class FMSSignalRConnection {
     allianceSelectionChanged: [],
     connected: [],
     disconnected: [],
+    timeout: [],
   };
 
   constructor(fmsUrl: string) {
@@ -175,7 +177,13 @@ export class FMSSignalRConnection {
 
     this.infrastructureConnection.on("matchstatusinfochanged", (data) => {
       console.log("matchstatusinfochanged: ", data);
-      if (data.MatchState === "WaitingForMatchStart") {
+
+      if (data.MatchState.endsWith("TO")) {
+        this.emit("timeout", null);
+      }
+
+      // Match Ready
+      if (data.MatchState === "WaitingForMatchStart" || data.MatchState === "WaitingForMatchStartTO") {
         this.emit("matchReady", null);
       }
 
@@ -321,6 +329,8 @@ export class FMSSignalRConnection {
       this.emit("videoSwitch", "alliance-selection");
     } else if (option === "AllianceFullscreen") {
       this.emit("videoSwitch", "alliance-selection-fullscreen");
+    } else if (option === "Timeout") {
+      this.emit("videoSwitch", "timeout");
     }
   }
 }

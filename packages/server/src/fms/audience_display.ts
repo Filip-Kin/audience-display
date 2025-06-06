@@ -154,6 +154,15 @@ export class AudienceDisplayManager {
         this.match.timer = time;
       }
       this.broadcastState();
+
+      if (this.screen === "timeout") {
+        if (time === 60) {
+          this.playSound("timeoutWarning");
+        }
+        if (time === 0) {
+          this.playSound("timeoutEnd");
+        }
+      }
     });
 
     this.fmsConnection.on("videoSwitch", async (screen) => {
