@@ -41,10 +41,10 @@
 <SmallTopBar eventNameOnly />
 
 <div class="w-full h-48 bottom-0 fixed flex justify-center">
-	<div class="bg-gray-700 max-w-5xl h-32 rounded-xl mt-0 flex items-center justify-around py-4 px-12 gap-12">
+	<div class="bg-primary-800 max-w-5xl h-32 rounded-xl mt-0 flex items-center justify-around py-4 px-12 gap-12">
 		<div class="h-full">
 			<!-- Space for sponsor / logo -->
-			<img src="/logo.png" alt="Logo" class="size-full max-h-80 object-contain animate-spin" style="animation-duration: 3s" />
+			<img src="/logo.png" alt="Logo" class="size-full h-32 -mt-5 object-contain" />
 		</div>
 
 		<div class="flex flex-col gap-4">
