@@ -153,6 +153,11 @@
 						<span>Algae</span>
 						<span>{$state.match?.score.red.algae}</span>
 					</div>
+					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
+						<span>{$state.match?.score.blue.algae}</span>
+						<span>Algae</span>
+						<span>{$state.match?.score.red.algae}</span>
+					</div>
 
 					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
 						<span>{$state.match?.score.blue.barge}</span>

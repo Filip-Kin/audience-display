@@ -12,7 +12,8 @@ export type Screen =
   | "scores-ready"
   | "score-reveal"
   | "alliance-selection"
-  | "alliance-selection-fullscreen";
+  | "alliance-selection-fullscreen"
+  | "timeout";
 
 export type AllianceScore = {
   score: number;
