@@ -1,3 +1,5 @@
+import type { FMSMatchPreviewTeam, FMSMatchResultsTeam } from "./FMS_API_audience";
+
 export type Screen =
   | "none"
   | "match-preview"
@@ -8,21 +10,27 @@ export type Screen =
   | "match-endgame"
   | "match-end"
   | "scores-ready"
-  | "score-reveal";
+  | "score-reveal"
+  | "alliance-selection"
+  | "alliance-selection-fullscreen"
+  | "timeout";
 
 export type AllianceScore = {
   score: number;
-  auto: number;
-  amp: number;
-  speaker: number;
-  endgame: number;
+  autoMobility: number;
+  coral: number;
+  algae: number;
+  barge: number;
   fouls: number;
-  noteCount: number;
-  noteRequirement: number;
-  melodyRP: boolean;
-  ensambleRP: boolean;
-  rainbowRP: boolean;
-  amplified: boolean;
+  algaeCount: number;
+  autoBonusRP: boolean;
+  coralBonusRP: boolean;
+  coralBonusProgress: number;
+  coralBonusThreshold: number;
+  bargeBonusRP: boolean;
+  coopertitionMet: boolean;
+  coopertitionAchieved: boolean;
+  rankingPoints: number;
 };
 
 export type Team = {
@@ -30,6 +38,11 @@ export type Team = {
   name: string;
   rank: number;
   avatar?: string;
+  card: FMSMatchPreviewTeam["cardCarryStatus"];
+  rankChange?: FMSMatchResultsTeam["teamRankChange"] | "NoChange";
+  isCaptain?: boolean;
+  potentialCaptain?: boolean;
+  unavailableForSelection?: boolean;
 };
 
 export type MatchType = "q" | "p" | "t" | "sf" | "f";
@@ -39,6 +52,7 @@ export type MatchState = {
   score: {
     red: AllianceScore;
     blue: AllianceScore;
+    winner?: "Red" | "Blue" | "Tie";
   };
   teams: {
     red: Team[];
@@ -60,4 +74,13 @@ export type AudienceDisplayState = {
   screen: Screen;
   match: MatchState | null;
   eventDetails: EventDetails | null;
+  alliances: AllianceSelection[];
+  ranking: Omit<Team, "name" | "card">[];
+};
+
+export type AllianceSelection = {
+  allianceNumber: number;
+  allianceName: string;
+  teams: Team[];
+  card: FMSMatchPreviewTeam["cardCarryStatus"];
 };

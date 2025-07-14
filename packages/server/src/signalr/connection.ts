@@ -9,11 +9,16 @@ type Events =
   | "matchCommit"
   | "showResults"
   | "endgameWarning"
+  | "matchReady"
   | "matchStart"
   | "matchEnd"
   | "matchAbort"
   | "teleopStart"
-  | "autoEnd";
+  | "autoEnd"
+  | "allianceSelectionChanged"
+  | "connected"
+  | "disconnected"
+  | "timeout";
 
 export class FMSSignalRConnection {
   private fmsUrl: string;
@@ -28,11 +33,16 @@ export class FMSSignalRConnection {
     matchCommit: [],
     showResults: [],
     endgameWarning: [],
+    matchReady: [],
     matchStart: [],
     matchEnd: [],
     matchAbort: [],
     teleopStart: [],
     autoEnd: [],
+    allianceSelectionChanged: [],
+    connected: [],
+    disconnected: [],
+    timeout: [],
   };
 
   constructor(fmsUrl: string) {
@@ -63,6 +73,7 @@ export class FMSSignalRConnection {
 
     this.infrastructureConnection.start().then(async () => {
       console.log("Connected to FMS infrastructure hub");
+      this.emit("connected", null);
 
       const videoSwitchOption = await fetch(
         `http://${this.fmsUrl}/api/v1.0/settings/get/get_VideoswitchOption`,
@@ -119,7 +130,7 @@ export class FMSSignalRConnection {
 
     // 90 seconds left
     this.infrastructureConnection.on("matchtimerwarning2", (data) => {
-      //console.log('matchtimerwarning2: ', data);
+      // console.log('matchtimerwarning2: ', data);
     });
 
     // 60 seconds left (intended for timeouts but also played during matches lol)
@@ -166,6 +177,16 @@ export class FMSSignalRConnection {
 
     this.infrastructureConnection.on("matchstatusinfochanged", (data) => {
       console.log("matchstatusinfochanged: ", data);
+
+      if (data.MatchState.endsWith("TO")) {
+        this.emit("timeout", null);
+      }
+
+      // Match Ready
+      if (data.MatchState === "WaitingForMatchStart" || data.MatchState === "WaitingForMatchStartTO") {
+        this.emit("matchReady", null);
+      }
+
       // Match Started
       if (data.MatchState === "MatchAuto") {
         this.emit("matchStart", null);
@@ -204,7 +225,10 @@ export class FMSSignalRConnection {
 
     this.infrastructureConnection.on("audienceshowmatchresult", (data) => {
       console.log("audienceshowmatchresult: ", data);
-      this.emit("showResults", null);
+      this.emit("showResults", {
+        matchNumber: data.MatchNumber,
+        level: data.TournamentLevel
+      });
     });
 
     this.infrastructureConnection.on("matchstatuschanged", (data) => {
@@ -216,11 +240,23 @@ export class FMSSignalRConnection {
       this.pingResponse(data);
     });
 
+    this.infrastructureConnection.on("allianceselectionchanged", (data) => {
+      console.log("allianceselectionchanged: ", data);
+      this.emit("allianceSelectionChanged", null);
+    });
+
+    this.infrastructureConnection.onreconnecting(() => {
+      this.emit("disconnected", null);
+      console.log("Reconnecting to FMS SignalR");
+    });
+
     this.infrastructureConnection.onreconnected(() => {
+      this.emit("connected", null);
       console.log("Reconnected to FMS SignalR");
     });
 
     this.infrastructureConnection.onclose(() => {
+      this.emit("disconnected", null);
       console.log("Disconnected from FMS SignalR");
     });
   }
@@ -273,7 +309,7 @@ export class FMSSignalRConnection {
     this.infrastructureConnection.invoke("AudienceScreenPingResponse", {
       UtcNow: new Date().toISOString(),
       MachineName: "RR-AD",
-      Version: "24.0.0",
+      Version: "25.0.0",
       IsMuted: false,
       Volume: 100,
       IsUsingWifi: false,
@@ -287,6 +323,14 @@ export class FMSSignalRConnection {
       this.emit("videoSwitch", "match-ready");
     } else if (option === "MatchPreview") {
       this.emit("videoSwitch", "match-preview");
+    } else if (option === "MatchResults") {
+      this.emit("videoSwitch", "score-reveal");
+    } else if (option === "AllianceHybrid") {
+      this.emit("videoSwitch", "alliance-selection");
+    } else if (option === "AllianceFullscreen") {
+      this.emit("videoSwitch", "alliance-selection-fullscreen");
+    } else if (option === "Timeout") {
+      this.emit("videoSwitch", "timeout");
     }
   }
 }

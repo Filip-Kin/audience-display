@@ -100,3 +100,60 @@ body,
         background-position: 100% 0;
     }
 }
+
+.rainbow-gradient {
+  background-image: linear-gradient(90deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff);
+}
+
+.glint-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.glint-image {
+  display: block;
+  height: auto;
+  z-index: 1;
+  position: relative;
+}
+
+.glint-wrapper::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0) 45%,
+    rgba(255, 255, 255, 0.9) 50%,
+    rgba(255, 255, 255, 0) 55%
+  );
+  background-size: 300% 100%;
+  background-position: 0% 0;
+
+  -webkit-mask-image: url('/logo.png');
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-position: center;
+
+  mask-image: url('/logo.png');
+  mask-repeat: no-repeat;
+  mask-size: 100% 100%;
+  mask-position: center;
+
+  animation: glint-move 1.5s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+@keyframes glint-move {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0% 0;
+  }
+}
