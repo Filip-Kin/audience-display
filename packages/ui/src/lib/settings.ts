@@ -17,7 +17,7 @@ function parseQuerySettings(): Settings {
   return {
     invert: params.get("inverted") === "true",
     top: params.get("top") === "true",
-    matchReadySound: params.get("matchReadySound") === "false" ? false : true,
+    matchReadySound: params.get("matchReadySound") === "true",
     transitionAfterMatchEnd: parseInt(params.get("transitionAfterMatchEnd") || "-1", 10)
   };
 }
