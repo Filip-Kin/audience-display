@@ -579,7 +579,7 @@ export class AudienceDisplayManager {
   private getMatchTypeFromLevel(level: LevelParam) {
     switch (level) {
       case LevelParam.None:
-        return "test";
+        return "t";
       case LevelParam.Practice:
         return "p";
       case LevelParam.Qualification:
