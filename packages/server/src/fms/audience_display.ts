@@ -470,6 +470,9 @@ export class AudienceDisplayManager {
         };
 
         this.results.details.matchNumber = results.matchNumber;
+        this.results.details.matchType = this.getMatchTypeFromLevel(
+          this.currentLevel
+        );
         this.results.score.winner =
           results.matchWinner === null ? "Tie" : results.matchWinner;
 

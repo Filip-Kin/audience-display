@@ -6,19 +6,31 @@ export type Settings = {
   top: boolean;
   matchReadySound: boolean;
   transitionAfterMatchEnd: number;
+  showDisconnectedScreen: boolean;
 };
 
 const browser = typeof window !== "undefined";
 
 function parseQuerySettings(): Settings {
-  if (!browser) return { invert: false, top: false, matchReadySound: true };
+  if (!browser)
+    return {
+      invert: false,
+      top: false,
+      matchReadySound: true,
+      transitionAfterMatchEnd: -1,
+      showDisconnectedScreen: false,
+    };
   const params = new URLSearchParams(window.location.search);
 
   return {
     invert: params.get("inverted") === "true",
     top: params.get("top") === "true",
     matchReadySound: params.get("matchReadySound") === "true",
-    transitionAfterMatchEnd: parseInt(params.get("transitionAfterMatchEnd") || "-1", 10)
+    transitionAfterMatchEnd: parseInt(
+      params.get("transitionAfterMatchEnd") || "-1",
+      10
+    ),
+    showDisconnectedScreen: params.get("showDisconnectedScreen") === "true",
   };
 }
 
@@ -46,7 +58,10 @@ function updateQueryParams(settings: Settings) {
   }
 
   if (settings.transitionAfterMatchEnd) {
-    params.set("transitionAfterMatchEnd", settings.transitionAfterMatchEnd.toString());
+    params.set(
+      "transitionAfterMatchEnd",
+      settings.transitionAfterMatchEnd.toString()
+    );
   } else {
     params.delete("transitionAfterMatchEnd");
   }
@@ -71,7 +86,7 @@ function createSettingsStore() {
         updateQueryParams(newValue);
         return newValue;
       });
-    }
+    },
   };
 }
 
