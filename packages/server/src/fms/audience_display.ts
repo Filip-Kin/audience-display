@@ -27,6 +27,92 @@ export class AudienceDisplayManager {
     matchCount: 80,
   };
 
+  private results: MatchResults = {
+    score: {
+      red: {
+        score: 0,
+        autoMobility: 0,
+        coral: 0,
+        algae: 0,
+        barge: 0,
+        fouls: 0,
+        algaeCount: 0,
+        autoBonusRP: false,
+        coralBonusRP: false,
+        coralBonusProgress: 0,
+        coralBonusThreshold: 4,
+        bargeBonusRP: false,
+        coopertitionMet: false,
+        coopertitionAchieved: false,
+        rankingPoints: 0,
+      },
+      blue: {
+        score: 0,
+        autoMobility: 0,
+        coral: 0,
+        algae: 0,
+        barge: 0,
+        fouls: 0,
+        algaeCount: 0,
+        autoBonusRP: false,
+        coralBonusRP: false,
+        coralBonusProgress: 0,
+        coralBonusThreshold: 4,
+        bargeBonusRP: false,
+        coopertitionMet: false,
+        coopertitionAchieved: false,
+        rankingPoints: 0,
+      },
+    },
+    timer: 15,
+    teams: {
+      red: [
+        {
+          name: "Hemlock's Gray Matter",
+          number: 5712,
+          rank: 1,
+          card: "None",
+        },
+        {
+          name: "Hemlock's Gray Matter",
+          number: 5712,
+          rank: 1,
+          card: "None",
+        },
+        {
+          name: "Hemlock's Gray Matter",
+          number: 5712,
+          rank: 1,
+          card: "None",
+        },
+      ],
+      blue: [
+        {
+          name: "Hemlock's Gray Matter",
+          number: 5712,
+          rank: 1,
+          card: "None",
+        },
+        {
+          name: "Hemlock's Gray Matter",
+          number: 5712,
+          rank: 1,
+          card: "None",
+        },
+        {
+          name: "Hemlock's Gray Matter",
+          number: 5712,
+          rank: 1,
+          card: "None",
+        },
+      ],
+    },
+    details: {
+      matchNumber: 13,
+      matchType: "sf",
+    },
+  };
+
   private match: MatchState = {
     score: {
       red: {
@@ -317,7 +403,7 @@ export class AudienceDisplayManager {
             results.redAllianceData[
               `team${i + 1}` as "team1" | "team2" | "team3"
             ];
-          this.match.teams.red[i] = {
+          this.results.teams.red[i] = {
             name: matchResultsTeamRed.teamName,
             number: matchResultsTeamRed.teamNumber,
             rank: matchResultsTeamRed.teamRank,
@@ -330,7 +416,7 @@ export class AudienceDisplayManager {
             results.blueAllianceData[
               `team${i + 1}` as "team1" | "team2" | "team3"
             ];
-          this.match.teams.blue[i] = {
+          this.results.teams.blue[i] = {
             name: matchResultsTeamBlue.teamName,
             number: matchResultsTeamBlue.teamNumber,
             rank: matchResultsTeamBlue.teamRank,
@@ -340,7 +426,7 @@ export class AudienceDisplayManager {
           };
         }
 
-        this.match.score.red = {
+        this.results.score.red = {
           score: results.redAllianceData.scoreDetails.totalScore,
           autoMobility: results.redAllianceData.scoreDetails.autoMobilityPoints,
           coral: results.redAllianceData.scoreDetails.coralPoints,
@@ -360,7 +446,7 @@ export class AudienceDisplayManager {
           rankingPoints: results.redAllianceData.scoreDetails.rankingPoints,
         };
 
-        this.match.score.blue = {
+        this.results.score.blue = {
           score: results.blueAllianceData.scoreDetails.totalScore,
           autoMobility:
             results.blueAllianceData.scoreDetails.autoMobilityPoints,
@@ -383,8 +469,8 @@ export class AudienceDisplayManager {
           rankingPoints: results.blueAllianceData.scoreDetails.rankingPoints,
         };
 
-        this.match.details.matchNumber = results.matchNumber;
-        this.match.score.winner =
+        this.results.details.matchNumber = results.matchNumber;
+        this.results.score.winner =
           results.matchWinner === null ? "Tie" : results.matchWinner;
 
         // This ensures the scores post, even if already on the score screen
@@ -456,6 +542,7 @@ export class AudienceDisplayManager {
           connected: this.connected,
           screen: this.screen,
           match: this.match,
+          results: this.results,
           eventDetails: this.eventDetails,
           alliances: this.alliances,
           ranking: this.ranking,
