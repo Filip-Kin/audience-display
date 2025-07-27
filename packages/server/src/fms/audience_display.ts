@@ -601,6 +601,8 @@ export class AudienceDisplayManager {
           ? "Qual"
           : level === LevelParam.None
           ? "Test"
+          : level === LevelParam.Playoff
+          ? "DoubleElimPlayoff"
           : LevelParam[level]
       }MatchPreviewData/${matchNumber}`
     );
@@ -688,6 +690,8 @@ export class AudienceDisplayManager {
           ? "Qual"
           : level === LevelParam.None
           ? "TestMatch"
+          : level === LevelParam.Playoff
+          ? "DoubleElimPlayoff"
           : LevelParam[level]
       }Data/${matchNumber}`
     );
