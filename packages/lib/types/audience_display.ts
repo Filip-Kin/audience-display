@@ -41,7 +41,7 @@ export type Team = {
   name: string;
   rank: number;
   avatar?: string;
-  card: FMSMatchPreviewTeam["cardCarryStatus"];
+  card: FMSMatchResultsTeam["cardCarryStatus"];
   rankChange?: FMSMatchResultsTeam["teamRankChange"] | "NoChange";
   isCaptain?: boolean;
   potentialCaptain?: boolean;
@@ -86,5 +86,5 @@ export type AllianceSelection = {
   allianceNumber: number;
   allianceName: string;
   teams: Team[];
-  card: FMSMatchPreviewTeam["cardCarryStatus"];
+  card: FMSMatchResultsTeam["cardCarryStatus"];
 };

@@ -10,6 +10,7 @@ import {
   type FMSRankingTeam,
 } from "lib/types/FMS_API_audience";
 import type { AllianceSelection, Team } from "lib/types/audience_display";
+import { getTeamName } from "../team_name";
 
 export class AudienceDisplayManager {
   private server: Server;
@@ -392,7 +393,7 @@ export class AudienceDisplayManager {
 
     this.fmsConnection.on(
       "showResults",
-      async (data: { matchNumber: number; level: keyof LevelParam }) => {
+      async (data: { matchNumber: number; level: keyof typeof LevelParam; }) => {
         const results = await this.getMatchResults(
           LevelParam[data.level],
           data.matchNumber
@@ -401,10 +402,10 @@ export class AudienceDisplayManager {
         for (let i = 0; i < 3; i++) {
           const matchResultsTeamRed =
             results.redAllianceData[
-              `team${i + 1}` as "team1" | "team2" | "team3"
+            `team${i + 1}` as "team1" | "team2" | "team3"
             ];
           this.results.teams.red[i] = {
-            name: matchResultsTeamRed.teamName,
+            name: getTeamName(matchResultsTeamRed.teamNumber, matchResultsTeamRed.teamName),
             number: matchResultsTeamRed.teamNumber,
             rank: matchResultsTeamRed.teamRank,
             avatar: matchResultsTeamRed.avatar,
@@ -414,10 +415,10 @@ export class AudienceDisplayManager {
 
           const matchResultsTeamBlue =
             results.blueAllianceData[
-              `team${i + 1}` as "team1" | "team2" | "team3"
+            `team${i + 1}` as "team1" | "team2" | "team3"
             ];
           this.results.teams.blue[i] = {
-            name: matchResultsTeamBlue.teamName,
+            name: getTeamName(matchResultsTeamBlue.teamNumber, matchResultsTeamBlue.teamName),
             number: matchResultsTeamBlue.teamNumber,
             rank: matchResultsTeamBlue.teamRank,
             avatar: matchResultsTeamBlue.avatar,
@@ -569,10 +570,10 @@ export class AudienceDisplayManager {
       for (let i = 0; i < 3; i++) {
         const matchPreviewTeamRed =
           matchPreview.redAlliance[
-            `team${i + 1}` as "team1" | "team2" | "team3"
+          `team${i + 1}` as "team1" | "team2" | "team3"
           ];
         this.match.teams.red[i] = {
-          name: matchPreviewTeamRed.teamName,
+          name: getTeamName(matchPreviewTeamRed.teamNumber, matchPreviewTeamRed.teamName),
           number: matchPreviewTeamRed.teamNumber,
           rank: matchPreviewTeamRed.teamRank,
           avatar: matchPreviewTeamRed.avatar,
@@ -581,10 +582,10 @@ export class AudienceDisplayManager {
 
         const matchPreviewTeamBlue =
           matchPreview.blueAlliance[
-            `team${i + 1}` as "team1" | "team2" | "team3"
+          `team${i + 1}` as "team1" | "team2" | "team3"
           ];
         this.match.teams.blue[i] = {
-          name: matchPreviewTeamBlue.teamName,
+          name: getTeamName(matchPreviewTeamBlue.teamNumber, matchPreviewTeamBlue.teamName),
           number: matchPreviewTeamBlue.teamNumber,
           rank: matchPreviewTeamBlue.teamRank,
           avatar: matchPreviewTeamBlue.avatar,
@@ -596,14 +597,13 @@ export class AudienceDisplayManager {
 
   private async getMatchPreview(level: LevelParam, matchNumber: number) {
     const res = await fetch(
-      `http://${this.fmsUrl}/api/v1.0/audience/get/Get${
-        level === LevelParam.Qualification
-          ? "Qual"
-          : level === LevelParam.None
+      `http://${this.fmsUrl}/api/v1.0/audience/get/Get${level === LevelParam.Qualification
+        ? "Qual"
+        : level === LevelParam.None
           ? "Test"
           : level === LevelParam.Playoff
-          ? "DoubleElimPlayoff"
-          : LevelParam[level]
+            ? "DoubleElimPlayoff"
+            : LevelParam[level]
       }MatchPreviewData/${matchNumber}`
     );
 
@@ -685,14 +685,13 @@ export class AudienceDisplayManager {
 
   private async getMatchResults(level: LevelParam, matchNumber: number) {
     const res = await fetch(
-      `http://${this.fmsUrl}/api/v1.0/audience_gs/get/GetMatchResults${
-        level === LevelParam.Qualification
-          ? "Qual"
-          : level === LevelParam.None
+      `http://${this.fmsUrl}/api/v1.0/audience_gs/get/GetMatchResults${level === LevelParam.Qualification
+        ? "Qual"
+        : level === LevelParam.None
           ? "TestMatch"
           : level === LevelParam.Playoff
-          ? "DoubleElimPlayoff"
-          : LevelParam[level]
+            ? "DoubleElimPlayoff"
+            : LevelParam[level]
       }Data/${matchNumber}`
     );
     return (await res.json()) as FMSMatchScore;
@@ -715,7 +714,7 @@ export class AudienceDisplayManager {
       if (alliance.captainTeamNumber) {
         teams.push({
           number: alliance.captainTeamNumber,
-          name: alliance.captainTeamNameShort,
+          name: getTeamName(alliance.captainTeamNumber, alliance.captainTeamNameShort),
           avatar: alliance.captainAvatar,
           rank: 0,
           card: alliance.cardEffectiveStatus,
@@ -733,7 +732,7 @@ export class AudienceDisplayManager {
       if (alliance.firstRoundTeamNumber) {
         teams.push({
           number: alliance.firstRoundTeamNumber,
-          name: alliance.firstRoundTeamNameShort,
+          name: getTeamName(alliance.firstRoundTeamNumber, alliance.firstRoundTeamNameShort),
           avatar: alliance.firstRoundAvatar,
           rank: 0,
           card: alliance.cardEffectiveStatus,
@@ -750,7 +749,7 @@ export class AudienceDisplayManager {
       if (alliance.secondRoundTeamNumber) {
         teams.push({
           number: alliance.secondRoundTeamNumber,
-          name: alliance.secondRoundTeamNameShort,
+          name: getTeamName(alliance.secondRoundTeamNumber, alliance.secondRoundTeamNameShort),
           avatar: alliance.secondRoundAvatar,
           rank: 0,
           card: alliance.cardEffectiveStatus,
@@ -767,7 +766,7 @@ export class AudienceDisplayManager {
       if (alliance.alternateTeamNumber) {
         teams.push({
           number: alliance.alternateTeamNumber,
-          name: alliance.alternateTeamNameShort,
+          name: getTeamName(alliance.alternateTeamNumber, alliance.alternateTeamNameShort),
           avatar: alliance.alternateAvatar,
           rank: 0,
           card: alliance.cardEffectiveStatus,
