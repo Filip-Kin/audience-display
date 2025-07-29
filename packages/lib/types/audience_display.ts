@@ -1,4 +1,7 @@
-import type { FMSMatchPreviewTeam, FMSMatchResultsTeam } from "./FMS_API_audience";
+import type {
+  FMSMatchPreviewTeam,
+  FMSMatchResultsTeam,
+} from "./FMS_API_audience";
 
 export type Screen =
   | "none"
@@ -73,6 +76,7 @@ export type AudienceDisplayState = {
   connected: boolean;
   screen: Screen;
   match: MatchState | null;
+  results: MatchState | null;
   eventDetails: EventDetails | null;
   alliances: AllianceSelection[];
   ranking: Omit<Team, "name" | "card">[];

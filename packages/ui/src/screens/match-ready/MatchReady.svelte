@@ -74,7 +74,7 @@
 	{/if}
 
 	<div
-		class="fixed w-full flex items-stretch justify-center"
+		class="fixed w-full flex items-stretch justify-center h-[128px]"
 		style={`${$settings.top ? "top" : "bottom"}: ${$positionSpring}px`}
 		class:flex-row-reverse={$settings.invert}
 	>

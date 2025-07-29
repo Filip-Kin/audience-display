@@ -21,8 +21,8 @@
 	});
 
 	onMount(() => {
-		if ($state.match?.score.winner) {
-			switch ($state.match?.score.winner) {
+		if ($state.results?.score.winner) {
+			switch ($state.results?.score.winner) {
 				case "Red":
 					animation = "/animations/redwins.mp4";
 					break;
@@ -91,26 +91,26 @@
 
 <div class="fixed z-10 flex flex-col w-full h-full justify-around">
 	<div class="w-full flex flex-row justify-around py-8">
-		{#if $state.match}
+		{#if $state.results}
 			{#if ready}
 				<div class="min-w-96 text-center text-3xl" in:fly={{ y: -50, duration: 100 }} out:fade={{ duration: 100 }}>
 					<div class="bg-black py-6 px-32 rounded-t">
 						<span class="text-secondary-600 font-bold">
 							{$state.eventDetails?.name || "Event Name"} - {matchName(
-								$state.match.details.matchNumber,
+								$state.results.details.matchNumber,
 								$state.eventDetails?.matchCount ?? 0,
-								$state.match.details.matchType
+								$state.results.details.matchType
 							)}
 						</span>
 					</div>
 					<div class="flex" class:flex-row-reverse={$settings.invert}>
 						<div class="bg-blue-600 w-1/2 text-center flex flex-col justify-center py-4">
 							<span class="text-white font-bold">Blue</span>
-							<span class="text-5xl font-bold">{$state.match?.score.blue.score}</span>
+							<span class="text-5xl font-bold">{$state.results?.score.blue.score}</span>
 						</div>
 						<div class="bg-red-600 w-1/2 text-center flex flex-col justify-center py-4">
 							<span class="text-white font-bold">Red</span>
-							<span class="text-5xl font-bold">{$state.match?.score.red.score}</span>
+							<span class="text-5xl font-bold">{$state.results?.score.red.score}</span>
 						</div>
 					</div>
 				</div>
@@ -120,8 +120,8 @@
 
 	<div class="w-full h-full flex flex-row justify-around" class:flex-row-reverse={$settings.invert}>
 		<div class="w-[30%] flex flex-col gap-4 justify-center">
-			{#if $state.match}
-				{#each $state.match.teams.blue as team, index}
+			{#if $state.results}
+				{#each $state.results.teams.blue as team, index}
 					<TeamCard alliance="blue" {ready} {index} {team} invert={!$settings.invert} />
 				{/each}
 
@@ -137,38 +137,33 @@
 					out:fade={{ duration: 100 }}
 				>
 					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
-						<span>{$state.match?.score.blue.autoMobility}</span>
+						<span>{$state.results?.score.blue.autoMobility}</span>
 						<span>Auto Leave</span>
-						<span>{$state.match?.score.red.autoMobility}</span>
+						<span>{$state.results?.score.red.autoMobility}</span>
 					</div>
 
 					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
-						<span>{$state.match?.score.blue.coral}</span>
+						<span>{$state.results?.score.blue.coral}</span>
 						<span>Coral</span>
-						<span>{$state.match?.score.red.coral}</span>
+						<span>{$state.results?.score.red.coral}</span>
 					</div>
 
 					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
-						<span>{$state.match?.score.blue.algae}</span>
+						<span>{$state.results?.score.blue.algae}</span>
 						<span>Algae</span>
-						<span>{$state.match?.score.red.algae}</span>
-					</div>
-					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
-						<span>{$state.match?.score.blue.algae}</span>
-						<span>Algae</span>
-						<span>{$state.match?.score.red.algae}</span>
+						<span>{$state.results?.score.red.algae}</span>
 					</div>
 
 					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
-						<span>{$state.match?.score.blue.barge}</span>
+						<span>{$state.results?.score.blue.barge}</span>
 						<span>Barge</span>
-						<span>{$state.match?.score.red.barge}</span>
+						<span>{$state.results?.score.red.barge}</span>
 					</div>
 
 					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
-						<span>{$state.match?.score.blue.fouls}</span>
+						<span>{$state.results?.score.blue.fouls}</span>
 						<span>Penalty</span>
-						<span>{$state.match?.score.red.fouls}</span>
+						<span>{$state.results?.score.red.fouls}</span>
 					</div>
 				</div>
 
@@ -177,8 +172,8 @@
 		{/if}
 
 		<div class="w-[30%] flex flex-col gap-4 justify-center">
-			{#if $state.match}
-				{#each $state.match.teams.red as team, index}
+			{#if $state.results}
+				{#each $state.results.teams.red as team, index}
 					<TeamCard alliance="red" {ready} {index} {team} invert={$settings.invert} />
 				{/each}
 
