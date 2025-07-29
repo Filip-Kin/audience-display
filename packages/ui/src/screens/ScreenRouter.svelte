@@ -29,24 +29,38 @@
 			preScoreReveal = false;
 		}
 
-		// Don't transition to scores-ready if the active screen is match-end
-		if (activeScreen === "match-end" && $state.screen === "scores-ready" && $settings.transitionAfterMatchEnd > -1) {
-		} else {
-			// If the screen is match-end, wait 8 seconds before transitioning
-			if ($state.screen === "match-end" && $settings.transitionAfterMatchEnd > -1) {
+		console.log($settings.transitionAfterMatchEnd);
+		if ($state.screen === "scores-ready" && $settings.transitionAfterMatchEnd > -1) {
+			// Don't transition to scores-ready if the active screen is match-end
+			console.log("scores-ready");
+			if (activeScreen !== "match-end") {
+				console.log("Transitioning to scores-ready");
 				setTimeout(() => {
 					transitioning = true;
-					activeScreen = $state.screen;
 				}, $settings.transitionAfterMatchEnd * 1000);
-				setTimeout(() => {
-					if (transitioning) {
-						transitioning = false;
+			}
+		} else {
+			// If the screen is match-end, wait 8 seconds before transitioning
+			if ($state.screen === "match-end") {
+				if ($settings.transitionAfterMatchEnd > -1) {
+					console.log("Transitioning to match-end");
+					setTimeout(() => {
+						transitioning = true;
 						activeScreen = $state.screen;
-					}
-				}, 1000);
+					}, $settings.transitionAfterMatchEnd * 1000);
+					setTimeout(() => {
+						if (transitioning) {
+							transitioning = false;
+							activeScreen = $state.screen;
+						}
+					}, 1000);
+				} else {
+					// Don't transition if the setting is -1
+				}
 			} else {
 				// Standard transition
 				transitioning = true;
+				console.log("Standard transition");
 				console.log("Transitioning to ", $state.screen);
 				setTimeout(() => {
 					if (transitioning) {
