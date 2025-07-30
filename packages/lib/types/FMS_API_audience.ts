@@ -20,6 +20,9 @@ export interface FMSMatchPreview {
 }
 
 export interface FMSMatchPreviewAlliance {
+  allianceName?: string; // These are only for playoff matches
+  allianceNumber?: number;
+  carryingCard?: boolean;
   team1: FMSMatchPreviewTeam,
   team2: FMSMatchPreviewTeam,
   team3: FMSMatchPreviewTeam;

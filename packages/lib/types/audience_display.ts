@@ -64,6 +64,8 @@ export type MatchState = {
   details: {
     matchNumber: number;
     matchType: MatchType;
+    redAlliance?: string;
+    blueAlliance?: string;
   };
 };
 

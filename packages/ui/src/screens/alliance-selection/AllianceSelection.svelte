@@ -81,7 +81,7 @@
 		<div class="flex gap-4 justify-around items-center">
 			<div class="w-full">
 				<!-- Space for sponsor / logo -->
-				<img src="/logo.png" alt="Logo" class="size-full max-h-80 object-contain animate-spin" style="animation-duration: 3s" />
+				<img src="/logo.png" alt="Logo" class="size-full max-h-80 object-contain" style="animation-duration: 3s" />
 			</div>
 
 			<div class="h-full flex flex-col items-end justify-end">

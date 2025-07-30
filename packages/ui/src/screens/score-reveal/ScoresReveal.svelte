@@ -121,6 +121,27 @@
 	<div class="w-full h-full flex flex-row justify-around" class:flex-row-reverse={$settings.invert}>
 		<div class="w-[30%] flex flex-col gap-4 justify-center">
 			{#if $state.results}
+				{#if $state.results.details.blueAlliance}
+					{#if ready}
+						<div
+							class="flex flex-col shadow-lg rounded overflow-hidden"
+							in:fly={{
+								x: 100 * ($settings.invert ? 1 : -1),
+								duration: 500,
+								delay: 150,
+							}}
+							out:fly={{
+								x: 400 * ($settings.invert ? 1 : -1),
+								duration: 100,
+							}}
+						>
+							<div class="flex flex-row bg-blue-600 text-white p-4 gap-4 align-middle text-3xl font-bold justify-center">
+								{$state.results.details.blueAlliance}
+							</div>
+						</div>
+					{/if}
+				{/if}
+
 				{#each $state.results.teams.blue as team, index}
 					<TeamCard alliance="blue" {ready} {index} {team} invert={!$settings.invert} />
 				{/each}
@@ -173,6 +194,27 @@
 
 		<div class="w-[30%] flex flex-col gap-4 justify-center">
 			{#if $state.results}
+				{#if $state.results.details.redAlliance}
+					{#if ready}
+						<div
+							class="flex flex-col shadow-lg rounded overflow-hidden"
+							in:fly={{
+								x: 100 * ($settings.invert ? -1 : 1),
+								duration: 500,
+								delay: 150,
+							}}
+							out:fly={{
+								x: 400 * ($settings.invert ? -1 : 1),
+								duration: 100,
+							}}
+						>
+							<div class="flex flex-row bg-red-600 text-white p-4 gap-4 align-middle text-3xl font-bold justify-center">
+								{$state.results.details.redAlliance}
+							</div>
+						</div>
+					{/if}
+				{/if}
+
 				{#each $state.results.teams.red as team, index}
 					<TeamCard alliance="red" {ready} {index} {team} invert={$settings.invert} />
 				{/each}

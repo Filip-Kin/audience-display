@@ -111,6 +111,8 @@ export class AudienceDisplayManager {
     details: {
       matchNumber: 13,
       matchType: "sf",
+      redAlliance: "Alliance 1",
+      blueAlliance: "Alliance 8",
     },
   };
 
@@ -197,6 +199,8 @@ export class AudienceDisplayManager {
     details: {
       matchNumber: 13,
       matchType: "sf",
+      redAlliance: "Alliance 1",
+      blueAlliance: "Alliance 8",
     },
   };
 
@@ -399,6 +403,8 @@ export class AudienceDisplayManager {
           data.matchNumber
         );
 
+        console.log(results);
+
         for (let i = 0; i < 3; i++) {
           const matchResultsTeamRed =
             results.redAllianceData[
@@ -474,6 +480,10 @@ export class AudienceDisplayManager {
         this.results.details.matchType = this.getMatchTypeFromLevel(
           this.currentLevel
         );
+
+        this.match.details.redAlliance = results.redAllianceData.allianceName ?? undefined;
+        this.match.details.blueAlliance = results.blueAllianceData.allianceName ?? undefined;
+
         this.results.score.winner =
           results.matchWinner === null ? "Tie" : results.matchWinner;
 
@@ -567,17 +577,22 @@ export class AudienceDisplayManager {
 
   private async updateMatchPreview(matchPreview: FMSMatchPreview) {
     if (this.match) {
+      this.match.details.redAlliance = matchPreview.redAlliance.allianceName ?? undefined;
+      this.match.details.blueAlliance = matchPreview.blueAlliance.allianceName ?? undefined;
+
       for (let i = 0; i < 3; i++) {
         const matchPreviewTeamRed =
           matchPreview.redAlliance[
           `team${i + 1}` as "team1" | "team2" | "team3"
           ];
+
+
         this.match.teams.red[i] = {
           name: getTeamName(matchPreviewTeamRed.teamNumber, matchPreviewTeamRed.teamName),
           number: matchPreviewTeamRed.teamNumber,
           rank: matchPreviewTeamRed.teamRank,
           avatar: matchPreviewTeamRed.avatar,
-          card: matchPreviewTeamRed.carryingCard,
+          card: (matchPreviewTeamRed.carryingCard ?? matchPreview.redAlliance.carryingCard),
         };
 
         const matchPreviewTeamBlue =
@@ -589,7 +604,7 @@ export class AudienceDisplayManager {
           number: matchPreviewTeamBlue.teamNumber,
           rank: matchPreviewTeamBlue.teamRank,
           avatar: matchPreviewTeamBlue.avatar,
-          card: matchPreviewTeamBlue.carryingCard,
+          card: (matchPreviewTeamBlue.carryingCard ?? matchPreview.blueAlliance.carryingCard),
         };
       }
     }
