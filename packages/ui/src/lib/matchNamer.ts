@@ -14,6 +14,10 @@ const bracket = {
   11: "Upper Bracket - Round 4 - Match 11",
   12: "Lower Bracket - Round 4 - Match 12",
   13: "Lower Bracket - Round 5 - Match 13",
+  14: "Final 1",
+  15: "Final 2",
+  16: "Final Tiebreaker",
+  17: "Final Tiebreaker Part 2",
 };
 
 export const matchName = (

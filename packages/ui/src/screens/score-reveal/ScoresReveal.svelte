@@ -128,7 +128,7 @@
 							in:fly={{
 								x: 100 * ($settings.invert ? 1 : -1),
 								duration: 500,
-								delay: 150,
+								delay: 0,
 							}}
 							out:fly={{
 								x: 400 * ($settings.invert ? 1 : -1),
@@ -146,7 +146,9 @@
 					<TeamCard alliance="blue" {ready} {index} {team} invert={!$settings.invert} />
 				{/each}
 
-				<RankingPoints {ready} alliance="blue" invert={!$settings.invert} />
+				{#if $state.results.details.matchType !== "sf" && $state.results.details.matchType !== "f"}
+					<RankingPoints {ready} alliance="blue" invert={!$settings.invert} />
+				{/if}
 			{/if}
 		</div>
 
@@ -201,7 +203,7 @@
 							in:fly={{
 								x: 100 * ($settings.invert ? -1 : 1),
 								duration: 500,
-								delay: 150,
+								delay: 0,
 							}}
 							out:fly={{
 								x: 400 * ($settings.invert ? -1 : 1),
@@ -219,7 +221,9 @@
 					<TeamCard alliance="red" {ready} {index} {team} invert={$settings.invert} />
 				{/each}
 
-				<RankingPoints {ready} alliance="red" invert={$settings.invert} />
+				{#if $state.results.details.matchType !== "sf" && $state.results.details.matchType !== "f"}
+					<RankingPoints {ready} alliance="red" invert={$settings.invert} />
+				{/if}
 			{/if}
 		</div>
 	</div>

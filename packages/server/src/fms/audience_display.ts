@@ -398,12 +398,14 @@ export class AudienceDisplayManager {
     this.fmsConnection.on(
       "showResults",
       async (data: { matchNumber: number; level: keyof typeof LevelParam; }) => {
+        console.log({
+          matchNumber: data.matchNumber,
+          level: data.level,
+        });
         const results = await this.getMatchResults(
           LevelParam[data.level],
           data.matchNumber
         );
-
-        console.log(results);
 
         for (let i = 0; i < 3; i++) {
           const matchResultsTeamRed =
@@ -481,14 +483,15 @@ export class AudienceDisplayManager {
           this.currentLevel
         );
 
-        this.match.details.redAlliance = results.redAllianceData.allianceName ?? undefined;
-        this.match.details.blueAlliance = results.blueAllianceData.allianceName ?? undefined;
+        this.results.details.redAlliance = results.redAllianceData.allianceName ?? undefined;
+        this.results.details.blueAlliance = results.blueAllianceData.allianceName ?? undefined;
 
         this.results.score.winner =
           results.matchWinner === null ? "Tie" : results.matchWinner;
 
         // This ensures the scores post, even if already on the score screen
         this.screen = "scores-ready";
+
         this.broadcastState();
 
         setTimeout(() => {
@@ -611,15 +614,25 @@ export class AudienceDisplayManager {
   }
 
   private async getMatchPreview(level: LevelParam, matchNumber: number) {
+    let levelString = LevelParam[level];
+    let matchString = matchNumber.toString();
+
+    // FMS is so fucking stupid
+    if (level === LevelParam.Qualification) {
+      levelString = "Qual";
+    } else if (level === LevelParam.None) {
+      levelString = "Test";
+    } else if (level === LevelParam.Playoff) {
+      if (matchNumber > 13) {
+        levelString = "DoubleElimFinal";
+        matchString = (matchNumber - 13).toString();
+      } else {
+        levelString = "DoubleElimPlayoff";
+      }
+    }
+
     const res = await fetch(
-      `http://${this.fmsUrl}/api/v1.0/audience/get/Get${level === LevelParam.Qualification
-        ? "Qual"
-        : level === LevelParam.None
-          ? "Test"
-          : level === LevelParam.Playoff
-            ? "DoubleElimPlayoff"
-            : LevelParam[level]
-      }MatchPreviewData/${matchNumber}`
+      `http://${this.fmsUrl}/api/v1.0/audience/get/Get${levelString}MatchPreviewData/${matchString}`
     );
 
     console.log(res.url);
@@ -699,17 +712,40 @@ export class AudienceDisplayManager {
   }
 
   private async getMatchResults(level: LevelParam, matchNumber: number) {
+    let levelString = LevelParam[level];
+    let matchString = matchNumber.toString();
+
+    console.log({ level, matchNumber });
+
+    // FMS is so fucking stupid
+    if (level === LevelParam.Qualification) {
+      levelString = "Qual";
+    } else if (level === LevelParam.None) {
+      levelString = "TestMatch";
+    } else if (level === LevelParam.Playoff) {
+      if (matchNumber > 13) {
+        levelString = "DoubleElimFinal";
+        matchString = (matchNumber - 13).toString();
+      } else {
+        levelString = "DoubleElimPlayoff";
+      }
+    }
+
     const res = await fetch(
-      `http://${this.fmsUrl}/api/v1.0/audience_gs/get/GetMatchResults${level === LevelParam.Qualification
-        ? "Qual"
-        : level === LevelParam.None
-          ? "TestMatch"
-          : level === LevelParam.Playoff
-            ? "DoubleElimPlayoff"
-            : LevelParam[level]
-      }Data/${matchNumber}`
+      `http://${this.fmsUrl}/api/v1.0/audience_gs/get/GetMatchResults${levelString}Data/${matchString}`
     );
-    return (await res.json()) as FMSMatchScore;
+
+    console.log(res.url);
+    let data = await res.json();
+    console.log(data);
+
+    // For some reason, FMS restarts the match numbers at 1 for finals, but only for match results
+    // And our match name generator has no way to work around that so I'm just gonna fucking set it to the same number here
+    if (level === LevelParam.Playoff && matchNumber > 13) {
+      data.matchNumber = matchNumber;
+    }
+
+    return data as FMSMatchScore;
   }
 
   private async getAlliances() {

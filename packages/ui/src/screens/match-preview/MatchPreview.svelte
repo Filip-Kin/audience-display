@@ -80,12 +80,12 @@
 						<div
 							class="flex flex-col shadow-lg rounded overflow-hidden"
 							in:fly={{
-								x: 100 * ($settings.invert ? -1 : 1),
+								x: 100 * ($settings.invert ? 1 : -1),
 								duration: 500,
-								delay: 150,
+								delay: 0,
 							}}
 							out:fly={{
-								x: 400 * ($settings.invert ? -1 : 1),
+								x: 400 * ($settings.invert ? 1 : -1),
 								duration: 100,
 							}}
 						>
@@ -110,7 +110,7 @@
 							in:fly={{
 								x: 100 * ($settings.invert ? -1 : 1),
 								duration: 500,
-								delay: 150,
+								delay: 0,
 							}}
 							out:fly={{
 								x: 400 * ($settings.invert ? -1 : 1),
