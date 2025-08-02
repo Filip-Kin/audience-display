@@ -160,33 +160,33 @@
 					out:fade={{ duration: 100 }}
 				>
 					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
-						<span>{$state.results?.score.blue.autoMobility}</span>
+						<span>{$state.results?.score[$settings.invert ? "red" : "blue"].autoMobility}</span>
 						<span>Auto Leave</span>
-						<span>{$state.results?.score.red.autoMobility}</span>
+						<span>{$state.results?.score[$settings.invert ? "blue" : "red"].autoMobility}</span>
 					</div>
 
 					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
-						<span>{$state.results?.score.blue.coral}</span>
+						<span>{$state.results?.score[$settings.invert ? "red" : "blue"].coral}</span>
 						<span>Coral</span>
-						<span>{$state.results?.score.red.coral}</span>
+						<span>{$state.results?.score[$settings.invert ? "blue" : "red"].coral}</span>
 					</div>
 
 					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
-						<span>{$state.results?.score.blue.algae}</span>
+						<span>{$state.results?.score[$settings.invert ? "red" : "blue"].algae}</span>
 						<span>Algae</span>
-						<span>{$state.results?.score.red.algae}</span>
+						<span>{$state.results?.score[$settings.invert ? "blue" : "red"].algae}</span>
 					</div>
 
 					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
-						<span>{$state.results?.score.blue.barge}</span>
+						<span>{$state.results?.score[$settings.invert ? "red" : "blue"].barge}</span>
 						<span>Barge</span>
-						<span>{$state.results?.score.red.barge}</span>
+						<span>{$state.results?.score[$settings.invert ? "blue" : "red"].barge}</span>
 					</div>
 
 					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
-						<span>{$state.results?.score.blue.fouls}</span>
+						<span>{$state.results?.score[$settings.invert ? "red" : "blue"].fouls}</span>
 						<span>Penalty</span>
-						<span>{$state.results?.score.red.fouls}</span>
+						<span>{$state.results?.score[$settings.invert ? "blue" : "red"].fouls}</span>
 					</div>
 				</div>
 
