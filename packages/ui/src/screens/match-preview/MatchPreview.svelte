@@ -4,6 +4,7 @@
 	import { state } from "../../lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { matchName } from "../../lib/matchNamer";
+	import RobotShadow from "./RobotShadow.svelte";
 	import { settings } from "../../lib/settings";
 	import TeamCard from "../../lib/TeamCard.svelte";
 
@@ -33,6 +34,10 @@
 
 	$: console.log($state.eventDetails);
 </script>
+
+<div class="w-full bg-primary-800 h-full fixed -skew-x-12 flex flex-row justify-end" style={`right: ${$shutterSpring}vw`}></div>
+
+<div class="w-full bg-primary-700 h-full fixed -skew-x-12 flex flex-row justify-start" style={`left: ${$shutterSpring}vw`}></div>
 
 <div class="fixed flex flex-col w-full h-full justify-around">
 	<div class="w-full flex flex-row justify-around py-16">
