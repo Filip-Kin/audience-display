@@ -73,7 +73,7 @@
 								duration: 100,
 							}}
 						>
-							<div class="flex flex-row bg-blue-600 text-white p-4 gap-4 align-middle text-3xl font-bold justify-center">
+							<div class="flex flex-row bg-blue-600 text-white p-4 gap-4 align-middle text-4xl font-bold justify-center">
 								{$state.match.details.blueAlliance}
 							</div>
 						</div>
@@ -101,7 +101,7 @@
 								duration: 100,
 							}}
 						>
-							<div class="flex flex-row bg-red-600 text-white p-4 gap-4 align-middle text-3xl font-bold justify-center">
+							<div class="flex flex-row bg-red-600 text-white p-4 gap-4 align-middle text-4xl font-bold justify-center">
 								{$state.match.details.redAlliance}
 							</div>
 						</div>

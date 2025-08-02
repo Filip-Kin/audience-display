@@ -93,8 +93,8 @@
 	<div class="w-full flex flex-row justify-around py-8">
 		{#if $state.results}
 			{#if ready}
-				<div class="min-w-96 text-center text-3xl" in:fly={{ y: -50, duration: 100 }} out:fade={{ duration: 100 }}>
-					<div class="bg-black py-6 px-32 rounded-t">
+				<div class="min-w-96 text-center text-6xl" in:fly={{ y: -50, duration: 100 }} out:fade={{ duration: 100 }}>
+					<div class="bg-black py-6 px-12 rounded-t max-w-[45vw] text-3xl">
 						<span class="text-secondary-600 font-bold">
 							{$state.eventDetails?.name || "Event Name"} - {matchName(
 								$state.results.details.matchNumber,
@@ -135,7 +135,7 @@
 								duration: 100,
 							}}
 						>
-							<div class="flex flex-row bg-blue-600 text-white p-4 gap-4 align-middle text-3xl font-bold justify-center">
+							<div class="flex flex-row bg-blue-600 text-white p-4 gap-4 align-middle text-5xl font-bold justify-center">
 								{$state.results.details.blueAlliance}
 							</div>
 						</div>
@@ -155,7 +155,7 @@
 		{#if ready}
 			<div class="w-1/4 flex flex-col items-center">
 				<div
-					class="w-full h-fit -mt-8 justify-around bg-white text-black font-semibold text-3xl flex flex-col text-center"
+					class="w-full h-fit -mt-8 justify-around bg-white text-black font-semibold text-4xl flex flex-col text-center"
 					in:fade={{ duration: 100 }}
 					out:fade={{ duration: 100 }}
 				>
@@ -210,7 +210,7 @@
 								duration: 100,
 							}}
 						>
-							<div class="flex flex-row bg-red-600 text-white p-4 gap-4 align-middle text-3xl font-bold justify-center">
+							<div class="flex flex-row bg-red-600 text-white p-4 gap-4 align-middle text-5xl font-bold justify-center">
 								{$state.results.details.redAlliance}
 							</div>
 						</div>
