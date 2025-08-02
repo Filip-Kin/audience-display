@@ -204,6 +204,14 @@ export class AudienceDisplayManager {
     },
   };
 
+  private teamLineup: {
+    red: number[];
+    blue: number[];
+  } = {
+      red: [],
+      blue: [],
+    };
+
   constructor(server: Server, fmsUrl: string) {
     this.server = server;
     this.fmsUrl = fmsUrl;
@@ -249,6 +257,15 @@ export class AudienceDisplayManager {
     );
 
     Promise.all(promises).then(async () => {
+      // Try to wait for the team lineup to be set
+      if (this.teamLineup.blue.length === 0 || this.teamLineup.red.length === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
+      if (this.teamLineup.blue.length === 0 || this.teamLineup.red.length === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
       const matchPreview = await this.getMatchPreview(
         this.currentLevel,
         this.match.details.matchNumber
@@ -548,6 +565,13 @@ export class AudienceDisplayManager {
       this.connected = false;
       this.broadcastState();
     });
+
+    this.fmsConnection.on("fieldMonitorTeamsChanged", (teams) => {
+      this.teamLineup = {
+        red: teams.red,
+        blue: teams.blue,
+      };
+    });
   }
 
   broadcastState() {
@@ -583,12 +607,30 @@ export class AudienceDisplayManager {
       this.match.details.redAlliance = matchPreview.redAlliance.allianceName ?? undefined;
       this.match.details.blueAlliance = matchPreview.blueAlliance.allianceName ?? undefined;
 
-      for (let i = 0; i < 3; i++) {
+      this.match.teams.red = [];
+      this.match.teams.blue = [];
+
+      console.log({
+        redAlliance: matchPreview.redAlliance,
+        blueAlliance: matchPreview.blueAlliance,
+        lineup: this.teamLineup,
+      });
+
+      for (let i = 0; i < 4; i++) {
         const matchPreviewTeamRed =
           matchPreview.redAlliance[
-          `team${i + 1}` as "team1" | "team2" | "team3"
+          `team${i + 1}` as "team1" | "team2" | "team3" | "team4"
           ];
 
+        if (!matchPreviewTeamRed) {
+          console.log(`Skipping team ${i + 1} in red alliance because null`);
+          continue;
+        }
+
+        if (!this.teamLineup.red.includes(matchPreviewTeamRed.teamNumber)) {
+          console.log(`Skipping team ${i + 1} in red alliance because not in lineup`);
+          continue;
+        }
 
         this.match.teams.red[i] = {
           name: getTeamName(matchPreviewTeamRed.teamNumber, matchPreviewTeamRed.teamName),
@@ -600,8 +642,19 @@ export class AudienceDisplayManager {
 
         const matchPreviewTeamBlue =
           matchPreview.blueAlliance[
-          `team${i + 1}` as "team1" | "team2" | "team3"
+          `team${i + 1}` as "team1" | "team2" | "team3" | "team4"
           ];
+
+        if (!matchPreviewTeamBlue) {
+          console.log(`Skipping team ${i + 1} in blue alliance because null`);
+          continue;
+        }
+
+        if (!this.teamLineup.blue.includes(matchPreviewTeamBlue.teamNumber)) {
+          console.log(`Skipping team ${i + 1} in blue alliance because not in lineup`);
+          continue;
+        }
+
         this.match.teams.blue[i] = {
           name: getTeamName(matchPreviewTeamBlue.teamNumber, matchPreviewTeamBlue.teamName),
           number: matchPreviewTeamBlue.teamNumber,
@@ -610,6 +663,7 @@ export class AudienceDisplayManager {
           card: (matchPreviewTeamBlue.carryingCard ?? matchPreview.blueAlliance.carryingCard),
         };
       }
+      console.log(this.match.teams);
     }
   }
 

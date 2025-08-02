@@ -26,6 +26,7 @@ export interface FMSMatchPreviewAlliance {
   team1: FMSMatchPreviewTeam,
   team2: FMSMatchPreviewTeam,
   team3: FMSMatchPreviewTeam;
+  team4?: FMSMatchPreviewTeam; // Only for playoff matches
 }
 
 export interface FMSMatchPreviewTeam {
