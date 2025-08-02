@@ -624,21 +624,19 @@ export class AudienceDisplayManager {
 
         if (!matchPreviewTeamRed) {
           console.log(`Skipping team ${i + 1} in red alliance because null`);
-          continue;
-        }
-
-        if (!this.teamLineup.red.includes(matchPreviewTeamRed.teamNumber)) {
+        } else if (!this.teamLineup.red.includes(matchPreviewTeamRed.teamNumber)) {
           console.log(`Skipping team ${i + 1} in red alliance because not in lineup`);
-          continue;
+        } else {
+          console.log(`Adding team ${i + 1} in red alliance`, matchPreviewTeamRed.teamNumber);
+          this.match.teams.red[i] = {
+            name: getTeamName(matchPreviewTeamRed.teamNumber, matchPreviewTeamRed.teamName),
+            number: matchPreviewTeamRed.teamNumber,
+            rank: matchPreviewTeamRed.teamRank,
+            avatar: matchPreviewTeamRed.avatar,
+            card: (matchPreviewTeamRed.carryingCard ?? matchPreview.redAlliance.carryingCard),
+          };
         }
 
-        this.match.teams.red[i] = {
-          name: getTeamName(matchPreviewTeamRed.teamNumber, matchPreviewTeamRed.teamName),
-          number: matchPreviewTeamRed.teamNumber,
-          rank: matchPreviewTeamRed.teamRank,
-          avatar: matchPreviewTeamRed.avatar,
-          card: (matchPreviewTeamRed.carryingCard ?? matchPreview.redAlliance.carryingCard),
-        };
 
         const matchPreviewTeamBlue =
           matchPreview.blueAlliance[
@@ -647,23 +645,19 @@ export class AudienceDisplayManager {
 
         if (!matchPreviewTeamBlue) {
           console.log(`Skipping team ${i + 1} in blue alliance because null`);
-          continue;
-        }
-
-        if (!this.teamLineup.blue.includes(matchPreviewTeamBlue.teamNumber)) {
+        } else if (!this.teamLineup.blue.includes(matchPreviewTeamBlue.teamNumber)) {
           console.log(`Skipping team ${i + 1} in blue alliance because not in lineup`);
-          continue;
+        } else {
+          this.match.teams.blue[i] = {
+            name: getTeamName(matchPreviewTeamBlue.teamNumber, matchPreviewTeamBlue.teamName),
+            number: matchPreviewTeamBlue.teamNumber,
+            rank: matchPreviewTeamBlue.teamRank,
+            avatar: matchPreviewTeamBlue.avatar,
+            card: (matchPreviewTeamBlue.carryingCard ?? matchPreview.blueAlliance.carryingCard),
+          };
         }
-
-        this.match.teams.blue[i] = {
-          name: getTeamName(matchPreviewTeamBlue.teamNumber, matchPreviewTeamBlue.teamName),
-          number: matchPreviewTeamBlue.teamNumber,
-          rank: matchPreviewTeamBlue.teamRank,
-          avatar: matchPreviewTeamBlue.avatar,
-          card: (matchPreviewTeamBlue.carryingCard ?? matchPreview.blueAlliance.carryingCard),
-        };
+        console.log(this.match.teams);
       }
-      console.log(this.match.teams);
     }
   }
 
