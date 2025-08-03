@@ -220,19 +220,7 @@ export class AudienceDisplayManager {
     let promises: Promise<void>[] = [];
 
     promises.push(
-      this.getActiveTournamentLevel().then((level) => {
-        this.currentLevel = level;
-        console.log("Current tournament level", level);
-        if (level === LevelParam.Qualification) {
-          this.getCurrentSchedule().then((schedule) => {
-            const matchCount = schedule.filter(
-              (match) => match.tournamentLevel === "Qualification"
-            ).length;
-            console.log("Match count", matchCount);
-            this.eventDetails.matchCount = matchCount;
-          });
-        }
-      })
+      this.updateMatchCount()
     );
 
     promises.push(
@@ -572,6 +560,11 @@ export class AudienceDisplayManager {
         blue: teams.blue,
       };
     });
+
+    this.fmsConnection.on("tournamentLevelChanged", async (level) => {
+      console.log("Tournament level changed to", level);
+      await this.updateMatchCount();
+    });
   }
 
   broadcastState() {
@@ -602,6 +595,21 @@ export class AudienceDisplayManager {
     );
   }
 
+  private async updateMatchCount() {
+    this.currentLevel = await this.getActiveTournamentLevel();
+    console.log("Current tournament level", this.currentLevel);
+
+    if (this.currentLevel === LevelParam.Qualification) {
+      const schedule = await this.getCurrentSchedule();
+      const matchCount = schedule.filter(
+        (match) => match.tournamentLevel === "Qualification"
+      ).length;
+
+      console.log("Match count", matchCount);
+      this.eventDetails.matchCount = matchCount;
+    }
+  }
+
   private async updateMatchPreview(matchPreview: FMSMatchPreview) {
     if (this.match) {
       this.match.details.redAlliance = matchPreview.redAlliance.allianceName ?? undefined;
@@ -610,12 +618,6 @@ export class AudienceDisplayManager {
       this.match.teams.red = [];
       this.match.teams.blue = [];
 
-      console.log({
-        redAlliance: matchPreview.redAlliance,
-        blueAlliance: matchPreview.blueAlliance,
-        lineup: this.teamLineup,
-      });
-
       for (let i = 0; i < 4; i++) {
         const matchPreviewTeamRed =
           matchPreview.redAlliance[
@@ -623,11 +625,10 @@ export class AudienceDisplayManager {
           ];
 
         if (!matchPreviewTeamRed) {
-          console.log(`Skipping team ${i + 1} in red alliance because null`);
+          // console.log(`Skipping team ${i + 1} in red alliance because null`);
         } else if (!this.teamLineup.red.includes(matchPreviewTeamRed.teamNumber)) {
           console.log(`Skipping team ${i + 1} in red alliance because not in lineup`);
         } else {
-          console.log(`Adding team ${i + 1} in red alliance`, matchPreviewTeamRed.teamNumber);
           this.match.teams.red[i] = {
             name: getTeamName(matchPreviewTeamRed.teamNumber, matchPreviewTeamRed.teamName),
             number: matchPreviewTeamRed.teamNumber,
@@ -644,7 +645,7 @@ export class AudienceDisplayManager {
           ];
 
         if (!matchPreviewTeamBlue) {
-          console.log(`Skipping team ${i + 1} in blue alliance because null`);
+          // console.log(`Skipping team ${i + 1} in blue alliance because null`);
         } else if (!this.teamLineup.blue.includes(matchPreviewTeamBlue.teamNumber)) {
           console.log(`Skipping team ${i + 1} in blue alliance because not in lineup`);
         } else {
@@ -656,7 +657,6 @@ export class AudienceDisplayManager {
             card: (matchPreviewTeamBlue.carryingCard ?? matchPreview.blueAlliance.carryingCard),
           };
         }
-        console.log(this.match.teams);
       }
     }
   }
@@ -785,7 +785,6 @@ export class AudienceDisplayManager {
 
     console.log(res.url);
     let data = await res.json();
-    console.log(data);
 
     // For some reason, FMS restarts the match numbers at 1 for finals, but only for match results
     // And our match name generator has no way to work around that so I'm just gonna fucking set it to the same number here

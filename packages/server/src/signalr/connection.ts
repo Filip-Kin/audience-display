@@ -19,7 +19,8 @@ type Events =
   | "connected"
   | "disconnected"
   | "timeout"
-  | "fieldMonitorTeamsChanged";
+  | "fieldMonitorTeamsChanged"
+  | "tournamentLevelChanged";
 
 export class FMSSignalRConnection {
   private fmsUrl: string;
@@ -267,6 +268,11 @@ export class FMSSignalRConnection {
     this.infrastructureConnection.on("allianceselectionchanged", (data) => {
       console.log("allianceselectionchanged: ", data);
       this.emit("allianceSelectionChanged", null);
+    });
+
+    this.infrastructureConnection.on("activetournamentlevelchanged", (data) => {
+      console.log("activetournamentlevelchanged: ", data);
+      this.emit("tournamentLevelChanged", data);
     });
 
     this.infrastructureConnection.onreconnecting(() => {
