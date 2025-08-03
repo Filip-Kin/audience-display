@@ -268,7 +268,7 @@ export class FMSSignalRConnection {
 
     this.infrastructureConnection.on("allianceselectionchanged", (data) => {
       console.log("allianceselectionchanged: ", data);
-      this.emit("allianceSelectionChanged", null);
+      this.emit("allianceSelectionChanged", data);
     });
 
     this.infrastructureConnection.on("activetournamentlevelchanged", (data) => {

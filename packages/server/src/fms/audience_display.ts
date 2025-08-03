@@ -325,7 +325,7 @@ export class AudienceDisplayManager {
     this.fmsConnection.on(
       "blueScoreChanged",
       async (data: ScoreChangedData) => {
-        console.log("blueScoreChanged", data);
+        // console.log("blueScoreChanged", data);
         if (this.match) {
           let coralBonusProgress = 0;
           if (data.TopRowCoralCount >= data.CoralBonusCoralThreshold)
@@ -536,7 +536,15 @@ export class AudienceDisplayManager {
       this.broadcastState();
     });
 
-    this.fmsConnection.on("allianceSelectionChanged", async () => {
+    this.fmsConnection.on("allianceSelectionChanged", async (data) => {
+      data = data as {
+        AllianceNumber: number,
+        AllianceParticipant: 'Captain' | 'FirstPick' | 'Alternative',
+        TeamNumber: number,
+      };
+
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for the FMS to update the alliances
+
       const alliances = await this.getAlliances();
       this.ranking = await this.getRankings();
       this.updateAllianceData(alliances);

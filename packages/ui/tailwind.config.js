@@ -37,5 +37,5 @@ export default {
 		},
 	},
 	plugins: [],
-	safelist: ["bg-gradient-to-r", "bg-gradient-to-l", "rounded-l-xl", "rounded-r-xl"],
+	safelist: ["bg-gradient-to-r", "bg-gradient-to-l", "rounded-l-xl", "rounded-r-xl", "grid-rows-4", "grid-rows-5", "grid-rows-6"],
 };
