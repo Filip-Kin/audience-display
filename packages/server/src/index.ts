@@ -1,8 +1,17 @@
 import { AudienceDisplayManager } from "./fms/audience_display";
+import { existsSync } from "fs";
+import { join } from "path";
+import zipFile from "../../../ui-dist.zip" with { type: "file" };
+import { $, file } from "bun";
 
 // Get FMS url from environment
 const FMS_URL = process.env.FMS_URL;
 const FAKE_FMS = process.env.FAKE_FMS;
+
+if (process.execPath.endsWith(".exe")) {
+  await Bun.write("./.temp/public.zip", file(zipFile));
+  await $`unzip -o ./.temp/public.zip -d ./.temp`;
+}
 
 const server = Bun.serve({
   fetch(request, server) {
@@ -17,7 +26,14 @@ const server = Bun.serve({
         });
       }
     }
-    return new Response("Hello world!");
+
+    const rel = url.pathname === "/" || url.pathname.startsWith("/display") ? "index.html" : url.pathname.replace(/^\/+/, "");
+    const filePath = join("./.temp/dist", rel);
+
+    if (existsSync(filePath)) {
+      return new Response(Bun.file(filePath));
+    }
+    return new Response("Not found", { status: 404 });
   },
   websocket: {
     async message(ws, message) {
