@@ -359,7 +359,7 @@ export class AudienceDisplayManager {
               (data.CoopertitionBonusAchieved ? 1 : 0),
           };
         }
-        this.broadcastState();
+        if (this.screen !== "match-end" && this.screen !== "scores-ready") this.broadcastState(); // Don't show score updates after match end
       }
     );
 
@@ -397,7 +397,8 @@ export class AudienceDisplayManager {
             (data.CoopertitionBonusAchieved ? 1 : 0),
         };
       }
-      this.broadcastState();
+
+      if (this.screen !== "match-end" && this.screen !== "scores-ready") this.broadcastState(); // Don't show score updates after match end
     });
 
     this.fmsConnection.on(
