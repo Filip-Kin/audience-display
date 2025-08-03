@@ -14,6 +14,10 @@ const bracket = {
   11: "Upper Bracket - Round 4 - Match 11",
   12: "Lower Bracket - Round 4 - Match 12",
   13: "Lower Bracket - Round 5 - Match 13",
+  14: "Final 1",
+  15: "Final 2",
+  16: "Final Tiebreaker",
+  17: "Final Tiebreaker Part 2",
 };
 
 export const matchName = (
@@ -36,3 +40,10 @@ export const matchName = (
     }
   }
 };
+
+export function displayEventName(name?: string): string {
+  if (!name) return "Event Name";
+  if (name.length > 35) return name.slice(0, 35) + "...";
+  if (name.length > 20) return name;
+  return name + " – ";
+}

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { playSound } from "./audio";
 	import { settings } from "./settings"; // adjust if path is different
-	import { get } from "svelte/store";
+	import { setScreen, state } from "./state";
 
 	export let settingsOpen: boolean;
 
@@ -76,6 +76,8 @@
 						<button class="bg-blue-500 text-white rounded px-2 py-1 ml-2" on:click={() => playSound(testSound)}>Play</button>
 					</div>
 				</div>
+
+				<button class="bg-blue-500 text-white rounded px-2 py-1 mt-4" on:click={() => setScreen("scores-ready")}>Scores Ready Screen</button>
 			</div>
 
 			<button class="mt-6 bg-blue-500 text-white rounded px-4 py-2 w-full" on:click={() => (settingsOpen = false)}> Close </button>

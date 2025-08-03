@@ -18,12 +18,19 @@ type Events =
   | "allianceSelectionChanged"
   | "connected"
   | "disconnected"
-  | "timeout";
+  | "timeout"
+  | "fieldMonitorTeamsChanged"
+  | "tournamentLevelChanged";
 
 export class FMSSignalRConnection {
   private fmsUrl: string;
   private infrastructureConnection: HubConnection;
   private gameSpecificConnection: HubConnection;
+  private fieldMonitorConnection: HubConnection;
+  private currentTeams: {
+    red: number[];
+    blue: number[];
+  } = { red: [], blue: [] };
 
   private eventCallbacks: { [key in Events]: Function[] } = {
     videoSwitch: [],
@@ -43,6 +50,8 @@ export class FMSSignalRConnection {
     connected: [],
     disconnected: [],
     timeout: [],
+    fieldMonitorTeamsChanged: [],
+    tournamentLevelChanged: [],
   };
 
   constructor(fmsUrl: string) {
@@ -71,6 +80,18 @@ export class FMSSignalRConnection {
       })
       .build();
 
+    this.fieldMonitorConnection = new HubConnectionBuilder()
+      .withUrl(`http://${fmsUrl}/fieldMonitorHub`)
+      .withServerTimeout(30000) // 30 seconds, per FMS Audience Display
+      .withKeepAliveInterval(15000) // 15 seconds per FMS Audience Display
+      .withAutomaticReconnect({
+        nextRetryDelayInMilliseconds(retryContext) {
+          console.warn("Retrying SignalR connection...");
+          return Math.min(2_000 * retryContext.previousRetryCount, 120_000);
+        },
+      })
+      .build();
+
     this.infrastructureConnection.start().then(async () => {
       console.log("Connected to FMS infrastructure hub");
       this.emit("connected", null);
@@ -87,8 +108,13 @@ export class FMSSignalRConnection {
       console.log("Connected to FMS game specific hub");
     });
 
+    this.fieldMonitorConnection.start().then(() => {
+      console.log("Connected to FMS field monitor hub");
+    });
+
     this.handleInfrastructureConnection();
     this.handleGameSpecificConnection();
+    this.handleFieldMonitorConnection();
   }
 
   private handleInfrastructureConnection() {
@@ -179,7 +205,7 @@ export class FMSSignalRConnection {
       console.log("matchstatusinfochanged: ", data);
 
       if (data.MatchState.endsWith("TO")) {
-        this.emit("timeout", null);
+        this.emit("timeout", data);
       }
 
       // Match Ready
@@ -242,7 +268,12 @@ export class FMSSignalRConnection {
 
     this.infrastructureConnection.on("allianceselectionchanged", (data) => {
       console.log("allianceselectionchanged: ", data);
-      this.emit("allianceSelectionChanged", null);
+      this.emit("allianceSelectionChanged", data);
+    });
+
+    this.infrastructureConnection.on("activetournamentlevelchanged", (data) => {
+      console.log("activetournamentlevelchanged: ", data);
+      this.emit("tournamentLevelChanged", data);
     });
 
     this.infrastructureConnection.onreconnecting(() => {
@@ -279,15 +310,38 @@ export class FMSSignalRConnection {
     this.gameSpecificConnection.on(
       "BlueScoringElementsChanged",
       (data: ScoringElementChangedData) => {
-        console.log("BlueScoringElementsChanged", data);
+        // console.log("BlueScoringElementsChanged", data);
       },
     );
     this.gameSpecificConnection.on(
       "RedScoringElementsChanged",
       (data: ScoringElementChangedData) => {
-        console.log("RedScoringElementsChanged", data);
+        // console.log("RedScoringElementsChanged", data);
       },
     );
+  }
+
+  private handleFieldMonitorConnection() {
+    this.fieldMonitorConnection.on("fieldMonitorDataChanged", (data) => {
+      const teams = {
+        red: [],
+        blue: [],
+      };
+
+      for (const team of data) {
+        if (team.Alliance === "Red") {
+          teams.red.push(team.TeamNumber);
+        } else if (team.Alliance === "Blue") {
+          teams.blue.push(team.TeamNumber);
+        }
+      }
+
+      this.currentTeams = teams;
+      this.emit("fieldMonitorTeamsChanged", {
+        red: teams.red,
+        blue: teams.blue,
+      });
+    });
   }
 
   on(event: Events, callback: (data: any) => void) {

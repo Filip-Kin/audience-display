@@ -1,7 +1,8 @@
-import { get, readable } from "svelte/store";
+import { get, writable } from "svelte/store";
 import type { AudienceDisplayState } from "lib";
 import { playSound } from "./audio";
 import { settings } from "./settings";
+import type { Screen } from "../../../lib/types/audience_display";
 
 const defaultState: AudienceDisplayState = {
   connected: false,
@@ -15,7 +16,7 @@ const defaultState: AudienceDisplayState = {
 
 // Subscribe to the state of the WebSocket connection.
 // Automatically reconnects when the connection is lost.
-export const state = readable(defaultState, (set) => {
+export const state = writable(defaultState, (set) => {
   let reconnectInterval: Timer | null = null;
   let ws = new WebSocket(`ws://${location.host}/ws`);
 
@@ -55,3 +56,10 @@ export const state = readable(defaultState, (set) => {
     ws.close();
   };
 });
+
+export const setScreen = (screen: Screen) => {
+  state.update((s) => {
+    s.screen = screen;
+    return s;
+  });
+};

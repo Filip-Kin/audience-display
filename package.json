@@ -10,12 +10,13 @@
     "server:build": "cd packages/server && bun run build",
     "server:start": "cd packages/server && bun start",
     "ui:dev": "cd packages/ui && bun dev",
-    "ui:build": "cd packages/ui && bun run build",
+    "ui:build": "cd packages/ui && bun run build && zip -r ../../ui-dist.zip dist",
     "ui:start": "cd packages/ui && bun start",
     "fakefms:start": "bun fakefms:build && npm-run-all -p fakefms:dev fakefms-ui:dev",
     "fakefms:dev": "docker run -p 8080:8080 fakefms",
     "fakefms:build": "cd packages/fakefms && docker build -t fakefms .",
-    "fakefms-ui:dev": "cd packages/fakefms-ui && bun dev"
+    "fakefms-ui:dev": "cd packages/fakefms-ui && bun dev",
+    "exe:build": "npm run ui:build && bun build --compile ./packages/server/src/index.ts --outfile audience-display.exe"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.19",
@@ -23,6 +24,7 @@
     "tailwindcss": "^3.4.3"
   },
   "dependencies": {
+    "fflate": "^0.8.2",
     "svelte-routing": "^2.13.0",
     "svelte-sound": "^0.6.0"
   }
