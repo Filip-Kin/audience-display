@@ -51,6 +51,7 @@ export class FMSSignalRConnection {
     disconnected: [],
     timeout: [],
     fieldMonitorTeamsChanged: [],
+    tournamentLevelChanged: [],
   };
 
   constructor(fmsUrl: string) {
@@ -204,7 +205,7 @@ export class FMSSignalRConnection {
       console.log("matchstatusinfochanged: ", data);
 
       if (data.MatchState.endsWith("TO")) {
-        this.emit("timeout", null);
+        this.emit("timeout", data);
       }
 
       // Match Ready

@@ -565,6 +565,13 @@ export class AudienceDisplayManager {
       console.log("Tournament level changed to", level);
       await this.updateMatchCount();
     });
+
+    this.fmsConnection.on("timeout", async (data) => {
+      console.log("Timeout event received", data);
+      this.match.details.matchNumber = data.MatchNumber;
+      this.match.score.winner = undefined;
+      this.broadcastState();
+    });
   }
 
   broadcastState() {
