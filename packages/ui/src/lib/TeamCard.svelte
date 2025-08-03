@@ -26,13 +26,13 @@
 			duration: 100,
 		}}
 	>
-		<div class="flex flex-row bg-{alliance}-600 text-white p-4 text-xl gap-4 align-middle">
+		<div class="flex flex-row bg-{alliance}-600 text-white p-3 text-xl gap-4 align-middle">
 			<div style="width: 60px; height: 60px">
 				<img src="data:image/png;base64,{team.avatar || defaultAvatar}" alt="{team.number} Icon" width="60px" height="60px" />
 			</div>
-			<span class="text-5xl">{team.number}</span>
+			<span class="text-5xl font-semibold">{team.number}</span>
 		</div>
-		<div class="grid grid-cols-[.7fr_.1fr_.2fr] bg-white text-black p-4 text-4xl font-bold justify-between">
+		<div class="grid grid-cols-[.7fr_.1fr_.2fr] bg-white text-black p-3 text-4xl font-bold justify-between">
 			<span>{team.name}</span>
 			{#if team.card && team.card !== "None"}
 				<span class="w-full h-8 text-2xl text-center text-black rounded border border-gray-800 {team.card === 'Red' ? 'bg-red-400' : 'bg-yellow-400'}"

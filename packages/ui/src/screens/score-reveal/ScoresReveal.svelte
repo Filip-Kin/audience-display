@@ -89,28 +89,35 @@
 
 <div class="w-full bg-primary-700 h-full fixed -skew-x-12 flex flex-row justify-start" style={`left: ${$shutterSpring}vw`}></div>
 
-<div class="fixed z-10 flex flex-col w-full h-full justify-around">
+<div class="fixed z-10 flex flex-col w-full h-full justify-around mt-4">
 	<div class="w-full flex flex-row justify-around py-8">
 		{#if $state.results}
 			{#if ready}
-				<div class="min-w-96 text-center text-6xl" in:fly={{ y: -50, duration: 100 }} out:fade={{ duration: 100 }}>
-					<div class="bg-black py-6 px-12 rounded-t max-w-[45vw] text-3xl">
-						<span class="text-secondary-600 font-bold">
-							{$state.eventDetails?.name || "Event Name"} - {matchName(
-								$state.results.details.matchNumber,
-								$state.eventDetails?.matchCount ?? 0,
-								$state.results.details.matchType
-							)}
-						</span>
+				<div class="min-w-[40vw] text-center text-6xl" in:fly={{ y: -50, duration: 100 }} out:fade={{ duration: 100 }}>
+					<div class="bg-black py-6 px-12 rounded-t max-w-[45vw] text-4xl">
+						<p class="text-secondary-600 font-bold">
+							{#if $state.eventDetails?.name}
+								{$state.eventDetails.name.length > 35
+									? $state.eventDetails.name.slice(0, 35) + "..."
+									: $state.eventDetails.name.length > 20
+										? $state.eventDetails.name
+										: $state.eventDetails.name + " - "}
+							{:else}
+								Event Name
+							{/if}
+						</p>
+						<p class="text-secondary-600 font-bold">
+							{matchName($state.results.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.results.details.matchType)}
+						</p>
 					</div>
 					<div class="flex" class:flex-row-reverse={$settings.invert}>
-						<div class="bg-blue-600 w-1/2 text-center flex flex-col justify-center py-4">
+						<div class="bg-blue-600 w-1/2 text-center flex flex-col justify-center py-6 text-3xl">
 							<span class="text-white font-bold">Blue</span>
-							<span class="text-5xl font-bold">{$state.results?.score.blue.score}</span>
+							<span class="text-8xl font-bold pt-2">{$state.results?.score.blue.score}</span>
 						</div>
-						<div class="bg-red-600 w-1/2 text-center flex flex-col justify-center py-4">
+						<div class="bg-red-600 w-1/2 text-center flex flex-col justify-center py-6 text-3xl">
 							<span class="text-white font-bold">Red</span>
-							<span class="text-5xl font-bold">{$state.results?.score.red.score}</span>
+							<span class="text-8xl font-bold pt-2">{$state.results?.score.red.score}</span>
 						</div>
 					</div>
 				</div>
@@ -155,35 +162,35 @@
 		{#if ready}
 			<div class="w-1/4 flex flex-col items-center">
 				<div
-					class="w-full h-fit -mt-8 justify-around bg-white text-black font-semibold text-4xl flex flex-col text-center"
+					class="w-full h-fit -mt-8 justify-around bg-white text-black font-semibold text-5xl flex flex-col text-center"
 					in:fade={{ duration: 100 }}
 					out:fade={{ duration: 100 }}
 				>
-					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
+					<div class="grid grid-cols-[.2fr_.6fr_.2fr] even:bg-gray-200 px-2 py-3">
 						<span>{$state.results?.score[$settings.invert ? "red" : "blue"].autoMobility}</span>
 						<span>Auto Leave</span>
 						<span>{$state.results?.score[$settings.invert ? "blue" : "red"].autoMobility}</span>
 					</div>
 
-					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
+					<div class="grid grid-cols-[.2fr_.6fr_.2fr] even:bg-gray-200 px-2 py-3">
 						<span>{$state.results?.score[$settings.invert ? "red" : "blue"].coral}</span>
 						<span>Coral</span>
 						<span>{$state.results?.score[$settings.invert ? "blue" : "red"].coral}</span>
 					</div>
 
-					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
+					<div class="grid grid-cols-[.2fr_.6fr_.2fr] even:bg-gray-200 px-2 py-3">
 						<span>{$state.results?.score[$settings.invert ? "red" : "blue"].algae}</span>
 						<span>Algae</span>
 						<span>{$state.results?.score[$settings.invert ? "blue" : "red"].algae}</span>
 					</div>
 
-					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
+					<div class="grid grid-cols-[.2fr_.6fr_.2fr] even:bg-gray-200 px-2 py-3">
 						<span>{$state.results?.score[$settings.invert ? "red" : "blue"].barge}</span>
 						<span>Barge</span>
 						<span>{$state.results?.score[$settings.invert ? "blue" : "red"].barge}</span>
 					</div>
 
-					<div class="grid grid-cols-[.25fr_.5fr_.25fr] even:bg-gray-200 p-4">
+					<div class="grid grid-cols-[.2fr_.6fr_.2fr] even:bg-gray-200 px-2 py-3">
 						<span>{$state.results?.score[$settings.invert ? "red" : "blue"].fouls}</span>
 						<span>Penalty</span>
 						<span>{$state.results?.score[$settings.invert ? "blue" : "red"].fouls}</span>
