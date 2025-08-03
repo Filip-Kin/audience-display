@@ -3,7 +3,7 @@
 	import { fade, fly } from "svelte/transition";
 	import { state } from "../../lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
-	import { matchName } from "../../lib/matchNamer";
+	import { displayEventName, matchName } from "../../lib/matchNamer";
 	import { settings } from "../../lib/settings";
 	import TeamCard from "../../lib/TeamCard.svelte";
 	import RankingPoints from "./RankingPoints.svelte";
@@ -96,15 +96,7 @@
 				<div class="min-w-[40vw] text-center text-6xl" in:fly={{ y: -50, duration: 100 }} out:fade={{ duration: 100 }}>
 					<div class="bg-black py-6 px-12 rounded-t max-w-[45vw] text-4xl">
 						<p class="text-secondary-600 font-bold">
-							{#if $state.eventDetails?.name}
-								{$state.eventDetails.name.length > 35
-									? $state.eventDetails.name.slice(0, 35) + "..."
-									: $state.eventDetails.name.length > 20
-										? $state.eventDetails.name
-										: $state.eventDetails.name + " - "}
-							{:else}
-								Event Name
-							{/if}
+							{displayEventName($state.eventDetails?.name)}
 						</p>
 						<p class="text-secondary-600 font-bold">
 							{matchName($state.results.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.results.details.matchType)}

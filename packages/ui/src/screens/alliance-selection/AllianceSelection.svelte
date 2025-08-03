@@ -39,6 +39,24 @@
 	let numberOfTeams = $state.ranking.length;
 	$: numberOfTeams = $state.ranking.filter((team) => !team.unavailableForSelection).length;
 
+	let gridRowsClass = "grid-rows-4";
+	let textSizeClass = "text-5xl";
+	let rankWidthClass = "w-20";
+
+	$: if (numberOfTeams > 35) {
+		gridRowsClass = "grid-rows-6";
+		textSizeClass = "text-3xl";
+		rankWidthClass = "w-12";
+	} else if (numberOfTeams > 20) {
+		gridRowsClass = "grid-rows-5";
+		textSizeClass = "text-4xl";
+		rankWidthClass = "w-16";
+	} else {
+		gridRowsClass = "grid-rows-4";
+		textSizeClass = "text-5xl";
+		rankWidthClass = "w-20";
+	}
+
 	let allianceSize = 3;
 	$: for (const alliance of $state.alliances) {
 		allianceSize = Math.max(allianceSize, alliance.teams.length);
@@ -50,23 +68,11 @@
 
 	<div class="absolute top-32 gap-4 px-8 w-full grid grid-cols-[.65fr_.35fr]">
 		<div class="flex flex-col gap-4 h-full justify-between">
-			<div
-				class="grid grid-rows-{numberOfTeams > 35
-					? '6'
-					: numberOfTeams > 20
-						? '5'
-						: '4'} grid-flow-col gap-x-2 gap-y-2 tracking-tighter text-{numberOfTeams > 35 ? '3' : numberOfTeams > 20 ? '4' : '5'}xl"
-			>
-				{#each $state.ranking as team, index}
+			<div class="grid {gridRowsClass} grid-flow-col gap-x-2 gap-y-2 tracking-tighter {textSizeClass}">
+				{#each $state.ranking as team}
 					{#if !team.unavailableForSelection}
 						<div class="flex flex-row justify-between items-center bg-white border border-gray-800 rounded">
-							<span
-								class="bg-blue-800 text-white font-semibold h-full py-2 px-1 text-center {numberOfTeams > 35
-									? 'w-12'
-									: numberOfTeams > 20
-										? 'w-18'
-										: 'w-20'}"
-							>
+							<span class="bg-blue-800 text-white font-semibold h-full py-2 px-1 text-center {rankWidthClass}">
 								{team.rank}
 							</span>
 							<span class="text-gray-800 font-semibold p-2" class:bg-yellow-200={team.potentialCaptain}>
@@ -76,6 +82,7 @@
 					{/if}
 				{/each}
 			</div>
+
 			<!-- Camera greenscreen -->
 			<div class="mb-2">
 				<div class="max-h-[50vh] mx-auto aspect-video bg-fuchsia-500 z-10 rounded-xl"></div>
@@ -106,7 +113,6 @@
 				</div>
 
 				<div class="h-full flex flex-col items-end justify-end">
-					<!-- TODO: Selection Timer -->
 					<div class="bg-black rounded-xl py-6 px-16 text-white font-bold text-7xl text-center flex flex-col gap-2">
 						<span class="text-2xl">TIMER</span>
 						<span>{secondsToMinutes($state.match?.timer ?? 0)}</span>

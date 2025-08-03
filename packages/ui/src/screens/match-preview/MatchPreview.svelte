@@ -3,7 +3,7 @@
 	import { fade, fly } from "svelte/transition";
 	import { state } from "../../lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
-	import { matchName } from "../../lib/matchNamer";
+	import { displayEventName, matchName } from "../../lib/matchNamer";
 	import RobotShadow from "./RobotShadow.svelte";
 	import { settings } from "../../lib/settings";
 	import TeamCard from "../../lib/TeamCard.svelte";
@@ -49,15 +49,7 @@
 					out:fade={{ duration: 100 }}
 				>
 					<span class="text-secondary-600 font-bold">
-						{#if $state.eventDetails?.name}
-							{$state.eventDetails.name.length > 35
-								? $state.eventDetails.name.slice(0, 35) + "..."
-								: $state.eventDetails.name.length > 20
-									? $state.eventDetails.name
-									: $state.eventDetails.name + " - "}
-						{:else}
-							Event Name
-						{/if}
+						{displayEventName($state.eventDetails?.name)}
 						{matchName($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType)}
 					</span>
 				</div>

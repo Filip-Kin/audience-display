@@ -29,7 +29,6 @@
 			preScoreReveal = false;
 		}
 
-		console.log($settings.transitionAfterMatchEnd);
 		if ($state.screen === "scores-ready" && $settings.transitionAfterMatchEnd > -1) {
 			// Don't transition to scores-ready if the active screen is match-end
 			console.log("scores-ready");

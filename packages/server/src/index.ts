@@ -8,7 +8,7 @@ import { $, file } from "bun";
 const FMS_URL = process.env.FMS_URL;
 const FAKE_FMS = process.env.FAKE_FMS;
 
-if (process.execPath.endsWith(".exe")) {
+if (process.execPath.endsWith(".exe") && !process.execPath.endsWith("bun.exe")) {
   await Bun.write("./.temp/public.zip", file(zipFile));
   await $`unzip -o ./.temp/public.zip -d ./.temp`;
 }
