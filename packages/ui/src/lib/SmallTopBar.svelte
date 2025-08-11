@@ -9,10 +9,10 @@
 </script>
 
 <div
-	class="fixed bg-primary-800 text-secondary-600 h-20 flex justify-between mx-[10vw] w-[80vw]"
+	class="fixed bg-primary-800 text-white-600 h-20 flex justify-between mx-[10vw] w-[80vw]"
 	style={`${$settings.top ? "bottom" : "top"}: calc(${$positionSpring || 40}px - 15px)`}
 >
-	<span><img src="/sponsor.png" class="h-20 p-3" alt="sponsor" /></span>
+	<span><img src="/logo.png" class="h-20 p-0.5" alt="sponsor" /></span>
 	<div class="flex justify-center items-center">
 		<div class="text-4xl font-bold text-center">
 			{$state.eventDetails?.name || "Event Name"}

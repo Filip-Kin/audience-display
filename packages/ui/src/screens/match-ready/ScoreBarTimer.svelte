@@ -13,7 +13,7 @@
 
 {#if $state.match}
 	<div class="z-50 w-48 bg-gradient-to-{$settings.invert ? 'l' : 'r'} from-red-600 from-30% to-70% to-blue-600 relative overflow-hidden">
-		<div class="absolute text-white text-7xl font-bold top-0 left-0 w-48 h-36 my-1 grid place-items-center drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
+		<div class="z-50 absolute text-white text-7xl font-bold top-0 left-0 w-48 h-36 my-1 grid place-items-center drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
 			{secondsToMinutes($state.match.timer)}
 		</div>
 	</div>

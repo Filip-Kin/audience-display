@@ -70,7 +70,7 @@
 	</video>
 </div>
 
-<div class="w-full bg-primary-800 h-full fixed -skew-x-12 flex flex-row justify-start" style={`right: ${$shutterSpring}vw`}></div>
+<div class="w-full bg-{$settings.invert ? 'red' : 'blue'}-800 h-full fixed -skew-x-12 flex flex-row justify-start" style={`right: ${$shutterSpring}vw`}></div>
 
 {#if ready}
 	<div
@@ -78,16 +78,17 @@
 		in:fade={{ duration: 200 }}
 		out:fade={{ duration: 200 }}
 	>
-		<span class="text-3xl font-bold text-center">Event Sponsored By</span>
+		<span class="text-3xl font-bold text-center"><!--Event Sponsored By--></span>
 		<span></span>
 		<span class="text-3xl font-bold text-center">Live Stream Partner</span>
-		<img src="/sponsor2.png" class="w-56 mx-auto" alt="sponsor" />
+		<img src="/logo.png" class="w-72 mx-auto" alt="sponsor" />
+		<!-- <span></span> -->
 		<span></span>
 		<img src="/pitpodcast.png" class="w-56 mx-auto" alt="sponsor" />
 	</div>
 {/if}
 
-<div class="w-full bg-primary-700 h-full fixed -skew-x-12 flex flex-row justify-start" style={`left: ${$shutterSpring}vw`}></div>
+<div class="w-full bg-{$settings.invert ? 'blue' : 'red'}-800 h-full fixed -skew-x-12 flex flex-row justify-start" style={`left: ${$shutterSpring}vw`}></div>
 
 <div class="fixed z-10 flex flex-col w-full h-full justify-around mt-4">
 	<div class="w-full flex flex-row justify-around py-8">
@@ -95,10 +96,10 @@
 			{#if ready}
 				<div class="min-w-[40vw] text-center text-6xl" in:fly={{ y: -50, duration: 100 }} out:fade={{ duration: 100 }}>
 					<div class="bg-black py-6 px-12 rounded-t max-w-[45vw] text-4xl">
-						<p class="text-secondary-600 font-bold">
+						<p class="text-primary-500 font-bold">
 							{displayEventName($state.eventDetails?.name)}
 						</p>
-						<p class="text-secondary-600 font-bold">
+						<p class="text-primary-500 font-bold">
 							{matchName($state.results.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.results.details.matchType)}
 						</p>
 					</div>
@@ -197,7 +198,7 @@
 					</div>
 				</div>
 
-				<img src="/logo.png" alt="logo" class="size-96" in:fly={{ y: 200, duration: 500 }} out:fly={{ y: -400, duration: 200 }} />
+				<!-- <img src="/logo.png" alt="logo" class="size-80" in:fly={{ y: 200, duration: 500 }} out:fly={{ y: -400, duration: 200 }} /> -->
 			</div>
 		{/if}
 

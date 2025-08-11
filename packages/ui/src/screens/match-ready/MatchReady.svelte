@@ -66,7 +66,7 @@
 				src="/logo.png"
 				alt=""
 				class="size-32 z-10"
-				style={`transform: translateY(calc(${($logoSpring / 100) * 44.5}vh - 120px - 50vh)) scale(${480 - ($logoSpring / 100) * 300}%)`}
+				style={`transform: translateY(calc(${($logoSpring / 100) * 42}vh - 70px - 50vh)) scale(${480 - ($logoSpring / 100) * 350}%)`}
 				in:fade={{ duration: 300 }}
 				out:fade={{ duration: 300 }}
 			/>
