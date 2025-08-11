@@ -413,32 +413,44 @@ export class AudienceDisplayManager {
           data.matchNumber
         );
 
-        for (let i = 0; i < 3; i++) {
+
+        this.results.teams.red = [];
+        this.results.teams.blue = [];
+
+        for (let i = 0; i < 4; i++) {
           const matchResultsTeamRed =
             results.redAllianceData[
-            `team${i + 1}` as "team1" | "team2" | "team3"
+            `team${i + 1}` as "team1" | "team2" | "team3" | "team4"
             ];
-          this.results.teams.red[i] = {
-            name: getTeamName(matchResultsTeamRed.teamNumber, matchResultsTeamRed.teamName),
-            number: matchResultsTeamRed.teamNumber,
-            rank: matchResultsTeamRed.teamRank,
-            avatar: matchResultsTeamRed.avatar,
-            card: matchResultsTeamRed.cardEffectiveStatus,
-            rankChange: matchResultsTeamRed.teamRankChange,
-          };
+
+          if (!matchResultsTeamRed) {
+          } else {
+            this.results.teams.red.push({
+              name: getTeamName(matchResultsTeamRed.teamNumber, matchResultsTeamRed.teamName),
+              number: matchResultsTeamRed.teamNumber,
+              rank: matchResultsTeamRed.teamRank,
+              avatar: matchResultsTeamRed.avatar,
+              card: matchResultsTeamRed.cardEffectiveStatus,
+              rankChange: matchResultsTeamRed.teamRankChange,
+            });
+          }
 
           const matchResultsTeamBlue =
             results.blueAllianceData[
-            `team${i + 1}` as "team1" | "team2" | "team3"
+            `team${i + 1}` as "team1" | "team2" | "team3" | "team4"
             ];
-          this.results.teams.blue[i] = {
-            name: getTeamName(matchResultsTeamBlue.teamNumber, matchResultsTeamBlue.teamName),
-            number: matchResultsTeamBlue.teamNumber,
-            rank: matchResultsTeamBlue.teamRank,
-            avatar: matchResultsTeamBlue.avatar,
-            card: matchResultsTeamBlue.cardEffectiveStatus,
-            rankChange: matchResultsTeamBlue.teamRankChange,
-          };
+
+          if (!matchResultsTeamBlue) {
+          } else {
+            this.results.teams.blue.push({
+              name: getTeamName(matchResultsTeamBlue.teamNumber, matchResultsTeamBlue.teamName),
+              number: matchResultsTeamBlue.teamNumber,
+              rank: matchResultsTeamBlue.teamRank,
+              avatar: matchResultsTeamBlue.avatar,
+              card: matchResultsTeamBlue.cardEffectiveStatus,
+              rankChange: matchResultsTeamBlue.teamRankChange,
+            });
+          }
         }
 
         this.results.score.red = {
@@ -497,6 +509,8 @@ export class AudienceDisplayManager {
 
         // This ensures the scores post, even if already on the score screen
         this.screen = "scores-ready";
+
+        console.log(this.results.teams.red);
 
         this.broadcastState();
 
@@ -634,6 +648,9 @@ export class AudienceDisplayManager {
       this.match.teams.red = [];
       this.match.teams.blue = [];
 
+      const redExtraTeams: Team[] = [];
+      const blueExtraTeams: Team[] = [];
+
       for (let i = 0; i < 4; i++) {
         const matchPreviewTeamRed =
           matchPreview.redAlliance[
@@ -643,15 +660,24 @@ export class AudienceDisplayManager {
         if (!matchPreviewTeamRed) {
           // console.log(`Skipping team ${i + 1} in red alliance because null`);
         } else if (!this.teamLineup.red.includes(matchPreviewTeamRed.teamNumber)) {
-          console.log(`Skipping team ${i + 1} in red alliance because not in lineup`);
-        } else {
-          this.match.teams.red[i] = {
+          console.log(this.teamLineup.red);
+          console.log(`Adding extra team ${matchPreviewTeamRed.teamNumber} to red alliance`);
+          redExtraTeams.push({
             name: getTeamName(matchPreviewTeamRed.teamNumber, matchPreviewTeamRed.teamName),
             number: matchPreviewTeamRed.teamNumber,
             rank: matchPreviewTeamRed.teamRank,
             avatar: matchPreviewTeamRed.avatar,
             card: (matchPreviewTeamRed.carryingCard ?? matchPreview.redAlliance.carryingCard),
-          };
+          });
+        } else {
+          console.log(`Adding team ${matchPreviewTeamRed.teamNumber} to red alliance`);
+          this.match.teams.red.push({
+            name: getTeamName(matchPreviewTeamRed.teamNumber, matchPreviewTeamRed.teamName),
+            number: matchPreviewTeamRed.teamNumber,
+            rank: matchPreviewTeamRed.teamRank,
+            avatar: matchPreviewTeamRed.avatar,
+            card: (matchPreviewTeamRed.carryingCard ?? matchPreview.redAlliance.carryingCard),
+          });
         }
 
 
@@ -663,17 +689,26 @@ export class AudienceDisplayManager {
         if (!matchPreviewTeamBlue) {
           // console.log(`Skipping team ${i + 1} in blue alliance because null`);
         } else if (!this.teamLineup.blue.includes(matchPreviewTeamBlue.teamNumber)) {
-          console.log(`Skipping team ${i + 1} in blue alliance because not in lineup`);
-        } else {
-          this.match.teams.blue[i] = {
+          blueExtraTeams.push({
             name: getTeamName(matchPreviewTeamBlue.teamNumber, matchPreviewTeamBlue.teamName),
             number: matchPreviewTeamBlue.teamNumber,
             rank: matchPreviewTeamBlue.teamRank,
             avatar: matchPreviewTeamBlue.avatar,
             card: (matchPreviewTeamBlue.carryingCard ?? matchPreview.blueAlliance.carryingCard),
-          };
+          });
+        } else {
+          this.match.teams.blue.push({
+            name: getTeamName(matchPreviewTeamBlue.teamNumber, matchPreviewTeamBlue.teamName),
+            number: matchPreviewTeamBlue.teamNumber,
+            rank: matchPreviewTeamBlue.teamRank,
+            avatar: matchPreviewTeamBlue.avatar,
+            card: (matchPreviewTeamBlue.carryingCard ?? matchPreview.blueAlliance.carryingCard),
+          });
         }
       }
+
+      this.match.teams.red = [...this.match.teams.red, ...redExtraTeams];
+      this.match.teams.blue = [...this.match.teams.blue, ...blueExtraTeams];
     }
   }
 

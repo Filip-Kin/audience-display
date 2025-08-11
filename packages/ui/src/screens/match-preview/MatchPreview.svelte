@@ -58,8 +58,8 @@
 	</div>
 
 	<div class="w-full h-full flex flex-row justify-around" class:flex-row-reverse={$settings.invert}>
-		<div class="w-1/3 flex flex-col gap-8 justify-center">
-			{#if $state.match}
+		{#if $state.match}
+			<div class="w-1/3 flex flex-col justify-center {$state.match.teams.blue.length > 3 ? 'gap-4' : 'gap-8'}">
 				{#if $state.match.details.blueAlliance}
 					{#if ready}
 						<div
@@ -74,7 +74,7 @@
 								duration: 100,
 							}}
 						>
-							<div class="flex flex-row bg-blue-600 text-white p-4 gap-4 align-middle text-4xl font-bold justify-center">
+							<div class="flex flex-row bg-blue-600 text-white p-4 gap-4 align-middle text-5xl font-semibold justify-center">
 								{$state.match.details.blueAlliance}
 							</div>
 						</div>
@@ -83,11 +83,11 @@
 				{#each $state.match.teams.blue as team, index}
 					<TeamCard alliance="blue" {ready} {index} {team} invert={!$settings.invert} />
 				{/each}
-			{/if}
-		</div>
+			</div>
+		{/if}
 
-		<div class="w-1/3 flex flex-col gap-8 justify-center">
-			{#if $state.match}
+		{#if $state.match}
+			<div class="w-1/3 flex flex-col justify-center {$state.match.teams.red.length > 3 ? 'gap-4' : 'gap-8'}">
 				{#if $state.match.details.redAlliance}
 					{#if ready}
 						<div
@@ -102,7 +102,7 @@
 								duration: 100,
 							}}
 						>
-							<div class="flex flex-row bg-red-600 text-white p-4 gap-4 align-middle text-4xl font-bold justify-center">
+							<div class="flex flex-row bg-red-600 text-white p-4 gap-4 align-middle text-5xl font-semibold justify-center">
 								{$state.match.details.redAlliance}
 							</div>
 						</div>
@@ -112,7 +112,7 @@
 				{#each $state.match.teams.red as team, index}
 					<TeamCard alliance="red" {ready} {index} {team} invert={$settings.invert} />
 				{/each}
-			{/if}
-		</div>
+			</div>
+		{/if}
 	</div>
 </div>

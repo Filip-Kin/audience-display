@@ -141,9 +141,17 @@
 					{/if}
 				{/if}
 
-				{#each $state.results.teams.blue as team, index}
-					<TeamCard alliance="blue" {ready} {index} {team} invert={!$settings.invert} />
-				{/each}
+				{#if $state.results.teams.blue.length > 3}
+					<div class="grid grid-cols-2 gap-4 auto-rows-fr">
+						{#each $state.results.teams.blue as team, index}
+							<TeamCard alliance="blue" {ready} {index} {team} invert={!$settings.invert} small />
+						{/each}
+					</div>
+				{:else}
+					{#each $state.results.teams.blue as team, index}
+						<TeamCard alliance="blue" {ready} {index} {team} invert={!$settings.invert} />
+					{/each}
+				{/if}
 
 				{#if $state.results.details.matchType !== "sf" && $state.results.details.matchType !== "f"}
 					<RankingPoints {ready} alliance="blue" invert={!$settings.invert} />
@@ -216,9 +224,17 @@
 					{/if}
 				{/if}
 
-				{#each $state.results.teams.red as team, index}
-					<TeamCard alliance="red" {ready} {index} {team} invert={$settings.invert} />
-				{/each}
+				{#if $state.results.teams.red.length > 3}
+					<div class="grid grid-cols-2 gap-4 auto-rows-fr">
+						{#each $state.results.teams.red as team, index}
+							<TeamCard alliance="red" {ready} {index} {team} invert={$settings.invert} small />
+						{/each}
+					</div>
+				{:else}
+					{#each $state.results.teams.red as team, index}
+						<TeamCard alliance="red" {ready} {index} {team} invert={$settings.invert} />
+					{/each}
+				{/if}
 
 				{#if $state.results.details.matchType !== "sf" && $state.results.details.matchType !== "f"}
 					<RankingPoints {ready} alliance="red" invert={$settings.invert} />

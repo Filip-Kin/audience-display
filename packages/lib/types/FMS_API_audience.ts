@@ -98,6 +98,7 @@ export type FMSAllianceData = {
   team1: FMSMatchResultsTeam;
   team2: FMSMatchResultsTeam;
   team3: FMSMatchResultsTeam;
+  team4?: FMSMatchResultsTeam; // Only for playoff matches
 };
 
 export type AllianceScoreDetails = {
