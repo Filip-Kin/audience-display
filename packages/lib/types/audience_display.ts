@@ -25,6 +25,7 @@ export type AllianceScore = {
   algae: number;
   barge: number;
   fouls: number;
+  isHighScore: boolean;
   algaeCount: number;
   autoBonusRP: boolean;
   coralBonusRP: boolean;

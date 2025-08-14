@@ -32,7 +32,7 @@
 
 {#if $state.results && ready}
 	<div class="flex flex-col gap-3 justify-center" out:fade={{ duration: 100 }}>
-		<span class="text-3xl text-center font-bold" in:fade={{ duration: 100 }}>Ranking Points</span>
+		<span class="text-3xl text-center font-bold drop-shadow-md" in:fade={{ duration: 100 }}>Ranking Points</span>
 		<div class="flex justify-center gap-2 h-24">
 			{#each rankingPoints as badge, i (badge.alt + i)}
 				<img

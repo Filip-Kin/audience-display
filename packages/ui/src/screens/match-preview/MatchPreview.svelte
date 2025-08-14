@@ -34,9 +34,15 @@
 	$: console.log($state.eventDetails);
 </script>
 
-<div class="w-full bg-{$settings.invert ? 'red' : 'blue'}-800 h-full fixed -skew-x-12 flex flex-row justify-end" style={`right: ${$shutterSpring}vw`}></div>
+<div
+	class="w-full {$settings.invert ? 'bg-primary-700' : 'bg-secondary-600'} h-full fixed -skew-x-12 flex flex-row justify-end"
+	style={`right: ${$shutterSpring}vw`}
+></div>
 
-<div class="w-full bg-{$settings.invert ? 'blue' : 'red'}-800 h-full fixed -skew-x-12 flex flex-row justify-start" style={`left: ${$shutterSpring}vw`}></div>
+<div
+	class="w-full {$settings.invert ? 'bg-secondary-600' : 'bg-primary-700'} h-full fixed -skew-x-12 flex flex-row justify-start"
+	style={`left: ${$shutterSpring}vw`}
+></div>
 
 <div class="fixed flex flex-col w-full h-full justify-around">
 	<div class="w-full flex flex-row justify-around py-8">

@@ -344,6 +344,7 @@ export class AudienceDisplayManager {
             algae: data.AlgaePoints,
             barge: data.EndgameBargePoints,
             fouls: data.FoulPoints,
+            isHighScore: false,
             algaeCount: data.AlgaeCount,
             autoBonusRP: data.AutoBonusAchieved,
             coralBonusRP: data.CoralBonusAchieved,
@@ -382,6 +383,7 @@ export class AudienceDisplayManager {
           algae: data.AlgaePoints,
           barge: data.EndgameBargePoints,
           fouls: data.FoulPoints,
+          isHighScore: false,
           algaeCount: data.AlgaeCount,
           autoBonusRP: data.AutoBonusAchieved,
           coralBonusRP: data.CoralBonusAchieved,
@@ -460,6 +462,7 @@ export class AudienceDisplayManager {
           algae: results.redAllianceData.scoreDetails.algaePoints,
           barge: results.redAllianceData.scoreDetails.bargePoints,
           fouls: results.redAllianceData.scoreDetails.penaltyPoints,
+          isHighScore: results.redAllianceData.scoreDetails.isHighScore,
           algaeCount: 0, // Does not matter for score results screen
           autoBonusRP: results.redAllianceData.scoreDetails.autoBonusAchieved,
           coralBonusRP: results.redAllianceData.scoreDetails.coralBonusAchieved,
@@ -481,6 +484,7 @@ export class AudienceDisplayManager {
           algae: results.blueAllianceData.scoreDetails.algaePoints,
           barge: results.blueAllianceData.scoreDetails.bargePoints,
           fouls: results.blueAllianceData.scoreDetails.penaltyPoints,
+          isHighScore: results.blueAllianceData.scoreDetails.isHighScore,
           algaeCount: 0, // Does not matter for score results screen
           autoBonusRP: results.blueAllianceData.scoreDetails.autoBonusAchieved,
           coralBonusRP:
@@ -825,6 +829,9 @@ export class AudienceDisplayManager {
       if (matchNumber > 13) {
         levelString = "DoubleElimFinal";
         matchString = (matchNumber - 13).toString();
+        if (matchString === "0") { // If there's a tie in finals, the numbering becomes broken it seems, so this is my work around. Might not always work, who knows?
+          matchString = (this.match.details.matchNumber - 13).toString();
+        }
       } else {
         levelString = "DoubleElimPlayoff";
       }

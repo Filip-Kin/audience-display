@@ -7,6 +7,8 @@
 	import { settings } from "../../lib/settings";
 	import TeamCard from "../../lib/TeamCard.svelte";
 	import RankingPoints from "./RankingPoints.svelte";
+	import Trophy from "../../assets/trophy.svg";
+	import Star from "../../assets/star.svg";
 
 	let ready = false;
 	const dispatcher = createEventDispatcher();
@@ -70,7 +72,10 @@
 	</video>
 </div>
 
-<div class="w-full bg-{$settings.invert ? 'red' : 'blue'}-800 h-full fixed -skew-x-12 flex flex-row justify-start" style={`right: ${$shutterSpring}vw`}></div>
+<div
+	class="w-full {$settings.invert ? 'bg-primary-700' : 'bg-secondary-600'} h-full fixed -skew-x-12 flex flex-row justify-start"
+	style={`right: ${$shutterSpring}vw`}
+></div>
 
 {#if ready}
 	<div
@@ -88,7 +93,10 @@
 	</div>
 {/if}
 
-<div class="w-full bg-{$settings.invert ? 'blue' : 'red'}-800 h-full fixed -skew-x-12 flex flex-row justify-start" style={`left: ${$shutterSpring}vw`}></div>
+<div
+	class="w-full {$settings.invert ? 'bg-secondary-600' : 'bg-primary-700'} h-full fixed -skew-x-12 flex flex-row justify-start"
+	style={`left: ${$shutterSpring}vw`}
+></div>
 
 <div class="fixed z-10 flex flex-col w-full h-full justify-around mt-4">
 	<div class="w-full flex flex-row justify-around py-8">
@@ -104,22 +112,55 @@
 						</p>
 					</div>
 					<div class="flex" class:flex-row-reverse={$settings.invert}>
-						<div class="bg-blue-600 w-1/2 text-center flex flex-col justify-center py-6 text-3xl">
+						{#if $state.results.score.winner === "Tie"}
+							<div class="w-full h-16 flex flex-row bg-amber-500 gap-4 items-center text-white text-5xl font-bold justify-center">
+								<img src={Trophy} alt="Trophy" class="size-16" />
+								<span class="align-middle">Tie!</span>
+								<img src={Trophy} alt="Trophy" class="size-16" />
+							</div>
+						{:else}
+							{#if $state.results.score.winner === "Blue"}
+								<div class="w-1/2 h-16 flex flex-row bg-amber-500 gap-4 items-center text-white text-5xl font-bold justify-center">
+									<span class="align-middle">Winner</span>
+									<img src={Trophy} alt="Trophy" class="size-16" />
+								</div>
+							{:else if $state.results.score.winner === "Red"}
+								<div class="w-1/2 h-16 bg-gradient-to-{$settings.invert ? 'l' : 'r'} from-blue-600 to-amber-500"></div>
+							{/if}
+							{#if $state.results.score.winner === "Red"}
+								<div class="w-1/2 h-16 flex flex-row bg-amber-500 gap-4 items-center text-white text-5xl font-bold justify-center">
+									<span class="align-middle">Winner</span>
+									<img src={Trophy} alt="Trophy" class="size-16" />
+								</div>
+							{:else if $state.results.score.winner === "Blue"}
+								<div class="w-1/2 h-16 bg-gradient-to-{$settings.invert ? 'l' : 'r'} from-amber-500 to-red-600"></div>
+							{/if}
+						{/if}
+					</div>
+					<div class="flex" class:flex-row-reverse={$settings.invert}>
+						<div class="bg-blue-600 w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
 							<span class="text-white font-bold">Blue</span>
 							<span class="text-8xl font-bold pt-2">{$state.results?.score.blue.score}</span>
 						</div>
-						<div class="bg-red-600 w-1/2 text-center flex flex-col justify-center py-6 text-3xl">
+						<div class="bg-red-600 w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
 							<span class="text-white font-bold">Red</span>
 							<span class="text-8xl font-bold pt-2">{$state.results?.score.red.score}</span>
 						</div>
 					</div>
+					{#if $state.results.score.red.isHighScore || $state.results.score.blue.isHighScore}
+						<div class="w-full h-16 flex flex-row bg-amber-500 gap-4 items-center text-white text-4xl font-bold justify-center">
+							<img src={Star} alt="Star" class="size-12 star-cw" />
+							<span class="align-middle">High Score!</span>
+							<img src={Star} alt="Star" class="size-12 star-ccw" />
+						</div>
+					{/if}
 				</div>
 			{/if}
 		{/if}
 	</div>
 
 	<div class="w-full h-full flex flex-row justify-around" class:flex-row-reverse={$settings.invert}>
-		<div class="w-[30%] flex flex-col gap-4 justify-center">
+		<div class="w-[30%] flex flex-col gap-4 justify-start">
 			{#if $state.results}
 				{#if $state.results.details.blueAlliance}
 					{#if ready}
@@ -202,7 +243,7 @@
 			</div>
 		{/if}
 
-		<div class="w-[30%] flex flex-col gap-4 justify-center">
+		<div class="w-[30%] flex flex-col gap-4 justify-start">
 			{#if $state.results}
 				{#if $state.results.details.redAlliance}
 					{#if ready}
