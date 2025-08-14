@@ -17,12 +17,12 @@
 {#if ready}
 	<div
 		class="flex flex-col shadow-lg rounded overflow-hidden"
-		in:fly={{
+		in:fly|local={{
 			x: 100 * (invert ? -1 : 1),
 			duration: 500,
-			delay: 150 * index,
+			delay: 150 * index + 150,
 		}}
-		out:fly={{
+		out:fly|local={{
 			x: 400 * (invert ? -1 : 1),
 			duration: 100,
 		}}

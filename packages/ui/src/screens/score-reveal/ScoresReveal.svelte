@@ -9,6 +9,8 @@
 	import RankingPoints from "./RankingPoints.svelte";
 	import Trophy from "../../assets/trophy.svg";
 	import Star from "../../assets/star.svg";
+	import Alliance from "./Alliance.svelte";
+	import SmallTopBar from "../../lib/SmallTopBar.svelte";
 
 	let ready = false;
 	const dispatcher = createEventDispatcher();
@@ -77,135 +79,62 @@
 	style={`right: ${$shutterSpring}vw`}
 ></div>
 
-{#if ready}
-	<div
-		class="w-screen fixed top-16 grid grid-cols-[20rem_auto_20rem] justify-between items-center px-36 z-10 gap-4"
-		in:fade={{ duration: 200 }}
-		out:fade={{ duration: 200 }}
-	>
-		<span class="text-3xl font-bold text-center"><!--Event Sponsored By--></span>
-		<span></span>
-		<span class="text-3xl font-bold text-center">Live Stream Partner</span>
-		<img src="/logo.png" class="w-72 mx-auto" alt="sponsor" />
-		<!-- <span></span> -->
-		<span></span>
-		<img src="/pitpodcast.png" class="w-56 mx-auto" alt="sponsor" />
-	</div>
-{/if}
-
 <div
 	class="w-full {$settings.invert ? 'bg-secondary-600' : 'bg-primary-700'} h-full fixed -skew-x-12 flex flex-row justify-start"
 	style={`left: ${$shutterSpring}vw`}
 ></div>
 
-<div class="fixed z-10 flex flex-col w-full h-full justify-around mt-4">
-	<div class="w-full flex flex-row justify-around py-8">
-		{#if $state.results}
-			{#if ready}
-				<div class="min-w-[40vw] text-center text-6xl" in:fly={{ y: -50, duration: 100 }} out:fade={{ duration: 100 }}>
-					<div class="bg-black py-6 px-12 rounded-t max-w-[45vw] text-4xl">
-						<p class="text-primary-500 font-bold">
-							{displayEventName($state.eventDetails?.name)}
-						</p>
-						<p class="text-primary-500 font-bold">
-							{matchName($state.results.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.results.details.matchType)}
-						</p>
-					</div>
-					<div class="flex" class:flex-row-reverse={$settings.invert}>
-						{#if $state.results.score.winner === "Tie"}
-							<div class="w-full h-16 flex flex-row bg-amber-500 gap-4 items-center text-white text-5xl font-bold justify-center">
-								<img src={Trophy} alt="Trophy" class="size-16" />
-								<span class="align-middle">Tie!</span>
-								<img src={Trophy} alt="Trophy" class="size-16" />
-							</div>
-						{:else}
-							{#if $state.results.score.winner === "Blue"}
-								<div class="w-1/2 h-16 flex flex-row bg-amber-500 gap-4 items-center text-white text-5xl font-bold justify-center">
-									<span class="align-middle">Winner</span>
-									<img src={Trophy} alt="Trophy" class="size-16" />
-								</div>
-							{:else if $state.results.score.winner === "Red"}
-								<div class="w-1/2 h-16 bg-gradient-to-{$settings.invert ? 'l' : 'r'} from-blue-600 to-amber-500"></div>
-							{/if}
-							{#if $state.results.score.winner === "Red"}
-								<div class="w-1/2 h-16 flex flex-row bg-amber-500 gap-4 items-center text-white text-5xl font-bold justify-center">
-									<span class="align-middle">Winner</span>
-									<img src={Trophy} alt="Trophy" class="size-16" />
-								</div>
-							{:else if $state.results.score.winner === "Blue"}
-								<div class="w-1/2 h-16 bg-gradient-to-{$settings.invert ? 'l' : 'r'} from-amber-500 to-red-600"></div>
-							{/if}
-						{/if}
-					</div>
-					<div class="flex" class:flex-row-reverse={$settings.invert}>
-						<div class="bg-blue-600 w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
-							<span class="text-white font-bold">Blue</span>
-							<span class="text-8xl font-bold pt-2">{$state.results?.score.blue.score}</span>
-						</div>
-						<div class="bg-red-600 w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
-							<span class="text-white font-bold">Red</span>
-							<span class="text-8xl font-bold pt-2">{$state.results?.score.red.score}</span>
-						</div>
-					</div>
-					{#if $state.results.score.red.isHighScore || $state.results.score.blue.isHighScore}
-						<div class="w-full h-16 flex flex-row bg-amber-500 gap-4 items-center text-white text-4xl font-bold justify-center">
-							<img src={Star} alt="Star" class="size-12 star-cw" />
-							<span class="align-middle">High Score!</span>
-							<img src={Star} alt="Star" class="size-12 star-ccw" />
-						</div>
-					{/if}
-				</div>
-			{/if}
-		{/if}
-	</div>
-
-	<div class="w-full h-full flex flex-row justify-around" class:flex-row-reverse={$settings.invert}>
-		<div class="w-[30%] flex flex-col gap-4 justify-start">
-			{#if $state.results}
-				{#if $state.results.details.blueAlliance}
-					{#if ready}
-						<div
-							class="flex flex-col shadow-lg rounded overflow-hidden"
-							in:fly={{
-								x: 100 * ($settings.invert ? 1 : -1),
-								duration: 500,
-								delay: 0,
-							}}
-							out:fly={{
-								x: 400 * ($settings.invert ? 1 : -1),
-								duration: 100,
-							}}
-						>
-							<div class="flex flex-row bg-blue-600 text-white p-4 gap-4 align-middle text-5xl font-bold justify-center">
-								{$state.results.details.blueAlliance}
-							</div>
-						</div>
-					{/if}
-				{/if}
-
-				{#if $state.results.teams.blue.length > 3}
-					<div class="grid grid-cols-2 gap-4 auto-rows-fr">
-						{#each $state.results.teams.blue as team, index}
-							<TeamCard alliance="blue" {ready} {index} {team} invert={!$settings.invert} small />
-						{/each}
-					</div>
-				{:else}
-					{#each $state.results.teams.blue as team, index}
-						<TeamCard alliance="blue" {ready} {index} {team} invert={!$settings.invert} />
-					{/each}
-				{/if}
-
-				{#if $state.results.details.matchType !== "sf" && $state.results.details.matchType !== "f"}
-					<RankingPoints {ready} alliance="blue" invert={!$settings.invert} />
-				{/if}
-			{/if}
+<!-- Top title bar -->
+{#if $state.results && ready}
+	<div class="fixed z-10 flex w-full justify-center">
+		<div
+			class="mt-8 h-32 bg-black rounded text-4xl max-w-5xl text-center flex flex-col justify-center px-8"
+			in:fly={{ y: -50, duration: 200 }}
+			out:fade={{ duration: 100 }}
+		>
+			<p class="text-primary-500 font-bold">
+				{displayEventName($state.eventDetails?.name)}
+			</p>
+			<p class="text-primary-500 font-bold">
+				{matchName($state.results.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.results.details.matchType)}
+			</p>
 		</div>
+	</div>
+{/if}
 
-		{#if ready}
-			<div class="w-1/4 flex flex-col items-center">
+<div class="fixed z-10 grid grid-cols-[.36fr_.28fr_.36fr] w-full h-full p-8 gap-8" class:flex-row-reverse={$settings.invert}>
+	{#if $state.results && ready}
+		<!-- Cell 1 event/sponsor logo -->
+		<img src="/logo.png" class="size-60 mx-auto self-center" alt="sponsor" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }} />
+
+		<!-- Cell 2 spans 2 rows, match results -->
+		<div class="flex flex-col row-span-2 pt-32">
+			<!-- pt-32 matches title bar height -->
+			<div class="max-w-3xl text-center text-6xl" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>
+				<div class="flex" class:flex-row-reverse={$settings.invert}>
+					<div class="bg-blue-600 w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
+						<span class="text-white font-bold">Blue</span>
+						<span class="text-8xl font-bold pt-2">{$state.results?.score.blue.score}</span>
+					</div>
+					<div class="bg-red-600 w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
+						<span class="text-white font-bold">Red</span>
+						<span class="text-8xl font-bold pt-2">{$state.results?.score.red.score}</span>
+					</div>
+				</div>
+
+				{#if $state.results.score.red.isHighScore || $state.results.score.blue.isHighScore}
+					<div class="w-full h-16 flex flex-row bg-amber-500 gap-4 items-center text-white text-4xl font-bold justify-center">
+						<img src={Star} alt="Star" class="size-12 star-cw" />
+						<span class="align-middle">High Score!</span>
+						<img src={Star} alt="Star" class="size-12 star-ccw" />
+					</div>
+				{/if}
+			</div>
+
+			<div class="flex flex-col items-center">
 				<div
-					class="w-full h-fit -mt-8 justify-around bg-white text-black font-semibold text-5xl flex flex-col text-center"
-					in:fade={{ duration: 100 }}
+					class="w-full h-fit justify-around bg-white text-black font-semibold text-5xl flex flex-col text-center"
+					in:fade={{ duration: 250 }}
 					out:fade={{ duration: 100 }}
 				>
 					<div class="grid grid-cols-[.2fr_.6fr_.2fr] even:bg-gray-200 px-2 py-3">
@@ -241,47 +170,15 @@
 
 				<!-- <img src="/logo.png" alt="logo" class="size-80" in:fly={{ y: 200, duration: 500 }} out:fly={{ y: -400, duration: 200 }} /> -->
 			</div>
-		{/if}
-
-		<div class="w-[30%] flex flex-col gap-4 justify-start">
-			{#if $state.results}
-				{#if $state.results.details.redAlliance}
-					{#if ready}
-						<div
-							class="flex flex-col shadow-lg rounded overflow-hidden"
-							in:fly={{
-								x: 100 * ($settings.invert ? -1 : 1),
-								duration: 500,
-								delay: 0,
-							}}
-							out:fly={{
-								x: 400 * ($settings.invert ? -1 : 1),
-								duration: 100,
-							}}
-						>
-							<div class="flex flex-row bg-red-600 text-white p-4 gap-4 align-middle text-5xl font-bold justify-center">
-								{$state.results.details.redAlliance}
-							</div>
-						</div>
-					{/if}
-				{/if}
-
-				{#if $state.results.teams.red.length > 3}
-					<div class="grid grid-cols-2 gap-4 auto-rows-fr">
-						{#each $state.results.teams.red as team, index}
-							<TeamCard alliance="red" {ready} {index} {team} invert={$settings.invert} small />
-						{/each}
-					</div>
-				{:else}
-					{#each $state.results.teams.red as team, index}
-						<TeamCard alliance="red" {ready} {index} {team} invert={$settings.invert} />
-					{/each}
-				{/if}
-
-				{#if $state.results.details.matchType !== "sf" && $state.results.details.matchType !== "f"}
-					<RankingPoints {ready} alliance="red" invert={$settings.invert} />
-				{/if}
-			{/if}
 		</div>
-	</div>
+
+		<img src="/pitpodcast.png" class="size-60 mx-auto self-center" alt="sponsor" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }} />
+
+		<div in:fly={{ x: -100, duration: 200, delay: 100 }} out:fade={{ duration: 100 }}>
+			<Alliance {ready} alliance={$settings.invert ? "red" : "blue"} invert={$settings.invert} />
+		</div>
+		<div in:fly={{ x: 100, duration: 200, delay: 100 }} out:fade={{ duration: 100 }}>
+			<Alliance {ready} alliance={$settings.invert ? "blue" : "red"} invert={!$settings.invert} />
+		</div>
+	{/if}
 </div>
