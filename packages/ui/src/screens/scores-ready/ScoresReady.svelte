@@ -49,7 +49,7 @@
 			{#if ready}
 				<div class="bg-black min-w-96 rounded px-32 py-8 text-center text-4xl" in:fly={{ y: -50, duration: 100 }} out:fade={{ duration: 100 }}>
 					<span class="text-primary-500 font-bold">
-						{displayEventName($state.eventDetails?.name)}
+						<div class="text-4xl">2025 Michigan Advanced Robotics Competition</div>
 						{matchName($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType)}
 					</span>
 				</div>

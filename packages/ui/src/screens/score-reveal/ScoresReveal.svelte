@@ -92,9 +92,7 @@
 			in:fly={{ y: -50, duration: 200 }}
 			out:fade={{ duration: 100 }}
 		>
-			<p class="text-primary-500 font-bold">
-				{displayEventName($state.eventDetails?.name)}
-			</p>
+			<p class="text-primary-500 font-bold text-4xl">2025 Michigan Advanced Robotics Competition</p>
 			<p class="text-primary-500 font-bold">
 				{matchName($state.results.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.results.details.matchType)}
 			</p>
