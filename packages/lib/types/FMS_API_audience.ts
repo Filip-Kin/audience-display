@@ -95,6 +95,8 @@ export type FMSAllianceData = {
   scoreDetails: AllianceScoreDetails;
   allianceName?: string;
   allianceNumber?: number;
+  cardCarryStatus?: "None" | "Yellow" | "Red";
+  cardEffectiveStatus?: "None" | "Yellow" | "Red";
   team1: FMSMatchResultsTeam;
   team2: FMSMatchResultsTeam;
   team3: FMSMatchResultsTeam;

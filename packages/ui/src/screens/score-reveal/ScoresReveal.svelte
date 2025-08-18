@@ -75,7 +75,7 @@
 </div>
 
 <div
-	class="w-full {$settings.invert ? 'bg-primary-700' : 'bg-secondary-600'} h-full fixed -skew-x-12 flex flex-row justify-start"
+	class="w-full {$settings.invert ? 'bg-primary-700' : 'bg-secondary-600'} h-full fixed -skew-x-12 flex flex-row justify-end"
 	style={`right: ${$shutterSpring}vw`}
 ></div>
 

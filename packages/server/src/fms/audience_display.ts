@@ -126,6 +126,7 @@ export class AudienceDisplayManager {
         barge: 0,
         fouls: 0,
         algaeCount: 0,
+        isHighScore: false,
         autoBonusRP: false,
         coralBonusRP: false,
         coralBonusProgress: 0,
@@ -143,6 +144,7 @@ export class AudienceDisplayManager {
         barge: 0,
         fouls: 0,
         algaeCount: 0,
+        isHighScore: false,
         autoBonusRP: false,
         coralBonusRP: false,
         coralBonusProgress: 0,
@@ -432,7 +434,7 @@ export class AudienceDisplayManager {
               number: matchResultsTeamRed.teamNumber,
               rank: matchResultsTeamRed.teamRank,
               avatar: matchResultsTeamRed.avatar,
-              card: matchResultsTeamRed.cardEffectiveStatus,
+              card: matchResultsTeamRed.cardEffectiveStatus ?? results.redAllianceData.cardEffectiveStatus,
               rankChange: matchResultsTeamRed.teamRankChange,
             });
           }
@@ -449,11 +451,15 @@ export class AudienceDisplayManager {
               number: matchResultsTeamBlue.teamNumber,
               rank: matchResultsTeamBlue.teamRank,
               avatar: matchResultsTeamBlue.avatar,
-              card: matchResultsTeamBlue.cardEffectiveStatus,
+              card: matchResultsTeamBlue.cardEffectiveStatus ?? results.blueAllianceData.cardEffectiveStatus,
               rankChange: matchResultsTeamBlue.teamRankChange,
             });
           }
         }
+
+        // The API returns team 0, name null for the 4th team if there is no 4th team
+        this.results.teams.red = this.results.teams.red.filter(team => team.name !== null);
+        this.results.teams.blue = this.results.teams.blue.filter(team => team.name !== null);
 
         this.results.score.red = {
           score: results.redAllianceData.scoreDetails.totalScore,
@@ -661,28 +667,29 @@ export class AudienceDisplayManager {
           `team${i + 1}` as "team1" | "team2" | "team3" | "team4"
           ];
 
+        console.log(matchPreviewTeamRed);
         if (!matchPreviewTeamRed) {
           // console.log(`Skipping team ${i + 1} in red alliance because null`);
         } else if (!this.teamLineup.red.includes(matchPreviewTeamRed.teamNumber)) {
-          console.log(this.teamLineup.red);
-          console.log(`Adding extra team ${matchPreviewTeamRed.teamNumber} to red alliance`);
           redExtraTeams.push({
             name: getTeamName(matchPreviewTeamRed.teamNumber, matchPreviewTeamRed.teamName),
             number: matchPreviewTeamRed.teamNumber,
             rank: matchPreviewTeamRed.teamRank,
             avatar: matchPreviewTeamRed.avatar,
-            card: (matchPreviewTeamRed.carryingCard ?? matchPreview.redAlliance.carryingCard),
+            card: ((matchPreviewTeamRed.carryingCard === null ? matchPreview.redAlliance.carryingCard : matchPreviewTeamRed.carryingCard) === true ? "Yellow" : "None"),
+            // For quals the carrying card is on the team, for playoffs it's on the alliance
+            // So if on the team is null, use the on alliance
           });
         } else {
-          console.log(`Adding team ${matchPreviewTeamRed.teamNumber} to red alliance`);
           this.match.teams.red.push({
             name: getTeamName(matchPreviewTeamRed.teamNumber, matchPreviewTeamRed.teamName),
             number: matchPreviewTeamRed.teamNumber,
             rank: matchPreviewTeamRed.teamRank,
             avatar: matchPreviewTeamRed.avatar,
-            card: (matchPreviewTeamRed.carryingCard ?? matchPreview.redAlliance.carryingCard),
+            card: ((matchPreviewTeamRed.carryingCard === null ? matchPreview.redAlliance.carryingCard : matchPreviewTeamRed.carryingCard) === true ? "Yellow" : "None"),
           });
         }
+        console.log(this.match.teams.red);
 
 
         const matchPreviewTeamBlue =
@@ -698,7 +705,7 @@ export class AudienceDisplayManager {
             number: matchPreviewTeamBlue.teamNumber,
             rank: matchPreviewTeamBlue.teamRank,
             avatar: matchPreviewTeamBlue.avatar,
-            card: (matchPreviewTeamBlue.carryingCard ?? matchPreview.blueAlliance.carryingCard),
+            card: ((matchPreviewTeamBlue.carryingCard === null ? matchPreview.blueAlliance.carryingCard : matchPreviewTeamBlue.carryingCard) === true ? "Yellow" : "None"),
           });
         } else {
           this.match.teams.blue.push({
@@ -706,13 +713,14 @@ export class AudienceDisplayManager {
             number: matchPreviewTeamBlue.teamNumber,
             rank: matchPreviewTeamBlue.teamRank,
             avatar: matchPreviewTeamBlue.avatar,
-            card: (matchPreviewTeamBlue.carryingCard ?? matchPreview.blueAlliance.carryingCard),
+            card: ((matchPreviewTeamBlue.carryingCard === null ? matchPreview.blueAlliance.carryingCard : matchPreviewTeamBlue.carryingCard) === true ? "Yellow" : "None"),
           });
         }
       }
 
-      this.match.teams.red = [...this.match.teams.red, ...redExtraTeams];
-      this.match.teams.blue = [...this.match.teams.blue, ...blueExtraTeams];
+      // Filter out any teams with null names
+      this.match.teams.red = [...this.match.teams.red, ...redExtraTeams].filter(team => team.name !== null);
+      this.match.teams.blue = [...this.match.teams.blue, ...blueExtraTeams].filter(team => team.name !== null);
     }
   }
 

@@ -17,9 +17,6 @@
 	<div class="flex flex-col gap-4 justify-start">
 		{#if allianceName()}
 			<div class="flex flex-col shadow-lg rounded overflow-hidden">
-				<div class="flex flex-row bg-blue-600 text-white p-4 gap-4 align-middle text-5xl font-bold justify-center">
-					{allianceName()}
-				</div>
 				{#if $state.results.score.winner === alliance.charAt(0).toUpperCase() + alliance.slice(1)}
 					<div class="h-16 flex flex-row bg-amber-500 gap-4 items-center text-white text-5xl font-bold justify-center">
 						<img src={Trophy} alt="Trophy" class="size-16" />
@@ -33,6 +30,9 @@
 						<img src={Trophy} alt="Trophy" class="size-16" />
 					</div>
 				{/if}
+				<div class="flex flex-row bg-{alliance}-600 text-white p-4 gap-4 align-middle text-5xl font-bold justify-center">
+					{allianceName()}
+				</div>
 			</div>
 		{:else if $state.results.score.winner === alliance.charAt(0).toUpperCase() + alliance.slice(1)}
 			<div class="h-16 flex flex-row bg-amber-500 gap-4 items-center text-white text-5xl font-bold justify-center">

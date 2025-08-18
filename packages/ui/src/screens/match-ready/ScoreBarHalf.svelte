@@ -46,7 +46,7 @@
 
 				<div class="flex flex-col justify-center px-3 w-36 gap-1 tracking-tighter font-medium text-4xl">
 					{#each $state.match.teams[alliance].slice(0, 3) as team, index}
-						<span class="text-center text-black rounded {team.card ? 'bg-yellow-200' : 'bg-white'}">{team.number}</span>
+						<span class="text-center text-black rounded {team.card !== 'None' ? 'bg-yellow-200' : 'bg-white'}">{team.number}</span>
 					{/each}
 				</div>
 			</div>
