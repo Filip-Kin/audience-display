@@ -29,6 +29,8 @@
 						<span class="align-middle">Tie!</span>
 						<img src={Trophy} alt="Trophy" class="size-16" />
 					</div>
+				{:else}
+					<div class="h-16"></div>
 				{/if}
 				<div class="flex flex-row bg-{alliance}-600 text-white p-4 gap-4 align-middle text-5xl font-bold justify-center">
 					{allianceName()}
