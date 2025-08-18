@@ -54,7 +54,7 @@
 					out:fade={{ duration: 100 }}
 				>
 					<span class="text-primary-500 font-bold">
-						<div class="text-4xl">2025 Michigan Advanced Robotics Competition</div>
+						<div class="text-4xl">{displayEventName($state.eventDetails?.name)}</div>
 						{matchName($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType)}
 					</span>
 				</div>

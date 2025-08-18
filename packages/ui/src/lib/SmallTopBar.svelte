@@ -15,7 +15,7 @@
 	<span><img src="/logo.png" class="h-20 p-0.5" alt="sponsor" /></span>
 	<div class="flex justify-center items-center">
 		<div class="text-3xl font-bold text-center">
-			{"2025 Michigan Advanced Robotics Competition" || "Event Name"}
+			{$state.eventDetails?.name || "Event Name"}
 			{#if $state.match && !eventNameOnly}
 				- {matchName($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType)}
 			{/if}
