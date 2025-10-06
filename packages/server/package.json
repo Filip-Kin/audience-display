@@ -5,6 +5,7 @@
   "version": "0.0.0",
   "scripts": {
     "start": "bun src/index.ts",
+    "build": "bun build src/index.ts --outfile server",
     "dev": "bun --watch src/index.ts"
   },
   "dependencies": {

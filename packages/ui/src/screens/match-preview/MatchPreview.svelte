@@ -3,8 +3,7 @@
 	import { fade, fly } from "svelte/transition";
 	import { state } from "../../lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
-	import { matchName } from "../../lib/matchNamer";
-	import RobotShadow from "./RobotShadow.svelte";
+	import { displayEventName, matchName } from "../../lib/matchNamer";
 	import { settings } from "../../lib/settings";
 	import TeamCard from "../../lib/TeamCard.svelte";
 
@@ -35,37 +34,28 @@
 	$: console.log($state.eventDetails);
 </script>
 
-<div class="w-full bg-primary-800 h-full fixed -skew-x-12 flex flex-row justify-end" style={`right: ${$shutterSpring}vw`}>
-	<div id="shadows" class="skew-x-12 flex flex-col w-1/2 items-center justify-center">
-		{#if $state.match}
-			{#each $state.match.teams[$settings.invert ? "red" : "blue"] as team}
-				<RobotShadow color={$settings.invert ? "red" : "blue"} teamNumber={team.number} />
-			{/each}
-		{/if}
-	</div>
-</div>
+<div
+	class="w-full {$settings.invert ? 'bg-primary-700' : 'bg-secondary-600'} h-full fixed -skew-x-12 flex flex-row justify-end"
+	style={`right: ${$shutterSpring}vw`}
+></div>
 
-<div class="w-full bg-primary-700 h-full fixed -skew-x-12 flex flex-row justify-start" style={`left: ${$shutterSpring}vw`}>
-	<div id="shadows" class="skew-x-12 flex flex-col w-1/2 items-center justify-center">
-		{#if $state.match}
-			{#each $state.match.teams[$settings.invert ? "blue" : "red"] as team}
-				<RobotShadow color={$settings.invert ? "blue" : "red"} teamNumber={team.number} />
-			{/each}
-		{/if}
-	</div>
-</div>
+<div
+	class="w-full {$settings.invert ? 'bg-secondary-600' : 'bg-primary-700'} h-full fixed -skew-x-12 flex flex-row justify-start"
+	style={`left: ${$shutterSpring}vw`}
+></div>
 
 <div class="fixed flex flex-col w-full h-full justify-around">
-	<div class="w-full flex flex-row justify-around py-16">
+	<div class="w-full flex flex-row justify-around py-8">
 		{#if $state.match}
 			{#if ready}
-				<div class="bg-black min-w-96 rounded px-32 py-8 text-center text-3xl" in:fly={{ y: -50, duration: 100 }} out:fade={{ duration: 100 }}>
-					<span class="text-secondary-600 font-bold">
-						{$state.eventDetails?.name || "Event Name"} - {matchName(
-							$state.match.details.matchNumber,
-							$state.eventDetails?.matchCount ?? 0,
-							$state.match.details.matchType
-						)}
+				<div
+					class="bg-black min-w-96 rounded px-32 py-8 text-center text-5xl max-w-[65vw]"
+					in:fly={{ y: -50, duration: 100 }}
+					out:fade={{ duration: 100 }}
+				>
+					<span class="text-primary-500 font-bold">
+						<div class="text-4xl">{displayEventName($state.eventDetails?.name)}</div>
+						{matchName($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType)}
 					</span>
 				</div>
 			{/if}
@@ -73,20 +63,61 @@
 	</div>
 
 	<div class="w-full h-full flex flex-row justify-around" class:flex-row-reverse={$settings.invert}>
-		<div class="w-1/3 flex flex-col gap-8 justify-center">
-			{#if $state.match}
+		{#if $state.match}
+			<div class="w-1/3 flex flex-col justify-center {$state.match.teams.blue.length > 3 ? 'gap-4' : 'gap-8'}">
+				{#if $state.match.details.blueAlliance}
+					{#if ready}
+						<div
+							class="flex flex-col shadow-lg rounded overflow-hidden"
+							in:fly={{
+								x: 100 * ($settings.invert ? 1 : -1),
+								duration: 500,
+								delay: 0,
+							}}
+							out:fly={{
+								x: 400 * ($settings.invert ? 1 : -1),
+								duration: 100,
+							}}
+						>
+							<div class="flex flex-row bg-blue-600 text-white p-4 gap-4 align-middle text-5xl font-semibold justify-center">
+								{$state.match.details.blueAlliance}
+							</div>
+						</div>
+					{/if}
+				{/if}
 				{#each $state.match.teams.blue as team, index}
 					<TeamCard alliance="blue" {ready} {index} {team} invert={!$settings.invert} />
 				{/each}
-			{/if}
-		</div>
+			</div>
+		{/if}
 
-		<div class="w-1/3 flex flex-col gap-8 justify-center">
-			{#if $state.match}
+		{#if $state.match}
+			<div class="w-1/3 flex flex-col justify-center {$state.match.teams.red.length > 3 ? 'gap-4' : 'gap-8'}">
+				{#if $state.match.details.redAlliance}
+					{#if ready}
+						<div
+							class="flex flex-col shadow-lg rounded overflow-hidden"
+							in:fly={{
+								x: 100 * ($settings.invert ? -1 : 1),
+								duration: 500,
+								delay: 0,
+							}}
+							out:fly={{
+								x: 400 * ($settings.invert ? -1 : 1),
+								duration: 100,
+							}}
+						>
+							<div class="flex flex-row bg-red-600 text-white p-4 gap-4 align-middle text-5xl font-semibold justify-center">
+								{$state.match.details.redAlliance}
+							</div>
+						</div>
+					{/if}
+				{/if}
+
 				{#each $state.match.teams.red as team, index}
 					<TeamCard alliance="red" {ready} {index} {team} invert={$settings.invert} />
 				{/each}
-			{/if}
-		</div>
+			</div>
+		{/if}
 	</div>
 </div>

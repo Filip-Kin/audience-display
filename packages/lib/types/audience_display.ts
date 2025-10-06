@@ -1,4 +1,7 @@
-import type { FMSMatchPreviewTeam, FMSMatchResultsTeam } from "./FMS_API_audience";
+import type {
+  FMSMatchPreviewTeam,
+  FMSMatchResultsTeam,
+} from "./FMS_API_audience";
 
 export type Screen =
   | "none"
@@ -22,6 +25,7 @@ export type AllianceScore = {
   algae: number;
   barge: number;
   fouls: number;
+  isHighScore: boolean;
   algaeCount: number;
   autoBonusRP: boolean;
   coralBonusRP: boolean;
@@ -38,7 +42,7 @@ export type Team = {
   name: string;
   rank: number;
   avatar?: string;
-  card: FMSMatchPreviewTeam["cardCarryStatus"];
+  card: FMSMatchResultsTeam["cardCarryStatus"];
   rankChange?: FMSMatchResultsTeam["teamRankChange"] | "NoChange";
   isCaptain?: boolean;
   potentialCaptain?: boolean;
@@ -61,6 +65,8 @@ export type MatchState = {
   details: {
     matchNumber: number;
     matchType: MatchType;
+    redAlliance?: string;
+    blueAlliance?: string;
   };
 };
 
@@ -73,6 +79,7 @@ export type AudienceDisplayState = {
   connected: boolean;
   screen: Screen;
   match: MatchState | null;
+  results: MatchState | null;
   eventDetails: EventDetails | null;
   alliances: AllianceSelection[];
   ranking: Omit<Team, "name" | "card">[];
@@ -82,5 +89,5 @@ export type AllianceSelection = {
   allianceNumber: number;
   allianceName: string;
   teams: Team[];
-  card: FMSMatchPreviewTeam["cardCarryStatus"];
+  card: FMSMatchResultsTeam["cardCarryStatus"];
 };

@@ -10,11 +10,11 @@
 
 	let rankingPoints: { src: string; alt: string }[] = [];
 
-	$: if ($state.match) {
+	$: if ($state.results) {
 		rankingPoints = [];
 
-		const blue = $state.match.score[alliance];
-		const winner = $state.match.score.winner;
+		const blue = $state.results.score[alliance];
+		const winner = $state.results.score.winner;
 
 		if (blue.autoBonusRP) rankingPoints.push({ src: Robot, alt: "auto" });
 		if (blue.coralBonusRP) rankingPoints.push({ src: "/coral-white.png", alt: "coral" });
@@ -30,15 +30,15 @@
 	}
 </script>
 
-{#if $state.match && ready}
+{#if $state.results && ready}
 	<div class="flex flex-col gap-3 justify-center" out:fade={{ duration: 100 }}>
-		<span class="text-2xl text-center font-bold" in:fade={{ duration: 100 }}>Ranking Points</span>
-		<div class="flex justify-center gap-2">
+		<span class="text-3xl text-center font-bold drop-shadow-md" in:fade={{ duration: 100 }}>Ranking Points</span>
+		<div class="flex justify-center gap-2 h-24">
 			{#each rankingPoints as badge, i (badge.alt + i)}
 				<img
 					src={badge.src}
 					alt={badge.alt}
-					class="size-12 p-2 bg-{alliance}-600"
+					class="size-20 p-2 bg-{alliance}-600"
 					in:fly={{ x: 100 * (invert ? -1 : 1), duration: 500, delay: i * 100 }}
 				/>
 			{/each}

@@ -17,9 +17,9 @@
   },
   "private": true,
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
-    "preview": "vite preview",
+    "start": "vite preview --host --port 5173",
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "type": "module"

@@ -29,12 +29,20 @@
 			preScoreReveal = false;
 		}
 
-		// Don't transition to scores-ready if the active screen is match-end
-		if (activeScreen === "match-end" && $state.screen === "scores-ready" && $settings.transitionAfterMatchEnd > -1) {
+		if ($state.screen === "scores-ready" && $settings.transitionAfterMatchEnd > -1) {
+			// Don't transition to scores-ready if the active screen is match-end
+			console.log("scores-ready");
+			if (activeScreen !== "match-end") {
+				console.log("Transitioning to scores-ready");
+				setTimeout(() => {
+					transitioning = true;
+				}, $settings.transitionAfterMatchEnd * 1000);
+			}
 		} else {
 			// If the screen is match-end, wait 8 seconds before transitioning
 			if ($state.screen === "match-end") {
 				if ($settings.transitionAfterMatchEnd > -1) {
+					console.log("Transitioning to match-end");
 					setTimeout(() => {
 						transitioning = true;
 						activeScreen = $state.screen;
@@ -46,12 +54,12 @@
 						}
 					}, 1000);
 				} else {
-					// Don't transition if the setting is set to -1
-					transitioning = false;
+					// Don't transition if the setting is -1
 				}
 			} else {
 				// Standard transition
 				transitioning = true;
+				console.log("Standard transition");
 				console.log("Transitioning to ", $state.screen);
 				setTimeout(() => {
 					if (transitioning) {
@@ -159,7 +167,7 @@
 	<EnableAudioModal onUnlock={unlockManually} />
 {/if}
 
-{#if !$state.connected}
+{#if !$state.connected && $settings.showDisconnectedScreen}
 	<div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
 		<h1 class="p-12 text-red-500 font-bold bg-gray-800 text-4xl">Disconnected</h1>
 	</div>

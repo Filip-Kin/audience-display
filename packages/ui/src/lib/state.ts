@@ -8,6 +8,7 @@ const defaultState: AudienceDisplayState = {
   connected: false,
   screen: "none",
   match: null,
+  results: null,
   eventDetails: null,
   alliances: [],
   ranking: [],

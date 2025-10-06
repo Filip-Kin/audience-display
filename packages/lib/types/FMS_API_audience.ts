@@ -20,9 +20,13 @@ export interface FMSMatchPreview {
 }
 
 export interface FMSMatchPreviewAlliance {
+  allianceName?: string; // These are only for playoff matches
+  allianceNumber?: number;
+  carryingCard?: boolean;
   team1: FMSMatchPreviewTeam,
   team2: FMSMatchPreviewTeam,
   team3: FMSMatchPreviewTeam;
+  team4?: FMSMatchPreviewTeam; // Only for playoff matches
 }
 
 export interface FMSMatchPreviewTeam {
@@ -74,11 +78,29 @@ export type FMSMatchScore = {
   matchWinner: "Red" | "Blue" | "Tie";
 };
 
+export type FMSBracketDataMatchScore = {
+  matchNumber: number;
+  shortName: string;
+  longName: string;
+  isComplete: boolean;
+  winningAllianceType: "Red" | "Blue" | "Tie";
+  winningAllianceNumber: number | null;
+  redAllianceNumber: number;
+  blueAllianceNumber: number;
+  redAlliance: FMSAllianceSelection;
+  blueAlliance: FMSAllianceSelection;
+};
+
 export type FMSAllianceData = {
   scoreDetails: AllianceScoreDetails;
+  allianceName?: string;
+  allianceNumber?: number;
+  cardCarryStatus?: "None" | "Yellow" | "Red";
+  cardEffectiveStatus?: "None" | "Yellow" | "Red";
   team1: FMSMatchResultsTeam;
   team2: FMSMatchResultsTeam;
   team3: FMSMatchResultsTeam;
+  team4?: FMSMatchResultsTeam; // Only for playoff matches
 };
 
 export type AllianceScoreDetails = {

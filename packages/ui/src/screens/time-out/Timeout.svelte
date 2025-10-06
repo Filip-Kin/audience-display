@@ -40,16 +40,16 @@
 
 <SmallTopBar eventNameOnly />
 
-<div class="w-full h-48 bottom-0 fixed flex justify-center">
-	<div class="bg-primary-800 max-w-5xl h-32 rounded-xl mt-0 flex items-center justify-around py-4 px-12 gap-12">
+<div class="w-full h-48 bottom-12 fixed flex justify-center">
+	<div class="bg-primary-800 h-42 rounded-xl mt-0 flex items-center justify-around py-4 px-12 gap-12">
 		<div class="h-full">
 			<!-- Space for sponsor / logo -->
-			<img src="/logo.png" alt="Logo" class="size-full h-32 -mt-5 object-contain" />
+			<img src="/logo.png" alt="Logo" class="size-full h-48 -mt-5 object-contain" />
 		</div>
 
 		<div class="flex flex-col gap-4">
-			<div class="text-white font-bold text-3xl">Timeout</div>
-			<div class="text-white font-bold text-3xl">
+			<div class="text-white font-bold text-5xl">Timeout</div>
+			<div class="text-white font-bold text-5xl">
 				<span>Up Next: </span>
 				<span
 					>{#if $state.match}{matchName(
@@ -61,8 +61,8 @@
 			</div>
 		</div>
 
-		<div class="bg-black rounded-xl h-full px-8 text-white font-bold text-4xl text-center flex flex-col gap-2 justify-center">
-			<span class="text-xl">TIMER</span>
+		<div class="bg-black rounded-xl h-full px-8 text-white font-bold text-6xl text-center flex flex-col gap-2 justify-center">
+			<span class="text-3xl">TIMER</span>
 			<span>{secondsToMinutes($state.match?.timer ?? 0)}</span>
 		</div>
 	</div>
