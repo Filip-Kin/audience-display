@@ -75,12 +75,12 @@
 </div>
 
 <div
-	class="w-full {$settings.invert ? 'bg-primary-700' : 'bg-secondary-600'} h-full fixed -skew-x-12 flex flex-row justify-end"
+	class="w-full {$settings.invert ? 'bg-primary-600' : 'bg-secondary-600'} h-full fixed -skew-x-12 flex flex-row justify-end"
 	style={`right: ${$shutterSpring}vw`}
 ></div>
 
 <div
-	class="w-full {$settings.invert ? 'bg-secondary-600' : 'bg-primary-700'} h-full fixed -skew-x-12 flex flex-row justify-start"
+	class="w-full {$settings.invert ? 'bg-secondary-600' : 'bg-primary-600'} h-full fixed -skew-x-12 flex flex-row justify-start"
 	style={`left: ${$shutterSpring}vw`}
 ></div>
 
@@ -103,7 +103,10 @@
 <div class="fixed z-10 grid grid-cols-[.36fr_.28fr_.36fr] w-full h-full p-8 gap-8" class:flex-row-reverse={$settings.invert}>
 	{#if $state.results && ready}
 		<!-- Cell 1 event/sponsor logo -->
-		<img src="/logo.png" class="size-60 mx-auto self-center" alt="sponsor" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }} />
+		<div>
+			<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Event Sponsors</h2>
+			<img src="/sponsors.png" class="h-60 mx-auto self-center" alt="sponsor" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }} />
+		</div>
 
 		<!-- Cell 2 spans 2 rows, match results -->
 		<div class="flex flex-col row-span-2 pt-32">
@@ -166,11 +169,14 @@
 					</div>
 				</div>
 
-				<!-- <img src="/logo.png" alt="logo" class="size-80" in:fly={{ y: 200, duration: 500 }} out:fly={{ y: -400, duration: 200 }} /> -->
+				<img src="/logo.png" alt="logo" class="h-72 mt-8" in:fly={{ y: 200, duration: 500 }} out:fly={{ y: -400, duration: 200 }} />
 			</div>
 		</div>
 
-		<img src="/pitpodcast.png" class="size-60 mx-auto self-center" alt="sponsor" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }} />
+		<div>
+			<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Livestream Partner</h2>
+			<img src="/pitpodcast.png" class="size-60 mx-auto self-center" alt="sponsor" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }} />
+		</div>
 
 		<div in:fly={{ x: -100, duration: 200, delay: 100 }} out:fade={{ duration: 100 }}>
 			<Alliance {ready} alliance={$settings.invert ? "red" : "blue"} invert={$settings.invert} />

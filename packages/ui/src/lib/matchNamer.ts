@@ -42,6 +42,7 @@ export const matchName = (
 };
 
 export function displayEventName(name?: string): string {
+  return "Goonettes Invitational 2025 - ";
   if (!name) return "Event Name";
   if (name.length > 35) return name.slice(0, 35) + "...";
   if (name.length > 20) return name;

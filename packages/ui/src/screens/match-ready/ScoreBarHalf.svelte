@@ -13,7 +13,11 @@
 
 {#if $state.match && score}
 	<div class="flex flex-row justify-start">
-		<div class="bg-{alliance}-600 flex flex-row p{invert ? 'l' : 'r'}-16 -m{invert ? 'l' : 'r'}-16 rounded-{invert ? 'r' : 'l'}-xl relative rainbow-shadow">
+		<div
+			class="bg-gradient-to-{invert ? 'r' : 'l'} from-primary-600 to-{alliance}-600 from-20% to-70% flex flex-row p-{invert ? 'l' : 'r'}-16 -m-{invert
+				? 'l'
+				: 'r'}-16 rounded-{invert ? 'r' : 'l'}-xl relative rainbow-shadow"
+		>
 			<div class="flex flex-row z-10 relative" style={`max-width: ${$wingSpring / 2}vw; opacity: ${$opacityTween}`} class:flex-row-reverse={invert}>
 				<div class="flex flex-col justify-center px-3 w-48 text-7xl font-bold text-center">
 					{score.score}

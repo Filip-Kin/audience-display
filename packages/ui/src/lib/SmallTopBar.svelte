@@ -9,13 +9,13 @@
 </script>
 
 <div
-	class="fixed bg-primary-800 text-white-600 h-20 flex justify-between mx-[10vw] w-[80vw]"
+	class="fixed bg-primary-600 text-white-600 h-20 flex justify-between mx-[10vw] w-[80vw]"
 	style={`${$settings.top ? "bottom" : "top"}: calc(${$positionSpring || 40}px - 15px)`}
 >
-	<span><img src="/logo.png" class="h-20 p-0.5" alt="sponsor" /></span>
+	<span><img src="/logo.png" class="h-20 py-0.5 px-4" alt="sponsor" /></span>
 	<div class="flex justify-center items-center">
 		<div class="text-3xl font-bold text-center">
-			{$state.eventDetails?.name || "Event Name"}
+			Goonettes Invitational 2025
 			{#if $state.match && !eventNameOnly}
 				- {matchName($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType)}
 			{/if}

@@ -34,7 +34,7 @@
 				</div>
 				<span class="text-5xl font-semibold">{team.number}</span>
 			</div>
-			<div class="bg-white text-black p-2 text-4xl h-full line-clamp-2">
+			<div class="bg-white text-black p-2 text-4xl h-16 line-clamp-2">
 				{team.name}
 			</div>
 		{:else}
@@ -47,7 +47,7 @@
 			<div
 				class="grid {team.rank ? 'grid-cols-[.7fr_.1fr_.2fr]' : 'grid-cols-[.9fr_.1fr]'} bg-white text-black p-3 {team.name.length > 22 && team.rank
 					? 'text-3xl'
-					: 'text-4xl'} font-bold justify-between"
+					: 'text-4xl'} font-bold justify-between h-16"
 			>
 				<span>{team.name}</span>
 				{#if team.card && team.card !== "None"}
