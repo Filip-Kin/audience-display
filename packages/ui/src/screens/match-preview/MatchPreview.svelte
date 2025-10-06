@@ -53,7 +53,7 @@
 					in:fly={{ y: -50, duration: 100 }}
 					out:fade={{ duration: 100 }}
 				>
-					<span class="text-primary-500 font-bold">
+					<span class="text-secondary-500 font-bold">
 						<div class="text-4xl">{displayEventName($state.eventDetails?.name)}</div>
 						{matchName($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType)}
 					</span>
