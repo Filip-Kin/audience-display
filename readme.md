@@ -1,4 +1,4 @@
-# Rainbow Rumble Audience Display
+# Audience Display
 
 This is the backend server and ui for the custom audience display app for rainbow rumble.
 
