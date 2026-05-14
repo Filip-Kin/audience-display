@@ -1,5 +1,10 @@
 import { HubConnectionBuilder, type HubConnection } from "@microsoft/signalr";
-import { type ScoreChangedData, type ScoringElementChangedData } from "lib";
+import {
+  type ScoreChangedData,
+  type ScoringElementChangedData,
+  type GameSpecificMessage,
+  type PlcMatchStatusData,
+} from "lib";
 
 type Events =
   | "videoSwitch"
@@ -20,7 +25,9 @@ type Events =
   | "disconnected"
   | "timeout"
   | "fieldMonitorTeamsChanged"
-  | "tournamentLevelChanged";
+  | "tournamentLevelChanged"
+  | "gameSpecificMessage"
+  | "plcMatchStatus";
 
 export class FMSSignalRConnection {
   private fmsUrl: string;
@@ -52,6 +59,8 @@ export class FMSSignalRConnection {
     timeout: [],
     fieldMonitorTeamsChanged: [],
     tournamentLevelChanged: [],
+    gameSpecificMessage: [],
+    plcMatchStatus: [],
   };
 
   constructor(fmsUrl: string) {
@@ -197,8 +206,8 @@ export class FMSSignalRConnection {
       },
     );
 
-    this.infrastructureConnection.on("plc_match_status_changed", (data) => {
-      console.log("plc_match_status_changed: ", data);
+    this.infrastructureConnection.on("plc_match_status_changed", (data: PlcMatchStatusData) => {
+      this.emit("plcMatchStatus", data);
     });
 
     this.infrastructureConnection.on("matchstatusinfochanged", (data) => {
@@ -319,11 +328,17 @@ export class FMSSignalRConnection {
         // console.log("RedScoringElementsChanged", data);
       },
     );
+    this.gameSpecificConnection.on(
+      "SendGameSpecificMessage",
+      (data: GameSpecificMessage) => {
+        this.emit("gameSpecificMessage", data);
+      },
+    );
   }
 
   private handleFieldMonitorConnection() {
     this.fieldMonitorConnection.on("fieldMonitorDataChanged", (data) => {
-      const teams = {
+      const teams: { red: number[]; blue: number[] } = {
         red: [],
         blue: [],
       };

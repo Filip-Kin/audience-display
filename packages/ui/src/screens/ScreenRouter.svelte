@@ -12,6 +12,7 @@
 	import AllianceSelection from "./alliance-selection/AllianceSelection.svelte";
 	import { settings } from "../lib/settings";
 	import Timeout from "./time-out/Timeout.svelte";
+	import PlayoffBracket from "./playoff-bracket/PlayoffBracket.svelte";
 
 	let transitioning = false;
 	let activeScreen: Screen = "none";
@@ -76,14 +77,18 @@
 		"match-preview": MatchPreview,
 		"match-ready": MatchReady,
 		"match-auton": MatchReady,
-		"match-transition": MatchReady,
-		"match-teleop": MatchReady,
+		"match-transition-shift": MatchReady,
+		"match-shift-1": MatchReady,
+		"match-shift-2": MatchReady,
+		"match-shift-3": MatchReady,
+		"match-shift-4": MatchReady,
 		"match-endgame": MatchReady,
 		"match-end": ScoresReady,
 		"scores-ready": ScoresReady,
 		"score-reveal": ScoresReveal,
 		"alliance-selection": AllianceSelection,
 		"alliance-selection-fullscreen": AllianceSelection,
+		"playoff-bracket": PlayoffBracket,
 		timeout: Timeout,
 	};
 

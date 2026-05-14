@@ -17,28 +17,28 @@
 {#if ready}
 	<div
 		class="flex flex-col shadow-lg rounded overflow-hidden"
-		in:fly={{
+		in:fly|local={{
 			x: 100 * (invert ? -1 : 1),
 			duration: 500,
-			delay: 150 * index,
+			delay: 150 * index + 150,
 		}}
-		out:fly={{
+		out:fly|local={{
 			x: 400 * (invert ? -1 : 1),
 			duration: 100,
 		}}
 	>
 		{#if small}
-			<div class="flex flex-row bg-{alliance}-600 text-white p-3 text-xl gap-4 align-middle">
+			<div class="flex flex-row {alliance === 'red' ? 'bg-redAlliance' : 'bg-blueAlliance'} text-white p-3 text-xl gap-4 align-middle">
 				<div style="width: 60px; height: 60px">
 					<img src="data:image/png;base64,{team.avatar || defaultAvatar}" alt="{team.number} Icon" width="60px" height="60px" />
 				</div>
 				<span class="text-5xl font-semibold">{team.number}</span>
 			</div>
-			<div class="bg-white text-black p-2 text-4xl h-full line-clamp-2">
+			<div class="bg-white text-black p-2 text-4xl h-16 line-clamp-2">
 				{team.name}
 			</div>
 		{:else}
-			<div class="flex flex-row bg-{alliance}-600 text-white p-3 text-xl gap-4 align-middle">
+			<div class="flex flex-row {alliance === 'red' ? 'bg-redAlliance' : 'bg-blueAlliance'} text-white p-3 text-xl gap-4 align-middle">
 				<div style="width: 60px; height: 60px">
 					<img src="data:image/png;base64,{team.avatar || defaultAvatar}" alt="{team.number} Icon" width="60px" height="60px" />
 				</div>

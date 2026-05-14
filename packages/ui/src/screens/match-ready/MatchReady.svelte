@@ -5,7 +5,10 @@
 	import { settings } from "../../lib/settings";
 	import ScoreBarTimer from "./ScoreBarTimer.svelte";
 	import ScoreBarHalf from "./ScoreBarHalf.svelte";
+	import ShiftProgress from "./ShiftProgress.svelte";
+	import HubActiveIndicator from "./HubActiveIndicator.svelte";
 	import SmallTopBar from "../../lib/SmallTopBar.svelte";
+	import Logo from "../../lib/Logo.svelte";
 	import { fade } from "svelte/transition";
 
 	let positionSpring = spring(-400, {
@@ -62,29 +65,36 @@
 
 	{#if ready}
 		<div class="w-screen h-screen flex justify-center items-end">
-			<img
-				src="/logo.png"
-				alt=""
-				class="size-32 z-10"
+			<div
+				class="size-32 z-10 flex"
 				style={`transform: translateY(calc(${($logoSpring / 100) * 44.5}vh - 120px - 50vh)) scale(${480 - ($logoSpring / 100) * 300}%)`}
 				in:fade={{ duration: 300 }}
 				out:fade={{ duration: 300 }}
-			/>
+			>
+				<Logo alt="" class="size-full object-contain" />
+			</div>
 		</div>
 	{/if}
 
+	<HubActiveIndicator />
+
 	<div
-		class="fixed w-full flex items-stretch justify-center h-[156px]"
+		class="fixed w-full flex flex-col items-stretch h-[180px]"
 		style={`${$settings.top ? "top" : "bottom"}: ${$positionSpring}px`}
-		class:flex-row-reverse={$settings.invert}
 	>
-		<!-- Red Alliance -->
-		<ScoreBarHalf {wingSpring} {opacityTween} alliance="red" invert={$settings.invert} />
+		<!-- Shift progress bar above the score bar -->
+		<div class="w-full h-3 mb-1">
+			<ShiftProgress />
+		</div>
+		<div class="flex items-stretch justify-center h-[156px]" class:flex-row-reverse={$settings.invert}>
+			<!-- Red Alliance -->
+			<ScoreBarHalf {wingSpring} {opacityTween} alliance="red" invert={$settings.invert} />
 
-		<!-- Timer -->
-		<ScoreBarTimer {wingSpring} />
+			<!-- Timer -->
+			<ScoreBarTimer {wingSpring} />
 
-		<!-- Blue Alliance -->
-		<ScoreBarHalf {wingSpring} {opacityTween} alliance="blue" invert={!$settings.invert} />
+			<!-- Blue Alliance -->
+			<ScoreBarHalf {wingSpring} {opacityTween} alliance="blue" invert={!$settings.invert} />
+		</div>
 	</div>
 {/if}

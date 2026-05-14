@@ -9,7 +9,7 @@
 </script>
 
 <div
-	class="fixed bg-primary-800 text-secondary-600 h-20 flex justify-between mx-[10vw] w-[80vw]"
+	class="fixed bg-primary text-accentWarn h-20 flex justify-between mx-[10vw] w-[80vw]"
 	style={`${$settings.top ? "bottom" : "top"}: calc(${$positionSpring || 40}px - 15px)`}
 >
 	<span><img src="/sponsor.png" class="h-20 p-3" alt="sponsor" /></span>

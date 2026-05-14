@@ -14,7 +14,41 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    /* Theme CSS variables (hex strings, written by applyTheme at runtime). */
+    --color-primary: #DC2626;
+    --color-secondary: #2563EB;
+    --color-red-alliance: #DC2626;
+    --color-blue-alliance: #2563EB;
+    --color-accent-warn: #FACC15;
+    --color-background: #000000;
+    --color-surface: #1F2937;
+    --color-text: #FFFFFF;
 }
+
+.bg-primary { background-color: var(--color-primary); }
+.bg-secondary { background-color: var(--color-secondary); }
+.bg-redAlliance { background-color: var(--color-red-alliance); }
+.bg-blueAlliance { background-color: var(--color-blue-alliance); }
+.bg-accentWarn { background-color: var(--color-accent-warn); }
+.bg-background { background-color: var(--color-background); }
+.bg-surface { background-color: var(--color-surface); }
+
+.text-primary { color: var(--color-primary); }
+.text-secondary { color: var(--color-secondary); }
+.text-redAlliance { color: var(--color-red-alliance); }
+.text-blueAlliance { color: var(--color-blue-alliance); }
+.text-accentWarn { color: var(--color-accent-warn); }
+.text-text { color: var(--color-text); }
+
+.border-primary { border-color: var(--color-primary); }
+.border-redAlliance { border-color: var(--color-red-alliance); }
+.border-blueAlliance { border-color: var(--color-blue-alliance); }
+
+.from-primary { --tw-gradient-from: var(--color-primary) var(--tw-gradient-from-position); --tw-gradient-to: rgb(0 0 0 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.to-primary { --tw-gradient-to: var(--color-primary) var(--tw-gradient-to-position); }
+.from-redAlliance { --tw-gradient-from: var(--color-red-alliance) var(--tw-gradient-from-position); --tw-gradient-to: rgb(0 0 0 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.to-blueAlliance { --tw-gradient-to: var(--color-blue-alliance) var(--tw-gradient-to-position); }
 
 body,
 #app {
@@ -57,8 +91,8 @@ body,
     animation: rainbow 3s linear infinite;
 }
 
-.bg-blue-600.rainbow-shadow:before,
-.bg-blue-600.rainbow-shadow:after {
+.bg-blueAlliance.rainbow-shadow:before,
+.bg-blueAlliance.rainbow-shadow:after {
     background: linear-gradient(
         45deg,
         #f00,
@@ -156,4 +190,28 @@ body,
   100% {
     background-position: 0% 0;
   }
+}
+
+@keyframes wiggle-cw {
+  0%   { transform: rotate(0deg); }
+  25%  { transform: rotate(-15deg); }
+  50%  { transform: rotate(0deg); }
+  75%  { transform: rotate(15deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes wiggle-ccw {
+  0%   { transform: rotate(0deg); }
+  25%  { transform: rotate(15deg); }
+  50%  { transform: rotate(0deg); }
+  75%  { transform: rotate(-15deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.star-cw {
+  animation: wiggle-cw 2s infinite;
+}
+
+.star-ccw {
+  animation: wiggle-ccw 2s infinite;
 }

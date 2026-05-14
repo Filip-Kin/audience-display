@@ -1,39 +1,72 @@
 import type {
-  FMSMatchPreviewTeam,
   FMSMatchResultsTeam,
 } from "./FMS_API_audience";
+import type { MatchPhase } from "./match_phase";
+import type { GameConfig } from "./game_config";
+import type { EventConfig } from "./event_config";
+import type { BracketData, PlayoffTiebreakType } from "./bracket";
 
 export type Screen =
   | "none"
   | "match-preview"
   | "match-ready"
   | "match-auton"
-  | "match-transition"
-  | "match-teleop"
+  | "match-transition-shift"
+  | "match-shift-1"
+  | "match-shift-2"
+  | "match-shift-3"
+  | "match-shift-4"
   | "match-endgame"
   | "match-end"
   | "scores-ready"
   | "score-reveal"
   | "alliance-selection"
   | "alliance-selection-fullscreen"
+  | "playoff-bracket"
   | "timeout";
 
 export type AllianceScore = {
   score: number;
-  autoMobility: number;
-  coral: number;
-  algae: number;
-  barge: number;
-  fouls: number;
-  algaeCount: number;
-  autoBonusRP: boolean;
-  coralBonusRP: boolean;
-  coralBonusProgress: number;
-  coralBonusThreshold: number;
-  bargeBonusRP: boolean;
-  coopertitionMet: boolean;
+
+  // fuel
+  autoFuelPoints: number;
+  teleopFuelPoints: number;
+  coopFuelPoints: number;
+  shiftFuelPoints: [number, number, number, number]; // shift1..4
+  endgameFuelPoints: number;
+  totalFuelPoints: number;
+  teleopFuelCount: number;
+  totalFuelCount: number;
+
+  // climb / tower
+  autoClimbPoints: number;
+  endgameClimbPoints: number;
+  totalClimbPoints: number;
+
+  // bonuses / RP
+  energizedAchieved: boolean;
+  superchargedAchieved: boolean;
+  traversalAchieved: boolean;
+  advantageAchieved: boolean | null; // live-only field, null on results endpoint
   coopertitionAchieved: boolean;
+
+  // thresholds (echoed from FMS for UI progress bars)
+  energizedThreshold: number;
+  superchargedThreshold: number;
+  traversalThreshold: number;
+
   rankingPoints: number;
+
+  // penalties
+  foulPoints: number;
+  adjustPoints: number;
+  penalties: {
+    g206: boolean;
+    g418: boolean;
+    g419: boolean;
+  };
+
+  isHighScore: boolean; // from result endpoint scoreDetails.isHighScore
 };
 
 export type Team = {
@@ -52,6 +85,11 @@ export type MatchType = "q" | "p" | "t" | "sf" | "f";
 
 export type MatchState = {
   timer: number;
+  phase: MatchPhase;
+  phaseTimer: number;
+  hubActive: "Red" | "Blue" | "None";
+  underReview: boolean;
+  tiebreaker?: PlayoffTiebreakType;
   score: {
     red: AllianceScore;
     blue: AllianceScore;
@@ -66,6 +104,8 @@ export type MatchState = {
     matchType: MatchType;
     redAlliance?: string;
     blueAlliance?: string;
+    redSeriesWins?: number;
+    blueSeriesWins?: number;
   };
 };
 
@@ -82,6 +122,12 @@ export type AudienceDisplayState = {
   eventDetails: EventDetails | null;
   alliances: AllianceSelection[];
   ranking: Omit<Team, "name" | "card">[];
+  bracket: BracketData | null;
+  gameConfig: GameConfig | null;
+  eventConfig: EventConfig | null;
+  availableConfigs: string[];
+  activeConfigName: string | null;
+  configError: string | null;
 };
 
 export type AllianceSelection = {

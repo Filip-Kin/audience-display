@@ -3,6 +3,7 @@
 	import { state } from "../../lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
 	import SmallTopBar from "../../lib/SmallTopBar.svelte";
+	import Logo from "../../lib/Logo.svelte";
 
 	let ready = false;
 	const dispatcher = createEventDispatcher();
@@ -27,8 +28,6 @@
 			dispatcher("transitioned");
 		}, 500);
 	}
-
-	$: console.log($state.ranking);
 
 	const secondsToMinutes = (seconds: number) => {
 		const minutes = Math.floor(seconds / 60);
@@ -109,7 +108,7 @@
 			<div class="flex gap-4 justify-around items-center">
 				<div class="w-full">
 					<!-- Space for sponsor / logo -->
-					<img src="/logo.png" alt="Logo" class="size-full max-h-72 object-contain" style="animation-duration: 3s" />
+					<Logo alt="Logo" class="size-full max-h-72 object-contain" style="animation-duration: 3s" />
 				</div>
 
 				<div class="h-full flex flex-col items-end justify-end">

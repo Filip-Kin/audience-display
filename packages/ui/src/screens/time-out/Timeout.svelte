@@ -3,6 +3,7 @@
 	import { state } from "../../lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
 	import SmallTopBar from "../../lib/SmallTopBar.svelte";
+	import Logo from "../../lib/Logo.svelte";
 	import { matchName } from "../../lib/matchNamer";
 
 	let ready = false;
@@ -41,10 +42,10 @@
 <SmallTopBar eventNameOnly />
 
 <div class="w-full h-48 bottom-12 fixed flex justify-center">
-	<div class="bg-primary-800 h-42 rounded-xl mt-0 flex items-center justify-around py-4 px-12 gap-12">
+	<div class="bg-primary h-42 rounded-xl mt-0 flex items-center justify-around py-4 px-12 gap-12">
 		<div class="h-full">
 			<!-- Space for sponsor / logo -->
-			<img src="/logo.png" alt="Logo" class="size-full h-48 -mt-5 object-contain" />
+			<Logo alt="Logo" class="size-full h-48 -mt-5 object-contain" />
 		</div>
 
 		<div class="flex flex-col gap-4">

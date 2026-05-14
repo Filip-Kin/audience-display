@@ -1,3 +1,5 @@
+import type { Bracket, PlayoffLevel, PlayoffSizeTypes, PlayoffTiebreakType } from "./bracket";
+
 export enum LevelParam {
   None,
   Practice,
@@ -67,7 +69,7 @@ export interface FMSMatchSchedule {
 
 export type FMSMatchScore = {
   matchNumber: number;
-  numberOfQualMatches: number;
+  numberOfQualMatches?: number;
   matchDescription: string;
   eventName: string;
   eventCode: string;
@@ -75,7 +77,12 @@ export type FMSMatchScore = {
   tournamentType: string;
   redAllianceData: FMSAllianceData;
   blueAllianceData: FMSAllianceData;
-  matchWinner: "Red" | "Blue" | "Tie";
+  matchWinner: "Red" | "Blue" | null;
+  cooppertitionBonusAchieved?: boolean; // note: FMS-side typo with extra "p"; qual/practice/test only
+  playoffLevel?: PlayoffLevel;
+  playoffBracket?: Bracket;
+  allianceCount?: PlayoffSizeTypes;
+  tiebreaker?: PlayoffTiebreakType;
 };
 
 export type FMSBracketDataMatchScore = {
@@ -95,6 +102,16 @@ export type FMSAllianceData = {
   scoreDetails: AllianceScoreDetails;
   allianceName?: string;
   allianceNumber?: number;
+  seriesWins?: number;            // present on DoubleElimFinal results
+  cardCarryStatus?: "None" | "Yellow" | "Red";
+  cardEffectiveStatus?: "None" | "Yellow" | "Red";
+  playoffAdvancementStatus?: {
+    matchNumber: number;
+    matchLevel: PlayoffLevel;
+    matchBracket: Bracket;
+    matchDescription: string;
+    isEliminated: boolean;
+  };
   team1: FMSMatchResultsTeam;
   team2: FMSMatchResultsTeam;
   team3: FMSMatchResultsTeam;
@@ -106,15 +123,14 @@ export type AllianceScoreDetails = {
   tie: boolean;
   totalScore: number;
   isHighScore: boolean;
-  autoMobilityPoints: number;
-  coralPoints: number;
-  algaePoints: number;
-  bargePoints: number;
+  autoFuelPoints: number;
+  autoClimbPoints: number;
+  teleopFuelPoints: number;
+  teleopClimbPoints: number;
   penaltyPoints: number;
-  autoBonusAchieved: boolean;
-  coralBonusAchieved: boolean;
-  bargeBonusAchieved: boolean;
-  coopertitionAchieved: boolean;
+  energizedAchieved: boolean;
+  superchargedAchieved: boolean;
+  traversalAchieved: boolean;
   rankingPoints: number;
 };
 

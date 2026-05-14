@@ -35,9 +35,9 @@
 	$: console.log($state.eventDetails);
 </script>
 
-<div class="w-full bg-primary-800 h-full fixed -skew-x-12 flex flex-row justify-end" style={`right: ${$shutterSpring}vw`}></div>
+<div class="w-full {$settings.invert ? 'bg-primary' : 'bg-secondary'} h-full fixed -skew-x-12 flex flex-row justify-end" style={`right: ${$shutterSpring}vw`}></div>
 
-<div class="w-full bg-primary-700 h-full fixed -skew-x-12 flex flex-row justify-start" style={`left: ${$shutterSpring}vw`}></div>
+<div class="w-full {$settings.invert ? 'bg-secondary' : 'bg-primary'} h-full fixed -skew-x-12 flex flex-row justify-start" style={`left: ${$shutterSpring}vw`}></div>
 
 <div class="fixed flex flex-col w-full h-full justify-around">
 	<div class="w-full flex flex-row justify-around py-8">
@@ -48,7 +48,7 @@
 					in:fly={{ y: -50, duration: 100 }}
 					out:fade={{ duration: 100 }}
 				>
-					<span class="text-secondary-600 font-bold">
+					<span class="text-accentWarn font-bold">
 						{displayEventName($state.eventDetails?.name)}
 						{matchName($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType)}
 					</span>
@@ -74,7 +74,7 @@
 								duration: 100,
 							}}
 						>
-							<div class="flex flex-row bg-blue-600 text-white p-4 gap-4 align-middle text-5xl font-semibold justify-center">
+							<div class="flex flex-row bg-blueAlliance text-white p-4 gap-4 align-middle text-5xl font-semibold justify-center">
 								{$state.match.details.blueAlliance}
 							</div>
 						</div>
@@ -102,7 +102,7 @@
 								duration: 100,
 							}}
 						>
-							<div class="flex flex-row bg-red-600 text-white p-4 gap-4 align-middle text-5xl font-semibold justify-center">
+							<div class="flex flex-row bg-redAlliance text-white p-4 gap-4 align-middle text-5xl font-semibold justify-center">
 								{$state.match.details.redAlliance}
 							</div>
 						</div>

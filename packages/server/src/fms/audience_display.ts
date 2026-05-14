@@ -1,5 +1,16 @@
 import type { Server } from "bun";
-import type { MatchState, Screen, EventDetails, ScoreChangedData } from "lib";
+import type {
+  MatchState,
+  Screen,
+  EventDetails,
+  ScoreChangedData,
+  GameSpecificMessage,
+  PlcMatchStatusData,
+  AllianceScore,
+  BracketData,
+  GameConfig,
+  MatchPhase,
+} from "lib";
 import { FMSSignalRConnection } from "../signalr/connection";
 import {
   LevelParam,
@@ -11,6 +22,263 @@ import {
 } from "lib/types/FMS_API_audience";
 import type { AllianceSelection, Team } from "lib/types/audience_display";
 import { getTeamName } from "../team_name";
+import { emptyAllianceScore, mapLiveScore, mapResultScore, defaultGameConfig } from "./score_mappers";
+import { fetchGameConfig } from "./game_config";
+import { fetchBracket } from "./bracket";
+import type { EventConfigManager } from "../config/event_config_manager";
+
+const PLAYOFF_LEVELS = new Set<LevelParam>([
+  LevelParam.Playoff,
+  LevelParam.DoubleElimPlayoff,
+  LevelParam.DoubleElimFinal,
+]);
+
+function demoTeam(num: number, name: string, rank: number): Team {
+  return { number: num, name, rank, card: "None" };
+}
+
+function demoScore(opts: {
+  score: number;
+  fuel: number;
+  autoFuel: number;
+  teleopFuel: number;
+  autoClimb: number;
+  endgameClimb: number;
+  energized: boolean;
+  supercharged: boolean;
+  traversal: boolean;
+  advantage: boolean | null;
+  coop: boolean;
+  rp: number;
+  isHigh: boolean;
+}): AllianceScore {
+  return {
+    score: opts.score,
+    autoFuelPoints: opts.autoFuel,
+    teleopFuelPoints: opts.teleopFuel,
+    coopFuelPoints: 0,
+    shiftFuelPoints: [0, 0, 0, 0],
+    endgameFuelPoints: 0,
+    totalFuelPoints: opts.autoFuel + opts.teleopFuel,
+    teleopFuelCount: opts.fuel,
+    totalFuelCount: opts.fuel,
+    autoClimbPoints: opts.autoClimb,
+    endgameClimbPoints: opts.endgameClimb,
+    totalClimbPoints: opts.autoClimb + opts.endgameClimb,
+    energizedAchieved: opts.energized,
+    superchargedAchieved: opts.supercharged,
+    traversalAchieved: opts.traversal,
+    advantageAchieved: opts.advantage,
+    coopertitionAchieved: opts.coop,
+    energizedThreshold: 100,
+    superchargedThreshold: 360,
+    traversalThreshold: 50,
+    rankingPoints: opts.rp,
+    foulPoints: 0,
+    adjustPoints: 0,
+    penalties: { g206: false, g418: false, g419: false },
+    isHighScore: opts.isHigh,
+  };
+}
+
+function defaultMatchState(matchNumber: number): MatchState {
+  return {
+    timer: 15,
+    phase: "PreMatch",
+    phaseTimer: 0,
+    hubActive: "None",
+    underReview: false,
+    score: {
+      red: emptyAllianceScore(),
+      blue: emptyAllianceScore(),
+    },
+    teams: {
+      red: [
+        demoTeam(5712, "Hemlock's Gray Matter", 1),
+        demoTeam(254, "The Cheesy Poofs", 2),
+        demoTeam(2767, "Stryke Force", 5),
+      ],
+      blue: [
+        demoTeam(1678, "Citrus Circuits", 3),
+        demoTeam(3641, "MARS", 7),
+        demoTeam(6328, "Mechanical Advantage", 9),
+      ],
+    },
+    details: {
+      matchNumber,
+      matchType: "q",
+      redAlliance: undefined,
+      blueAlliance: undefined,
+    },
+  };
+}
+
+function demoAlliances(): AllianceSelection[] {
+  const teamSets = [
+    [
+      { number: 5712, name: "Hemlock's Gray Matter" },
+      { number: 254, name: "The Cheesy Poofs" },
+      { number: 1678, name: "Citrus Circuits" },
+    ],
+    [
+      { number: 2767, name: "Stryke Force" },
+      { number: 6328, name: "Mechanical Advantage" },
+      { number: 3641, name: "MARS" },
+    ],
+    [
+      { number: 33, name: "Killer Bees" },
+      { number: 67, name: "HOT Team" },
+      { number: 469, name: "Las Guerrillas" },
+    ],
+    [
+      { number: 1701, name: "Robocubs" },
+      { number: 2767, name: "Stryke Force" },
+      { number: 4153, name: "Wolves of the Sea" },
+    ],
+  ];
+  return teamSets.map((teams, i) => ({
+    allianceNumber: i + 1,
+    allianceName: `Alliance ${i + 1}`,
+    teams: teams.map((t, j) => ({
+      number: t.number,
+      name: t.name,
+      rank: 0,
+      card: "None" as const,
+      isCaptain: j === 0,
+    })),
+    card: "None" as const,
+  }));
+}
+
+function demoRanking(): Omit<Team, "name" | "card">[] {
+  return [
+    { number: 5712, rank: 1 },
+    { number: 254, rank: 2 },
+    { number: 1678, rank: 3 },
+    { number: 2767, rank: 4, potentialCaptain: true },
+    { number: 33, rank: 5 },
+    { number: 67, rank: 6 },
+    { number: 469, rank: 7 },
+    { number: 6328, rank: 8 },
+    { number: 1701, rank: 9 },
+    { number: 3641, rank: 10 },
+    { number: 4153, rank: 11 },
+    { number: 9999, rank: 12 },
+  ];
+}
+
+function demoBracket(): BracketData {
+  const mkMatch = (
+    matchNumber: number,
+    shortName: string,
+    longName: string,
+    red: number,
+    blue: number,
+    redScore: number,
+    blueScore: number,
+    winner: "None" | "Red" | "Blue",
+    isComplete: boolean,
+    isNextMatch = false
+  ) => ({
+    matchNumber,
+    shortName,
+    longName,
+    isComplete,
+    winningAllianceType: winner,
+    winningAllianceNumber:
+      winner === "Red" ? red : winner === "Blue" ? blue : 0,
+    redAllianceNumber: red,
+    redAllianceScore: redScore,
+    blueAllianceNumber: blue,
+    blueAllianceScore: blueScore,
+    isNextMatch,
+  });
+  return {
+    alliances: [],
+    doubleElimMatchesList: [
+      mkMatch(1, "M1", "Match 1", 1, 8, 142, 98, "Red", true),
+      mkMatch(2, "M2", "Match 2", 4, 5, 120, 134, "Blue", true),
+      mkMatch(3, "M3", "Match 3", 2, 7, 156, 88, "Red", true),
+      mkMatch(4, "M4", "Match 4", 3, 6, 110, 145, "Blue", true),
+      mkMatch(5, "M5", "Match 5", 8, 4, 102, 118, "Blue", true),
+      mkMatch(6, "M6", "Match 6", 7, 6, 95, 130, "Blue", true),
+      mkMatch(7, "M7", "Match 7", 1, 5, 168, 142, "Red", true),
+      mkMatch(8, "M8", "Match 8", 2, 3, 140, 152, "Blue", true),
+      mkMatch(9, "M9", "Match 9", 4, 8, 0, 0, "None", false, true),
+      mkMatch(10, "M10", "Match 10", 6, 7, 0, 0, "None", false),
+      mkMatch(11, "M11", "Match 11", 1, 3, 0, 0, "None", false),
+      mkMatch(12, "M12", "Match 12", 5, 4, 0, 0, "None", false),
+      mkMatch(13, "M13", "Match 13", 0, 0, 0, 0, "None", false),
+    ],
+    finals: mkMatch(14, "F1", "Final 1", 1, 3, 0, 0, "None", false),
+    currentLevel: "Level4",
+    allianceCount: "EightAlliance",
+    tournamentType: "Regional",
+    season: 2026,
+    eventCode: "FAMNM",
+    eventName: "Rainbow Rumble",
+    eventLocation: "Ann Arbor, MI",
+  };
+}
+
+function demoResultsState(): MatchState {
+  return {
+    timer: 0,
+    phase: "PostMatch",
+    phaseTimer: 0,
+    hubActive: "None",
+    underReview: false,
+    score: {
+      red: demoScore({
+        score: 142,
+        fuel: 88,
+        autoFuel: 14,
+        teleopFuel: 62,
+        autoClimb: 12,
+        endgameClimb: 30,
+        energized: false,
+        supercharged: false,
+        traversal: true,
+        advantage: true,
+        coop: true,
+        rp: 2,
+        isHigh: false,
+      }),
+      blue: demoScore({
+        score: 168,
+        fuel: 112,
+        autoFuel: 18,
+        teleopFuel: 74,
+        autoClimb: 6,
+        endgameClimb: 45,
+        energized: true,
+        supercharged: false,
+        traversal: true,
+        advantage: false,
+        coop: true,
+        rp: 5,
+        isHigh: true,
+      }),
+      winner: "Blue",
+    },
+    teams: {
+      red: [
+        demoTeam(5712, "Hemlock's Gray Matter", 1),
+        demoTeam(254, "The Cheesy Poofs", 2),
+        demoTeam(2767, "Stryke Force", 5),
+      ],
+      blue: [
+        demoTeam(1678, "Citrus Circuits", 3),
+        demoTeam(3641, "MARS", 7),
+        demoTeam(6328, "Mechanical Advantage", 9),
+      ],
+    },
+    details: {
+      matchNumber: 42,
+      matchType: "q",
+    },
+  };
+}
 
 export class AudienceDisplayManager {
   private server: Server;
@@ -19,209 +287,43 @@ export class AudienceDisplayManager {
 
   private screen: Screen = "none";
   private currentLevel: LevelParam = LevelParam.None;
-  private alliances: AllianceSelection[] = [];
-  private ranking: Omit<Team, "name" | "card">[] = [];
+  private alliances: AllianceSelection[] = demoAlliances();
+  private ranking: Omit<Team, "name" | "card">[] = demoRanking();
   private connected = false;
+  private bracket: BracketData | null = demoBracket();
+  private gameConfig: GameConfig = defaultGameConfig();
+  private bracketRefreshTimer: ReturnType<typeof setInterval> | null = null;
+
+  // advantageAchieved is live-event-only; cache it across the match so we can
+  // include it on the results screen even though FMS omits it from the result endpoint.
+  private cachedAdvantage: { red: boolean | null; blue: boolean | null } = {
+    red: null,
+    blue: null,
+  };
 
   private eventDetails: EventDetails = {
     name: "Rainbow Rumble",
     matchCount: 80,
   };
 
-  private results: MatchResults = {
-    score: {
-      red: {
-        score: 0,
-        autoMobility: 0,
-        coral: 0,
-        algae: 0,
-        barge: 0,
-        fouls: 0,
-        algaeCount: 0,
-        autoBonusRP: false,
-        coralBonusRP: false,
-        coralBonusProgress: 0,
-        coralBonusThreshold: 4,
-        bargeBonusRP: false,
-        coopertitionMet: false,
-        coopertitionAchieved: false,
-        rankingPoints: 0,
-      },
-      blue: {
-        score: 0,
-        autoMobility: 0,
-        coral: 0,
-        algae: 0,
-        barge: 0,
-        fouls: 0,
-        algaeCount: 0,
-        autoBonusRP: false,
-        coralBonusRP: false,
-        coralBonusProgress: 0,
-        coralBonusThreshold: 4,
-        bargeBonusRP: false,
-        coopertitionMet: false,
-        coopertitionAchieved: false,
-        rankingPoints: 0,
-      },
-    },
-    timer: 15,
-    teams: {
-      red: [
-        {
-          name: "Hemlock's Gray Matter",
-          number: 5712,
-          rank: 1,
-          card: "None",
-        },
-        {
-          name: "Hemlock's Gray Matter",
-          number: 5712,
-          rank: 1,
-          card: "None",
-        },
-        {
-          name: "Hemlock's Gray Matter",
-          number: 5712,
-          rank: 1,
-          card: "None",
-        },
-      ],
-      blue: [
-        {
-          name: "Hemlock's Gray Matter",
-          number: 5712,
-          rank: 1,
-          card: "None",
-        },
-        {
-          name: "Hemlock's Gray Matter",
-          number: 5712,
-          rank: 1,
-          card: "None",
-        },
-        {
-          name: "Hemlock's Gray Matter",
-          number: 5712,
-          rank: 1,
-          card: "None",
-        },
-      ],
-    },
-    details: {
-      matchNumber: 13,
-      matchType: "sf",
-      redAlliance: "Alliance 1",
-      blueAlliance: "Alliance 8",
-    },
-  };
+  private results: MatchState = demoResultsState();
+  private match: MatchState = defaultMatchState(1);
 
-  private match: MatchState = {
-    score: {
-      red: {
-        score: 0,
-        autoMobility: 0,
-        coral: 0,
-        algae: 0,
-        barge: 0,
-        fouls: 0,
-        algaeCount: 0,
-        autoBonusRP: false,
-        coralBonusRP: false,
-        coralBonusProgress: 0,
-        coralBonusThreshold: 4,
-        bargeBonusRP: false,
-        coopertitionMet: false,
-        coopertitionAchieved: false,
-        rankingPoints: 0,
-      },
-      blue: {
-        score: 0,
-        autoMobility: 0,
-        coral: 0,
-        algae: 0,
-        barge: 0,
-        fouls: 0,
-        algaeCount: 0,
-        autoBonusRP: false,
-        coralBonusRP: false,
-        coralBonusProgress: 0,
-        coralBonusThreshold: 4,
-        bargeBonusRP: false,
-        coopertitionMet: false,
-        coopertitionAchieved: false,
-        rankingPoints: 0,
-      },
-    },
-    timer: 15,
-    teams: {
-      red: [
-        {
-          name: "Hemlock's Gray Matter",
-          number: 5712,
-          rank: 1,
-          card: "None",
-        },
-        {
-          name: "Hemlock's Gray Matter",
-          number: 5712,
-          rank: 1,
-          card: "None",
-        },
-        {
-          name: "Hemlock's Gray Matter",
-          number: 5712,
-          rank: 1,
-          card: "None",
-        },
-      ],
-      blue: [
-        {
-          name: "Hemlock's Gray Matter",
-          number: 5712,
-          rank: 1,
-          card: "None",
-        },
-        {
-          name: "Hemlock's Gray Matter",
-          number: 5712,
-          rank: 1,
-          card: "None",
-        },
-        {
-          name: "Hemlock's Gray Matter",
-          number: 5712,
-          rank: 1,
-          card: "None",
-        },
-      ],
-    },
-    details: {
-      matchNumber: 13,
-      matchType: "sf",
-      redAlliance: "Alliance 1",
-      blueAlliance: "Alliance 8",
-    },
-  };
+  private teamLineup: { red: number[]; blue: number[] } = { red: [], blue: [] };
+  private configManager: EventConfigManager | null = null;
 
-  private teamLineup: {
-    red: number[];
-    blue: number[];
-  } = {
-      red: [],
-      blue: [],
-    };
-
-  constructor(server: Server, fmsUrl: string) {
+  constructor(server: Server, fmsUrl: string, configManager?: EventConfigManager) {
     this.server = server;
     this.fmsUrl = fmsUrl;
     this.fmsConnection = new FMSSignalRConnection(fmsUrl);
+    this.configManager = configManager ?? null;
+    if (this.configManager) {
+      this.configManager.onChange(() => this.broadcastState());
+    }
 
-    let promises: Promise<void>[] = [];
+    const promises: Promise<void>[] = [];
 
-    promises.push(
-      this.updateMatchCount()
-    );
+    promises.push(this.updateMatchCount());
 
     promises.push(
       this.getEventName().then((eventName) => {
@@ -244,12 +346,16 @@ export class AudienceDisplayManager {
       })
     );
 
+    promises.push(
+      fetchGameConfig(this.fmsUrl).then((cfg) => {
+        this.gameConfig = cfg;
+      })
+    );
+
     Promise.all(promises).then(async () => {
-      // Try to wait for the team lineup to be set
       if (this.teamLineup.blue.length === 0 || this.teamLineup.red.length === 0) {
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
-
       if (this.teamLineup.blue.length === 0 || this.teamLineup.red.length === 0) {
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
@@ -264,310 +370,197 @@ export class AudienceDisplayManager {
     });
 
     this.fmsConnection.on("timer", async (time) => {
-      if (this.match) {
-        this.match.timer = time;
-      }
+      this.match.timer = time;
       this.broadcastState();
 
       if (this.screen === "timeout") {
-        if (time === 60) {
-          this.playSound("timeoutWarning");
-        }
-        if (time === 0) {
-          this.playSound("timeoutEnd");
-        }
+        if (time === 60) this.playSound("timeoutWarning");
+        if (time === 0) this.playSound("timeoutEnd");
       }
     });
 
-    this.fmsConnection.on("videoSwitch", async (screen) => {
-      this.screen = screen;
+    this.fmsConnection.on("videoSwitch", async (screen: Screen | string) => {
+      // Playoff break auto-show: when FMS sends "none" in a playoff tournament, show the bracket.
+      let next = screen as Screen;
+      if (next === "none" && PLAYOFF_LEVELS.has(this.currentLevel)) {
+        next = "playoff-bracket";
+      }
 
-      if (screen === "match-preview") {
-        if (this.match) {
-          // Get the current match number and tournament level
-          const { matchNumber, playNumber, level } =
-            await this.getCurrentMatchAndPlayNumber();
-          this.match.details.matchNumber = matchNumber;
-          this.currentLevel = level;
-          this.match.details.matchType = this.getMatchTypeFromLevel(level);
-          this.match.score.winner = undefined;
+      this.screen = next;
 
-          // Get the match preview data
-          const matchPreview = await this.getMatchPreview(
-            this.currentLevel,
-            matchNumber
-          );
-          this.updateMatchPreview(matchPreview);
-        }
-        this.broadcastState();
-      } else if (screen === "match-reveal") {
-        // This ensures the scores post, even if already on the score screen
+      if (next === "match-preview") {
+        const { matchNumber, level } = await this.getCurrentMatchAndPlayNumber();
+        this.match.details.matchNumber = matchNumber;
+        this.currentLevel = level;
+        this.match.details.matchType = this.getMatchTypeFromLevel(level);
+        this.match.score.winner = undefined;
+        this.match.phase = "PreMatch";
+        this.match.phaseTimer = 0;
+        this.match.hubActive = "None";
+        this.match.underReview = false;
+        this.cachedAdvantage = { red: null, blue: null };
+
+        const matchPreview = await this.getMatchPreview(this.currentLevel, matchNumber);
+        this.updateMatchPreview(matchPreview);
+      } else if (next === "match-reveal" as unknown as Screen) {
+        // legacy: route through scores-ready then score-reveal
         this.screen = "scores-ready";
         this.broadcastState();
-
         setTimeout(() => {
           this.screen = "score-reveal";
           this.broadcastState();
         }, 500);
-      } else if (
-        screen === "alliance-selection" ||
-        screen === "alliance-selection-fullscreen"
-      ) {
+        return;
+      } else if (next === "alliance-selection" || next === "alliance-selection-fullscreen") {
         const alliances = await this.getAlliances();
         this.ranking = await this.getRankings();
         this.updateAllianceData(alliances);
+      } else if (next === "playoff-bracket") {
+        await this.refreshBracket();
+        this.startBracketRefresh();
         this.broadcastState();
-      } else {
+        return;
+      }
+
+      this.stopBracketRefresh();
+      this.broadcastState();
+    });
+
+    this.fmsConnection.on("blueScoreChanged", (data: ScoreChangedData) => {
+      this.match.score.blue = mapLiveScore(data);
+      this.cachedAdvantage.blue = data.AdvantageAchieved;
+      if (this.screen !== "match-end" && this.screen !== "scores-ready") {
         this.broadcastState();
       }
     });
 
-    this.fmsConnection.on(
-      "blueScoreChanged",
-      async (data: ScoreChangedData) => {
-        // console.log("blueScoreChanged", data);
-        if (this.match) {
-          let coralBonusProgress = 0;
-          if (data.TopRowCoralCount >= data.CoralBonusCoralThreshold)
-            coralBonusProgress++;
-          if (data.MidRowCoralCount >= data.CoralBonusCoralThreshold)
-            coralBonusProgress++;
-          if (data.BotRowCoralCount >= data.CoralBonusCoralThreshold)
-            coralBonusProgress++;
-          if (data.TroughCoralCount >= data.CoralBonusCoralThreshold)
-            coralBonusProgress++;
+    this.fmsConnection.on("redScoreChanged", (data: ScoreChangedData) => {
+      this.match.score.red = mapLiveScore(data);
+      this.cachedAdvantage.red = data.AdvantageAchieved;
+      if (this.screen !== "match-end" && this.screen !== "scores-ready") {
+        this.broadcastState();
+      }
+    });
 
-          this.match.score.blue = {
-            score: data.TotalPoints,
-            autoMobility: data.AutoMobilityPoints,
-            coral: data.TotalCoralPoints,
-            algae: data.AlgaePoints,
-            barge: data.EndgameBargePoints,
-            fouls: data.FoulPoints,
-            algaeCount: data.AlgaeCount,
-            autoBonusRP: data.AutoBonusAchieved,
-            coralBonusRP: data.CoralBonusAchieved,
-            coralBonusProgress: coralBonusProgress,
-            coralBonusThreshold: data.CoralBonusLevelsThreshold,
-            bargeBonusRP: data.BargeBonusAchieved,
-            coopertitionMet: data.CoopertitionCriteriaMet,
-            coopertitionAchieved: data.CoopertitionBonusAchieved,
-            rankingPoints:
-              (data.AutoBonusAchieved ? 1 : 0) +
-              (data.CoralBonusAchieved ? 1 : 0) +
-              (data.BargeBonusAchieved ? 1 : 0) +
-              (data.CoopertitionBonusAchieved ? 1 : 0),
-          };
+    this.fmsConnection.on("gameSpecificMessage", (data: GameSpecificMessage) => {
+      if (data.MessageType === "MatchPhaseChanged" || data.MatchPhase !== "None") {
+        const phase = data.MatchPhase === "None" ? "PreMatch" : (data.MatchPhase as MatchPhase);
+        this.match.phase = phase;
+        this.match.phaseTimer = data.CurrentPhaseTimeSeconds;
+      }
+      const blueActive = data.BlueAllianceGoalActive;
+      const redActive = data.RedAllianceGoalActive;
+      this.match.hubActive = blueActive ? "Blue" : redActive ? "Red" : "None";
+      this.broadcastState();
+    });
+
+    this.fmsConnection.on("plcMatchStatus", (data: PlcMatchStatusData) => {
+      this.match.underReview = data.RefUnderReview;
+      this.broadcastState();
+    });
+
+    this.fmsConnection.on("showResults", async (data: { matchNumber: number; level: keyof typeof LevelParam }) => {
+      const results = await this.getMatchResults(LevelParam[data.level], data.matchNumber);
+
+      this.results.teams.red = [];
+      this.results.teams.blue = [];
+
+      for (let i = 0; i < 4; i++) {
+        const keyFor = (n: number) => `team${n + 1}` as "team1" | "team2" | "team3" | "team4";
+        const redTeam = results.redAllianceData[keyFor(i)];
+        if (redTeam) {
+          this.results.teams.red.push({
+            name: getTeamName(redTeam.teamNumber, redTeam.teamName),
+            number: redTeam.teamNumber,
+            rank: redTeam.teamRank,
+            avatar: redTeam.avatar,
+            card: redTeam.cardEffectiveStatus,
+            rankChange: redTeam.teamRankChange,
+          });
         }
-        if (this.screen !== "match-end" && this.screen !== "scores-ready") this.broadcastState(); // Don't show score updates after match end
-      }
-    );
-
-    this.fmsConnection.on("redScoreChanged", async (data: ScoreChangedData) => {
-      if (this.match) {
-        let coralBonusProgress = 0;
-        if (data.TopRowCoralCount >= data.CoralBonusCoralThreshold)
-          coralBonusProgress++;
-        if (data.MidRowCoralCount >= data.CoralBonusCoralThreshold)
-          coralBonusProgress++;
-        if (data.BotRowCoralCount >= data.CoralBonusCoralThreshold)
-          coralBonusProgress++;
-        if (data.TroughCoralCount >= data.CoralBonusCoralThreshold)
-          coralBonusProgress++;
-
-        this.match.score.red = {
-          score: data.TotalPoints,
-          autoMobility: data.AutoMobilityPoints,
-          coral: data.TotalCoralPoints,
-          algae: data.AlgaePoints,
-          barge: data.EndgameBargePoints,
-          fouls: data.FoulPoints,
-          algaeCount: data.AlgaeCount,
-          autoBonusRP: data.AutoBonusAchieved,
-          coralBonusRP: data.CoralBonusAchieved,
-          coralBonusProgress: coralBonusProgress,
-          coralBonusThreshold: data.CoralBonusLevelsThreshold,
-          bargeBonusRP: data.BargeBonusAchieved,
-          coopertitionMet: data.CoopertitionCriteriaMet,
-          coopertitionAchieved: data.CoopertitionBonusAchieved,
-          rankingPoints:
-            (data.AutoBonusAchieved ? 1 : 0) +
-            (data.CoralBonusAchieved ? 1 : 0) +
-            (data.BargeBonusAchieved ? 1 : 0) +
-            (data.CoopertitionBonusAchieved ? 1 : 0),
-        };
-      }
-
-      if (this.screen !== "match-end" && this.screen !== "scores-ready") this.broadcastState(); // Don't show score updates after match end
-    });
-
-    this.fmsConnection.on(
-      "showResults",
-      async (data: { matchNumber: number; level: keyof typeof LevelParam; }) => {
-        console.log({
-          matchNumber: data.matchNumber,
-          level: data.level,
-        });
-        const results = await this.getMatchResults(
-          LevelParam[data.level],
-          data.matchNumber
-        );
-
-
-        this.results.teams.red = [];
-        this.results.teams.blue = [];
-
-        for (let i = 0; i < 4; i++) {
-          const matchResultsTeamRed =
-            results.redAllianceData[
-            `team${i + 1}` as "team1" | "team2" | "team3" | "team4"
-            ];
-
-          if (!matchResultsTeamRed) {
-          } else {
-            this.results.teams.red.push({
-              name: getTeamName(matchResultsTeamRed.teamNumber, matchResultsTeamRed.teamName),
-              number: matchResultsTeamRed.teamNumber,
-              rank: matchResultsTeamRed.teamRank,
-              avatar: matchResultsTeamRed.avatar,
-              card: matchResultsTeamRed.cardEffectiveStatus,
-              rankChange: matchResultsTeamRed.teamRankChange,
-            });
-          }
-
-          const matchResultsTeamBlue =
-            results.blueAllianceData[
-            `team${i + 1}` as "team1" | "team2" | "team3" | "team4"
-            ];
-
-          if (!matchResultsTeamBlue) {
-          } else {
-            this.results.teams.blue.push({
-              name: getTeamName(matchResultsTeamBlue.teamNumber, matchResultsTeamBlue.teamName),
-              number: matchResultsTeamBlue.teamNumber,
-              rank: matchResultsTeamBlue.teamRank,
-              avatar: matchResultsTeamBlue.avatar,
-              card: matchResultsTeamBlue.cardEffectiveStatus,
-              rankChange: matchResultsTeamBlue.teamRankChange,
-            });
-          }
+        const blueTeam = results.blueAllianceData[keyFor(i)];
+        if (blueTeam) {
+          this.results.teams.blue.push({
+            name: getTeamName(blueTeam.teamNumber, blueTeam.teamName),
+            number: blueTeam.teamNumber,
+            rank: blueTeam.teamRank,
+            avatar: blueTeam.avatar,
+            card: blueTeam.cardEffectiveStatus,
+            rankChange: blueTeam.teamRankChange,
+          });
         }
-
-        this.results.score.red = {
-          score: results.redAllianceData.scoreDetails.totalScore,
-          autoMobility: results.redAllianceData.scoreDetails.autoMobilityPoints,
-          coral: results.redAllianceData.scoreDetails.coralPoints,
-          algae: results.redAllianceData.scoreDetails.algaePoints,
-          barge: results.redAllianceData.scoreDetails.bargePoints,
-          fouls: results.redAllianceData.scoreDetails.penaltyPoints,
-          algaeCount: 0, // Does not matter for score results screen
-          autoBonusRP: results.redAllianceData.scoreDetails.autoBonusAchieved,
-          coralBonusRP: results.redAllianceData.scoreDetails.coralBonusAchieved,
-          coralBonusProgress: 0, // Does not matter for score results screen
-          coralBonusThreshold: 4, // Does not matter for score results screen
-          bargeBonusRP: results.redAllianceData.scoreDetails.bargeBonusAchieved,
-          coopertitionMet:
-            results.redAllianceData.scoreDetails.coopertitionAchieved,
-          coopertitionAchieved:
-            results.redAllianceData.scoreDetails.coopertitionAchieved,
-          rankingPoints: results.redAllianceData.scoreDetails.rankingPoints,
-        };
-
-        this.results.score.blue = {
-          score: results.blueAllianceData.scoreDetails.totalScore,
-          autoMobility:
-            results.blueAllianceData.scoreDetails.autoMobilityPoints,
-          coral: results.blueAllianceData.scoreDetails.coralPoints,
-          algae: results.blueAllianceData.scoreDetails.algaePoints,
-          barge: results.blueAllianceData.scoreDetails.bargePoints,
-          fouls: results.blueAllianceData.scoreDetails.penaltyPoints,
-          algaeCount: 0, // Does not matter for score results screen
-          autoBonusRP: results.blueAllianceData.scoreDetails.autoBonusAchieved,
-          coralBonusRP:
-            results.blueAllianceData.scoreDetails.coralBonusAchieved,
-          coralBonusProgress: 0, // Does not matter for score results screen
-          coralBonusThreshold: 4, // Does not matter for score results screen
-          bargeBonusRP:
-            results.blueAllianceData.scoreDetails.bargeBonusAchieved,
-          coopertitionMet:
-            results.blueAllianceData.scoreDetails.coopertitionAchieved,
-          coopertitionAchieved:
-            results.blueAllianceData.scoreDetails.coopertitionAchieved,
-          rankingPoints: results.blueAllianceData.scoreDetails.rankingPoints,
-        };
-
-        this.results.details.matchNumber = results.matchNumber;
-        this.results.details.matchType = this.getMatchTypeFromLevel(
-          this.currentLevel
-        );
-
-        this.results.details.redAlliance = results.redAllianceData.allianceName ?? undefined;
-        this.results.details.blueAlliance = results.blueAllianceData.allianceName ?? undefined;
-
-        this.results.score.winner =
-          results.matchWinner === null ? "Tie" : results.matchWinner;
-
-        // This ensures the scores post, even if already on the score screen
-        this.screen = "scores-ready";
-
-        console.log(this.results.teams.red);
-
-        this.broadcastState();
-
-        setTimeout(() => {
-          this.screen = "score-reveal";
-          this.broadcastState();
-        }, 500);
       }
-    );
 
-    this.fmsConnection.on("matchReady", () => {
-      this.playSound("matchReady");
+      const coopAchieved = !!results.cooppertitionBonusAchieved;
+      const thresholds = {
+        energized: this.gameConfig.energizedThreshold,
+        supercharged: this.gameConfig.superchargedThreshold,
+        traversal: this.gameConfig.traversalThreshold,
+      };
+
+      this.results.score.red = mapResultScore(
+        results.redAllianceData.scoreDetails,
+        coopAchieved,
+        this.cachedAdvantage.red,
+        thresholds
+      );
+      this.results.score.blue = mapResultScore(
+        results.blueAllianceData.scoreDetails,
+        coopAchieved,
+        this.cachedAdvantage.blue,
+        thresholds
+      );
+
+      this.results.details.matchNumber = results.matchNumber;
+      this.results.details.matchType = this.getMatchTypeFromLevel(this.currentLevel);
+      this.results.details.redAlliance = results.redAllianceData.allianceName ?? undefined;
+      this.results.details.blueAlliance = results.blueAllianceData.allianceName ?? undefined;
+      this.results.details.redSeriesWins = results.redAllianceData.seriesWins;
+      this.results.details.blueSeriesWins = results.blueAllianceData.seriesWins;
+      this.results.tiebreaker = results.tiebreaker;
+      this.results.score.winner = results.matchWinner === null ? "Tie" : results.matchWinner;
+
+      // Clear under-review now that results are posted.
+      this.results.underReview = false;
+      this.match.underReview = false;
+
+      this.screen = "scores-ready";
+      this.broadcastState();
+
+      setTimeout(() => {
+        this.screen = "score-reveal";
+        this.broadcastState();
+      }, 500);
     });
-    this.fmsConnection.on("matchStart", () => {
-      this.playSound("matchStart");
-    });
-    this.fmsConnection.on("autoEnd", () => {
-      this.playSound("autoEnd");
-    });
-    this.fmsConnection.on("teleopStart", () => {
-      this.playSound("teleopStart");
-    });
-    this.fmsConnection.on("endgameWarning", () => {
-      this.playSound("endgameWarning");
-    });
+
+    this.fmsConnection.on("matchReady", () => this.playSound("matchReady"));
+    this.fmsConnection.on("matchStart", () => this.playSound("matchStart"));
+    this.fmsConnection.on("autoEnd", () => this.playSound("autoEnd"));
+    this.fmsConnection.on("teleopStart", () => this.playSound("teleopStart"));
+    this.fmsConnection.on("endgameWarning", () => this.playSound("endgameWarning"));
     this.fmsConnection.on("matchEnd", () => {
       this.playSound("matchEnd");
       this.screen = "match-end";
       this.broadcastState();
     });
-    this.fmsConnection.on("matchAbort", () => {
-      this.playSound("matchAbort");
-    });
+    this.fmsConnection.on("matchAbort", () => this.playSound("matchAbort"));
 
     this.fmsConnection.on("matchCommit", () => {
       this.screen = "scores-ready";
       this.broadcastState();
     });
 
-    this.fmsConnection.on("allianceSelectionChanged", async (data) => {
-      data = data as {
-        AllianceNumber: number,
-        AllianceParticipant: 'Captain' | 'FirstPick' | 'Alternative',
-        TeamNumber: number,
-      };
-
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for the FMS to update the alliances
-
+    this.fmsConnection.on("allianceSelectionChanged", async () => {
+      await new Promise((resolve) => setTimeout(resolve, 500));
       const alliances = await this.getAlliances();
       this.ranking = await this.getRankings();
       this.updateAllianceData(alliances);
-      console.log(this.ranking);
       this.broadcastState();
     });
 
-    this.fmsConnection.on("connected", () => {
+    this.fmsConnection.on("connected", async () => {
       this.connected = true;
+      this.gameConfig = await fetchGameConfig(this.fmsUrl);
       this.broadcastState();
     });
 
@@ -578,19 +571,16 @@ export class AudienceDisplayManager {
     });
 
     this.fmsConnection.on("fieldMonitorTeamsChanged", (teams) => {
-      this.teamLineup = {
-        red: teams.red,
-        blue: teams.blue,
-      };
+      this.teamLineup = { red: teams.red, blue: teams.blue };
     });
 
-    this.fmsConnection.on("tournamentLevelChanged", async (level) => {
-      console.log("Tournament level changed to", level);
+    this.fmsConnection.on("tournamentLevelChanged", async () => {
       await this.updateMatchCount();
+      this.gameConfig = await fetchGameConfig(this.fmsUrl);
+      this.broadcastState();
     });
 
     this.fmsConnection.on("timeout", async (data) => {
-      console.log("Timeout event received", data);
       this.match.details.matchNumber = data.MatchNumber;
       this.match.score.winner = undefined;
       this.broadcastState();
@@ -598,6 +588,9 @@ export class AudienceDisplayManager {
   }
 
   broadcastState() {
+    const cfg = this.configManager?.active();
+    const eventName = cfg?.config.event.nameOverride ?? this.eventDetails.name;
+    const matchCount = cfg?.config.event.matchCountOverride ?? this.eventDetails.matchCount;
     this.server.publish(
       "audience-display",
       JSON.stringify({
@@ -607,116 +600,114 @@ export class AudienceDisplayManager {
           screen: this.screen,
           match: this.match,
           results: this.results,
-          eventDetails: this.eventDetails,
+          eventDetails: { name: eventName, matchCount },
           alliances: this.alliances,
           ranking: this.ranking,
+          bracket: this.bracket,
+          gameConfig: this.gameConfig,
+          eventConfig: cfg?.config ?? null,
+          availableConfigs: this.configManager?.list() ?? [],
+          activeConfigName: cfg?.name ?? null,
+          configError: cfg?.error ?? null,
         },
       })
     );
   }
 
+  selectConfig(name: string) {
+    this.configManager?.setActive(name);
+  }
+
   playSound(soundName: string) {
     this.server.publish(
       "audience-display",
-      JSON.stringify({
-        type: "sound",
-        data: soundName,
-      })
+      JSON.stringify({ type: "sound", data: soundName })
     );
+  }
+
+  private async refreshBracket() {
+    this.bracket = await fetchBracket(this.fmsUrl);
+  }
+
+  private startBracketRefresh() {
+    if (this.bracketRefreshTimer) return;
+    this.bracketRefreshTimer = setInterval(() => {
+      this.refreshBracket().then(() => this.broadcastState());
+    }, 30_000);
+  }
+
+  private stopBracketRefresh() {
+    if (this.bracketRefreshTimer) {
+      clearInterval(this.bracketRefreshTimer);
+      this.bracketRefreshTimer = null;
+    }
   }
 
   private async updateMatchCount() {
     this.currentLevel = await this.getActiveTournamentLevel();
-    console.log("Current tournament level", this.currentLevel);
-
     if (this.currentLevel === LevelParam.Qualification) {
       const schedule = await this.getCurrentSchedule();
       const matchCount = schedule.filter(
         (match) => match.tournamentLevel === "Qualification"
       ).length;
-
-      console.log("Match count", matchCount);
       this.eventDetails.matchCount = matchCount;
     }
   }
 
   private async updateMatchPreview(matchPreview: FMSMatchPreview) {
-    if (this.match) {
-      this.match.details.redAlliance = matchPreview.redAlliance.allianceName ?? undefined;
-      this.match.details.blueAlliance = matchPreview.blueAlliance.allianceName ?? undefined;
+    this.match.details.redAlliance = matchPreview.redAlliance.allianceName ?? undefined;
+    this.match.details.blueAlliance = matchPreview.blueAlliance.allianceName ?? undefined;
 
-      this.match.teams.red = [];
-      this.match.teams.blue = [];
+    this.match.teams.red = [];
+    this.match.teams.blue = [];
 
-      const redExtraTeams: Team[] = [];
-      const blueExtraTeams: Team[] = [];
+    const redExtraTeams: Team[] = [];
+    const blueExtraTeams: Team[] = [];
 
-      for (let i = 0; i < 4; i++) {
-        const matchPreviewTeamRed =
-          matchPreview.redAlliance[
-          `team${i + 1}` as "team1" | "team2" | "team3" | "team4"
-          ];
+    for (let i = 0; i < 4; i++) {
+      const key = `team${i + 1}` as "team1" | "team2" | "team3" | "team4";
 
-        if (!matchPreviewTeamRed) {
-          // console.log(`Skipping team ${i + 1} in red alliance because null`);
-        } else if (!this.teamLineup.red.includes(matchPreviewTeamRed.teamNumber)) {
-          console.log(this.teamLineup.red);
-          console.log(`Adding extra team ${matchPreviewTeamRed.teamNumber} to red alliance`);
-          redExtraTeams.push({
-            name: getTeamName(matchPreviewTeamRed.teamNumber, matchPreviewTeamRed.teamName),
-            number: matchPreviewTeamRed.teamNumber,
-            rank: matchPreviewTeamRed.teamRank,
-            avatar: matchPreviewTeamRed.avatar,
-            card: (matchPreviewTeamRed.carryingCard ?? matchPreview.redAlliance.carryingCard),
-          });
+      const red = matchPreview.redAlliance[key];
+      if (red) {
+        const team: Team = {
+          name: getTeamName(red.teamNumber, red.teamName),
+          number: red.teamNumber,
+          rank: red.teamRank,
+          avatar: red.avatar,
+          card: (red.carryingCard ?? matchPreview.redAlliance.carryingCard) ? "Yellow" : "None",
+        };
+        if (this.teamLineup.red.includes(red.teamNumber)) {
+          this.match.teams.red.push(team);
         } else {
-          console.log(`Adding team ${matchPreviewTeamRed.teamNumber} to red alliance`);
-          this.match.teams.red.push({
-            name: getTeamName(matchPreviewTeamRed.teamNumber, matchPreviewTeamRed.teamName),
-            number: matchPreviewTeamRed.teamNumber,
-            rank: matchPreviewTeamRed.teamRank,
-            avatar: matchPreviewTeamRed.avatar,
-            card: (matchPreviewTeamRed.carryingCard ?? matchPreview.redAlliance.carryingCard),
-          });
-        }
-
-
-        const matchPreviewTeamBlue =
-          matchPreview.blueAlliance[
-          `team${i + 1}` as "team1" | "team2" | "team3" | "team4"
-          ];
-
-        if (!matchPreviewTeamBlue) {
-          // console.log(`Skipping team ${i + 1} in blue alliance because null`);
-        } else if (!this.teamLineup.blue.includes(matchPreviewTeamBlue.teamNumber)) {
-          blueExtraTeams.push({
-            name: getTeamName(matchPreviewTeamBlue.teamNumber, matchPreviewTeamBlue.teamName),
-            number: matchPreviewTeamBlue.teamNumber,
-            rank: matchPreviewTeamBlue.teamRank,
-            avatar: matchPreviewTeamBlue.avatar,
-            card: (matchPreviewTeamBlue.carryingCard ?? matchPreview.blueAlliance.carryingCard),
-          });
-        } else {
-          this.match.teams.blue.push({
-            name: getTeamName(matchPreviewTeamBlue.teamNumber, matchPreviewTeamBlue.teamName),
-            number: matchPreviewTeamBlue.teamNumber,
-            rank: matchPreviewTeamBlue.teamRank,
-            avatar: matchPreviewTeamBlue.avatar,
-            card: (matchPreviewTeamBlue.carryingCard ?? matchPreview.blueAlliance.carryingCard),
-          });
+          redExtraTeams.push(team);
         }
       }
 
-      this.match.teams.red = [...this.match.teams.red, ...redExtraTeams];
-      this.match.teams.blue = [...this.match.teams.blue, ...blueExtraTeams];
+      const blue = matchPreview.blueAlliance[key];
+      if (blue) {
+        const team: Team = {
+          name: getTeamName(blue.teamNumber, blue.teamName),
+          number: blue.teamNumber,
+          rank: blue.teamRank,
+          avatar: blue.avatar,
+          card: (blue.carryingCard ?? matchPreview.blueAlliance.carryingCard) ? "Yellow" : "None",
+        };
+        if (this.teamLineup.blue.includes(blue.teamNumber)) {
+          this.match.teams.blue.push(team);
+        } else {
+          blueExtraTeams.push(team);
+        }
+      }
     }
+
+    this.match.teams.red = [...this.match.teams.red, ...redExtraTeams];
+    this.match.teams.blue = [...this.match.teams.blue, ...blueExtraTeams];
   }
 
   private async getMatchPreview(level: LevelParam, matchNumber: number) {
     let levelString = LevelParam[level];
     let matchString = matchNumber.toString();
 
-    // FMS is so fucking stupid
     if (level === LevelParam.Qualification) {
       levelString = "Qual";
     } else if (level === LevelParam.None) {
@@ -733,11 +724,6 @@ export class AudienceDisplayManager {
     const res = await fetch(
       `http://${this.fmsUrl}/api/v1.0/audience/get/Get${levelString}MatchPreviewData/${matchString}`
     );
-
-    console.log(res.url);
-
-    console.log(res.status);
-
     return (await res.json()) as FMSMatchPreview;
   }
 
@@ -747,37 +733,24 @@ export class AudienceDisplayManager {
     );
     const data = await res.text();
     switch (data) {
-      case '"None"':
-        return LevelParam.None;
-      case '"Practice"':
-        return LevelParam.Practice;
-      case '"Qualification"':
-        return LevelParam.Qualification;
-      case '"Playoff"':
-        return LevelParam.Playoff;
-      case '"DoubleElimPlayoff"':
-        return LevelParam.DoubleElimPlayoff;
-      case '"DoubleElimFinal"':
-        return LevelParam.DoubleElimFinal;
-      default:
-        throw new Error(`Unknown tournament level: ${data}`);
+      case '"None"': return LevelParam.None;
+      case '"Practice"': return LevelParam.Practice;
+      case '"Qualification"': return LevelParam.Qualification;
+      case '"Playoff"': return LevelParam.Playoff;
+      case '"DoubleElimPlayoff"': return LevelParam.DoubleElimPlayoff;
+      case '"DoubleElimFinal"': return LevelParam.DoubleElimFinal;
+      default: throw new Error(`Unknown tournament level: ${data}`);
     }
   }
 
   private async getCurrentMatchAndPlayNumber() {
-    const res = await fetch(
-      `http://${this.fmsUrl}/FieldMonitor/MatchNumberAndPlay`
-    );
+    const res = await fetch(`http://${this.fmsUrl}/FieldMonitor/MatchNumberAndPlay`);
     const data = await res.json();
     return {
       matchNumber: data[0],
       playNumber: data[1],
       level: data[2],
-    } as {
-      matchNumber: number;
-      playNumber: number;
-      level: LevelParam;
-    };
+    } as { matchNumber: number; playNumber: number; level: LevelParam };
   }
 
   private async getEventName() {
@@ -789,24 +762,17 @@ export class AudienceDisplayManager {
   }
 
   private async getCurrentSchedule() {
-    const res = await fetch(
-      `http://${this.fmsUrl}/api/v1.0/match/get/GetCurrentSchedule`
-    );
+    const res = await fetch(`http://${this.fmsUrl}/api/v1.0/match/get/GetCurrentSchedule`);
     return (await res.json()) as FMSMatchSchedule[];
   }
 
   private getMatchTypeFromLevel(level: LevelParam) {
     switch (level) {
-      case LevelParam.None:
-        return "t";
-      case LevelParam.Practice:
-        return "p";
-      case LevelParam.Qualification:
-        return "q";
-      case LevelParam.DoubleElimFinal:
-        return "f";
-      default:
-        return "sf";
+      case LevelParam.None: return "t";
+      case LevelParam.Practice: return "p";
+      case LevelParam.Qualification: return "q";
+      case LevelParam.DoubleElimFinal: return "f";
+      default: return "sf";
     }
   }
 
@@ -814,9 +780,6 @@ export class AudienceDisplayManager {
     let levelString = LevelParam[level];
     let matchString = matchNumber.toString();
 
-    console.log({ level, matchNumber });
-
-    // FMS is so fucking stupid
     if (level === LevelParam.Qualification) {
       levelString = "Qual";
     } else if (level === LevelParam.None) {
@@ -833,31 +796,23 @@ export class AudienceDisplayManager {
     const res = await fetch(
       `http://${this.fmsUrl}/api/v1.0/audience_gs/get/GetMatchResults${levelString}Data/${matchString}`
     );
-
-    console.log(res.url);
-    let data = await res.json();
-
-    // For some reason, FMS restarts the match numbers at 1 for finals, but only for match results
-    // And our match name generator has no way to work around that so I'm just gonna fucking set it to the same number here
+    const data = await res.json();
+    // FMS restarts match numbers at 1 for finals; preserve the human-readable number
     if (level === LevelParam.Playoff && matchNumber > 13) {
       data.matchNumber = matchNumber;
     }
-
     return data as FMSMatchScore;
   }
 
   private async getAlliances() {
-    const res = await fetch(
-      `http://${this.fmsUrl}/api/v1.0/audience/get/GetAlliances`
-    );
+    const res = await fetch(`http://${this.fmsUrl}/api/v1.0/audience/get/GetAlliances`);
     return (await res.json()) as FMSAllianceSelection[];
   }
 
   private updateAllianceData(alliances: FMSAllianceSelection[]) {
     this.alliances = [];
 
-    for (let i = 0; i < alliances.length; i++) {
-      const alliance = alliances[i];
+    for (const alliance of alliances) {
       const teams: Team[] = [];
 
       if (alliance.captainTeamNumber) {
@@ -869,65 +824,26 @@ export class AudienceDisplayManager {
           card: alliance.cardEffectiveStatus,
           isCaptain: true,
         });
-
-        const teamInRankings = this.ranking.find(
-          (team) => team.number === alliance.captainTeamNumber
-        );
-        if (teamInRankings) {
-          teamInRankings.unavailableForSelection = true;
-        }
+        const found = this.ranking.find((t) => t.number === alliance.captainTeamNumber);
+        if (found) found.unavailableForSelection = true;
       }
 
-      if (alliance.firstRoundTeamNumber) {
+      const pushAndMark = (num: number | null, nameShort: string, avatar: string) => {
+        if (!num) return;
         teams.push({
-          number: alliance.firstRoundTeamNumber,
-          name: getTeamName(alliance.firstRoundTeamNumber, alliance.firstRoundTeamNameShort),
-          avatar: alliance.firstRoundAvatar,
+          number: num,
+          name: getTeamName(num, nameShort),
+          avatar,
           rank: 0,
           card: alliance.cardEffectiveStatus,
         });
+        const found = this.ranking.find((t) => t.number === num);
+        if (found) found.unavailableForSelection = true;
+      };
 
-        const teamInRankings = this.ranking.find(
-          (team) => team.number === alliance.firstRoundTeamNumber
-        );
-        if (teamInRankings) {
-          teamInRankings.unavailableForSelection = true;
-        }
-      }
-
-      if (alliance.secondRoundTeamNumber) {
-        teams.push({
-          number: alliance.secondRoundTeamNumber,
-          name: getTeamName(alliance.secondRoundTeamNumber, alliance.secondRoundTeamNameShort),
-          avatar: alliance.secondRoundAvatar,
-          rank: 0,
-          card: alliance.cardEffectiveStatus,
-        });
-
-        const teamInRankings = this.ranking.find(
-          (team) => team.number === alliance.secondRoundTeamNumber
-        );
-        if (teamInRankings) {
-          teamInRankings.unavailableForSelection = true;
-        }
-      }
-
-      if (alliance.alternateTeamNumber) {
-        teams.push({
-          number: alliance.alternateTeamNumber,
-          name: getTeamName(alliance.alternateTeamNumber, alliance.alternateTeamNameShort),
-          avatar: alliance.alternateAvatar,
-          rank: 0,
-          card: alliance.cardEffectiveStatus,
-        });
-
-        const teamInRankings = this.ranking.find(
-          (team) => team.number === alliance.alternateTeamNumber
-        );
-        if (teamInRankings) {
-          teamInRankings.unavailableForSelection = true;
-        }
-      }
+      pushAndMark(alliance.firstRoundTeamNumber, alliance.firstRoundTeamNameShort, alliance.firstRoundAvatar);
+      pushAndMark(alliance.secondRoundTeamNumber, alliance.secondRoundTeamNameShort, alliance.secondRoundAvatar);
+      pushAndMark(alliance.alternateTeamNumber, alliance.alternateTeamNameShort, alliance.alternateAvatar);
 
       this.alliances.push({
         allianceNumber: alliance.allianceNumber,
@@ -939,14 +855,12 @@ export class AudienceDisplayManager {
   }
 
   private async getRankings() {
-    const res = await fetch(
-      `http://${this.fmsUrl}/api/v1.0/audience/get/GetQualRankings`
-    );
+    const res = await fetch(`http://${this.fmsUrl}/api/v1.0/audience/get/GetQualRankings`);
     const rankings = (await res.json()) as FMSRankingTeam[];
-    return rankings.map((ranking) => ({
-      number: ranking.teamNumber,
-      rank: ranking.rank,
-      potentialCaptain: ranking.inPotentialCaptainPosition,
+    return rankings.map((r) => ({
+      number: r.teamNumber,
+      rank: r.rank,
+      potentialCaptain: r.inPotentialCaptainPosition,
     }));
   }
 }

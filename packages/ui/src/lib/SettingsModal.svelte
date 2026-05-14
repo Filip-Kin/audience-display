@@ -1,18 +1,16 @@
 <script lang="ts">
 	import { playSound } from "./audio";
 	import { settings } from "./settings"; // adjust if path is different
-	import { setScreen, state } from "./state";
+	import { setScreen, state, sendSelectConfig } from "./state";
 
 	export let settingsOpen: boolean;
 
-	// Get writable access
-	let currentSettings = $settings;
-
-	function toggleSetting(key: keyof typeof currentSettings) {
-		settings.update((s) => ({ ...s, [key]: !s[key] }));
-	}
-
 	let testSound = "matchStart";
+
+	function handleConfigChange(e: Event) {
+		const target = e.target as HTMLSelectElement;
+		if (target.value) sendSelectConfig(target.value);
+	}
 </script>
 
 {#if settingsOpen}
@@ -21,6 +19,29 @@
 			<h2 class="text-xl font-bold mb-4">Settings</h2>
 
 			<div class="grid grid-cols-1 gap-6">
+				<div class="flex flex-col gap-2 p-4 bg-gray-100 rounded">
+					<span class="font-semibold">Event Configuration</span>
+					<select
+						class="bg-white border border-gray-300 rounded px-2 py-1"
+						value={$state.activeConfigName ?? ""}
+						on:change={handleConfigChange}
+					>
+						{#if $state.availableConfigs.length === 0}
+							<option value="" disabled>(no configs in configs/ directory)</option>
+						{/if}
+						{#each $state.availableConfigs as cfgName}
+							<option value={cfgName}>{cfgName}</option>
+						{/each}
+					</select>
+					{#if $state.configError}
+						<span class="text-red-600 text-sm">⚠ {$state.configError}</span>
+					{:else if $state.eventConfig}
+						<span class="text-gray-600 text-sm">
+							Active: <strong>{$state.eventConfig.name}</strong>
+						</span>
+					{/if}
+				</div>
+
 				<label class="flex items-center justify-between">
 					<span>Invert Scoring Bar</span>
 					<label class="relative inline-flex items-center cursor-pointer">
@@ -77,7 +98,20 @@
 					</div>
 				</div>
 
-				<button class="bg-blue-500 text-white rounded px-2 py-1 mt-4" on:click={() => setScreen("scores-ready")}>Scores Ready Screen</button>
+				<div class="flex flex-col gap-2 p-4 bg-gray-100 rounded">
+					<span class="font-semibold">Jump to Screen (for screenshots / demo)</span>
+					<div class="grid grid-cols-3 gap-2 text-sm">
+						<button class="bg-blue-500 text-white rounded px-2 py-1" on:click={() => setScreen("match-preview")}>Match Preview</button>
+						<button class="bg-blue-500 text-white rounded px-2 py-1" on:click={() => setScreen("match-auton")}>In-Match (Auto)</button>
+						<button class="bg-blue-500 text-white rounded px-2 py-1" on:click={() => setScreen("match-shift-2")}>In-Match (Shift 2)</button>
+						<button class="bg-blue-500 text-white rounded px-2 py-1" on:click={() => setScreen("match-endgame")}>In-Match (Endgame)</button>
+						<button class="bg-blue-500 text-white rounded px-2 py-1" on:click={() => setScreen("scores-ready")}>Scores Ready</button>
+						<button class="bg-blue-500 text-white rounded px-2 py-1" on:click={() => setScreen("score-reveal")}>Score Reveal</button>
+						<button class="bg-blue-500 text-white rounded px-2 py-1" on:click={() => setScreen("alliance-selection")}>Alliance Selection</button>
+						<button class="bg-blue-500 text-white rounded px-2 py-1" on:click={() => setScreen("playoff-bracket")}>Playoff Bracket</button>
+						<button class="bg-blue-500 text-white rounded px-2 py-1" on:click={() => setScreen("timeout")}>Timeout</button>
+					</div>
+				</div>
 			</div>
 
 			<button class="mt-6 bg-blue-500 text-white rounded px-4 py-2 w-full" on:click={() => (settingsOpen = false)}> Close </button>
