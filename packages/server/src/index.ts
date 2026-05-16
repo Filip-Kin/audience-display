@@ -1,8 +1,7 @@
 import { AudienceDisplayManager } from "./fms/audience_display";
-import { EventConfigManager } from "./config/event_config_manager";
-import { resolveConfigsDir } from "./config/paths";
+import { ProfileSelector } from "./profile_selector";
 import { existsSync } from "fs";
-import { join, resolve } from "path";
+import { join } from "path";
 import zipFile from "../../../ui-dist.zip" with { type: "file" };
 import { $, file } from "bun";
 
@@ -14,24 +13,8 @@ if (process.execPath.endsWith(".exe") && !process.execPath.endsWith("bun.exe")) 
   await $`unzip -o ./.temp/public.zip -d ./.temp`;
 }
 
-const configsDir = resolveConfigsDir();
-const configManager = new EventConfigManager(configsDir);
-console.log(`Event configs directory: ${configsDir}`);
-console.log(`Available configs: ${configManager.list().join(", ")}`);
-
-const configsDirAbs = resolve(configsDir);
-
-function serveConfigAsset(pathname: string): Response | null {
-  const rel = decodeURIComponent(pathname.replace(/^\/configs\/+/, ""));
-  if (!rel) return new Response("Not found", { status: 404 });
-  const absolute = resolve(join(configsDirAbs, rel));
-  // Path-traversal guard: resolved path must stay inside configsDir.
-  if (!absolute.startsWith(configsDirAbs)) {
-    return new Response("Forbidden", { status: 403 });
-  }
-  if (!existsSync(absolute)) return new Response("Not found", { status: 404 });
-  return new Response(Bun.file(absolute));
-}
+const profileSelector = new ProfileSelector();
+console.log(`Active profile: ${profileSelector.get()}`);
 
 const server = Bun.serve({
   fetch(request, server) {
@@ -40,11 +23,6 @@ const server = Bun.serve({
       const success = server.upgrade(request);
       if (success) return undefined;
       return new Response("Failed to upgrade connection", { status: 400 });
-    }
-
-    if (url.pathname.startsWith("/configs/")) {
-      const res = serveConfigAsset(url.pathname);
-      if (res) return res;
     }
 
     const rel =
@@ -62,8 +40,8 @@ const server = Bun.serve({
     async message(ws, message) {
       try {
         const payload = JSON.parse(message.toString());
-        if (payload && payload.type === "selectConfig" && typeof payload.name === "string") {
-          audienceDisplay.selectConfig(payload.name);
+        if (payload && payload.type === "selectProfile" && typeof payload.id === "string") {
+          audienceDisplay.selectProfile(payload.id);
           return;
         }
       } catch {
@@ -89,7 +67,7 @@ console.log("Fake FMS:", FAKE_FMS);
 const audienceDisplay = new AudienceDisplayManager(
   server,
   FAKE_FMS ? "127.0.0.1:8080" : FMS_URL || "10.0.100.5",
-  configManager
+  profileSelector
 );
 
 console.log(`Listening on ${server.hostname}:${server.port}`);

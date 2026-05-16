@@ -1,11 +1,11 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { spring } from "svelte/motion";
 	import { blur, fade, fly } from "svelte/transition";
-	import { state } from "../../lib/state";
+	import { state } from "../../../../lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
-	import { displayEventName, matchName } from "../../lib/matchNamer";
-	import { settings } from "../../lib/settings";
-	import Logo from "../../lib/Logo.svelte";
+	import { displayEventName, matchName } from "../../../../lib/matchNamer";
+	import { settings } from "../../../../lib/settings";
+	import Logo from "../../../../lib/Logo.svelte";
 
 	let ready = false;
 	const dispatcher = createEventDispatcher();

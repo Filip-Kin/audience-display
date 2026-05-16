@@ -1,15 +1,18 @@
 <script lang="ts">
 	import { playSound } from "./audio";
 	import { settings } from "./settings"; // adjust if path is different
-	import { setScreen, state, sendSelectConfig } from "./state";
+	import { setScreen, state, sendSelectProfile } from "./state";
+	import { listProfiles, DEFAULT_PROFILE_ID } from "../profiles";
 
 	export let settingsOpen: boolean;
 
 	let testSound = "matchStart";
 
-	function handleConfigChange(e: Event) {
+	const profiles = listProfiles();
+
+	function handleProfileChange(e: Event) {
 		const target = e.target as HTMLSelectElement;
-		if (target.value) sendSelectConfig(target.value);
+		if (target.value) sendSelectProfile(target.value);
 	}
 </script>
 
@@ -20,26 +23,16 @@
 
 			<div class="grid grid-cols-1 gap-6">
 				<div class="flex flex-col gap-2 p-4 bg-gray-100 rounded">
-					<span class="font-semibold">Event Configuration</span>
+					<span class="font-semibold">Profile</span>
 					<select
 						class="bg-white border border-gray-300 rounded px-2 py-1"
-						value={$state.activeConfigName ?? ""}
-						on:change={handleConfigChange}
+						value={$state.activeProfileId ?? DEFAULT_PROFILE_ID}
+						on:change={handleProfileChange}
 					>
-						{#if $state.availableConfigs.length === 0}
-							<option value="" disabled>(no configs in configs/ directory)</option>
-						{/if}
-						{#each $state.availableConfigs as cfgName}
-							<option value={cfgName}>{cfgName}</option>
+						{#each profiles as p}
+							<option value={p.id}>{p.name}</option>
 						{/each}
 					</select>
-					{#if $state.configError}
-						<span class="text-red-600 text-sm">⚠ {$state.configError}</span>
-					{:else if $state.eventConfig}
-						<span class="text-gray-600 text-sm">
-							Active: <strong>{$state.eventConfig.name}</strong>
-						</span>
-					{/if}
 				</div>
 
 				<label class="flex items-center justify-between">

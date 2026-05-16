@@ -3,7 +3,8 @@ import type { AudienceDisplayState } from "lib";
 import { playSound } from "./audio";
 import { settings } from "./settings";
 import type { Screen } from "../../../lib/types/audience_display";
-import { applyTheme, setActiveConfigName } from "./theme";
+import { applyTheme } from "./theme";
+import { getProfile, DEFAULT_PROFILE_ID } from "../profiles";
 
 const defaultState: AudienceDisplayState = {
   connected: false,
@@ -15,14 +16,19 @@ const defaultState: AudienceDisplayState = {
   ranking: [],
   bracket: null,
   gameConfig: null,
-  eventConfig: null,
-  availableConfigs: [],
-  activeConfigName: null,
-  configError: null,
+  activeProfileId: null,
 };
 
 let socket: WebSocket | null = null;
-let lastConfigName: string | null = null;
+let lastAppliedProfileId: string | null = null;
+
+function applyProfileTheme(profileId: string | null) {
+  const id = profileId ?? DEFAULT_PROFILE_ID;
+  if (id === lastAppliedProfileId) return;
+  lastAppliedProfileId = id;
+  const profile = getProfile(id);
+  applyTheme(profile.theme);
+}
 
 export const state = writable(defaultState, (set) => {
   let reconnectInterval: Timer | null = null;
@@ -38,15 +44,7 @@ export const state = writable(defaultState, (set) => {
     if (message.type === "state") {
       const newState = message.data as AudienceDisplayState;
       set(newState);
-
-      // Apply theme + register active config name when it changes.
-      if (newState.activeConfigName !== lastConfigName) {
-        lastConfigName = newState.activeConfigName;
-        setActiveConfigName(newState.activeConfigName);
-      }
-      if (newState.eventConfig) {
-        applyTheme(newState.eventConfig.theme);
-      }
+      applyProfileTheme(newState.activeProfileId);
     }
     if (message.type === "sound") {
       console.log("Playing sound:", message.data);
@@ -66,14 +64,17 @@ export const state = writable(defaultState, (set) => {
     }, 5000);
   };
 
+  // Apply the default theme immediately so the UI isn't unthemed before the
+  // first state message arrives.
+  applyProfileTheme(null);
+
   return () => {
     socket?.close();
   };
 });
 
-export const eventConfig = derived(state, ($s) => $s.eventConfig);
-export const availableConfigs = derived(state, ($s) => $s.availableConfigs);
-export const activeConfigName = derived(state, ($s) => $s.activeConfigName);
+export const activeProfileId = derived(state, ($s) => $s.activeProfileId);
+export const activeProfile = derived(state, ($s) => getProfile($s.activeProfileId));
 
 export const setScreen = (screen: Screen) => {
   state.update((s) => {
@@ -82,7 +83,7 @@ export const setScreen = (screen: Screen) => {
   });
 };
 
-export function sendSelectConfig(name: string): void {
+export function sendSelectProfile(id: string): void {
   if (!socket || socket.readyState !== WebSocket.OPEN) return;
-  socket.send(JSON.stringify({ type: "selectConfig", name }));
+  socket.send(JSON.stringify({ type: "selectProfile", id }));
 }

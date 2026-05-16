@@ -1,16 +1,17 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { spring } from "svelte/motion";
 	import { fade, fly } from "svelte/transition";
-	import { state } from "../../lib/state";
+	import { state, activeProfile } from "../../../../lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
-	import { displayEventName, matchName } from "../../lib/matchNamer";
-	import { settings } from "../../lib/settings";
+	import { displayEventName, matchName } from "../../../../lib/matchNamer";
+	import { settings } from "../../../../lib/settings";
 	import Alliance from "./Alliance.svelte";
 	import EventHighScoreBanner from "./EventHighScoreBanner.svelte";
 	import MatchUnderReviewOverlay from "./MatchUnderReviewOverlay.svelte";
 	import TiebreakerBar from "./TiebreakerBar.svelte";
-	import Logo from "../../lib/Logo.svelte";
-	import { packUrl } from "../../lib/animation_pack.js";
+	import Logo from "../../../../lib/Logo.svelte";
+	import { packUrl } from "../../../../lib/animation_pack.js";
+	import { get } from "svelte/store";
 
 	let ready = false;
 	const dispatcher = createEventDispatcher();
@@ -26,17 +27,16 @@
 
 	onMount(() => {
 		if ($state.results?.score.winner) {
-			const cfg = $state.eventConfig;
-			const name = $state.activeConfigName;
+			const profile = get(activeProfile);
 			switch ($state.results?.score.winner) {
 				case "Red":
-					animation = packUrl(cfg, name, "victoryRed");
+					animation = packUrl(profile, "victoryRed");
 					break;
 				case "Blue":
-					animation = packUrl(cfg, name, "victoryBlue");
+					animation = packUrl(profile, "victoryBlue");
 					break;
 				case "Tie":
-					animation = packUrl(cfg, name, "victoryTie");
+					animation = packUrl(profile, "victoryTie");
 			}
 		}
 
@@ -78,8 +78,7 @@
 	$: blueScore = $state.results?.score.blue;
 	$: highScoreVisible = !!(redScore?.isHighScore || blueScore?.isHighScore);
 	$: tiebreaker = $state.results?.tiebreaker;
-	$: sponsors = $state.eventConfig?.assets.sponsors ?? [];
-	$: activeName = $state.activeConfigName;
+	$: sponsors = $activeProfile.assets.sponsors;
 </script>
 
 <MatchUnderReviewOverlay visible={!!$state.results?.underReview} />
@@ -123,9 +122,9 @@
 	{#if $state.results && ready}
 		<!-- Cell 1: left sponsors column -->
 		<div>
-			{#if sponsors[0] && activeName}
+			{#if sponsors[0]}
 				<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Event Sponsors</h2>
-				<img src={`/configs/${activeName}/${sponsors[0]}`} class="h-60 mx-auto self-center object-contain" alt="sponsor" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }} />
+				<img src={sponsors[0]} class="h-60 mx-auto self-center object-contain" alt="sponsor" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }} />
 			{/if}
 		</div>
 
@@ -197,9 +196,9 @@
 
 		<!-- Cell 3: right sponsors column -->
 		<div>
-			{#if sponsors[1] && activeName}
+			{#if sponsors[1]}
 				<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Livestream Partner</h2>
-				<img src={`/configs/${activeName}/${sponsors[1]}`} class="size-60 mx-auto self-center object-contain" alt="sponsor" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }} />
+				<img src={sponsors[1]} class="size-60 mx-auto self-center object-contain" alt="sponsor" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }} />
 			{/if}
 		</div>
 

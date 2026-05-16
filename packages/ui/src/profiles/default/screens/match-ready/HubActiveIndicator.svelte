@@ -1,6 +1,6 @@
-<script lang="ts">
-	import { state } from "../../lib/state";
-	import { settings } from "../../lib/settings";
+﻿<script lang="ts">
+	import { state } from "../../../../lib/state";
+	import { settings } from "../../../../lib/settings";
 
 	$: hubActive = $state.match?.hubActive ?? "None";
 	// Which side (left/right on screen) is active, respecting settings.invert.
@@ -22,9 +22,9 @@
 	>
 		{#if activeSide === "right"}
 			<span>Hub Active</span>
-			<span class="text-2xl leading-none">→</span>
+			<span class="text-2xl leading-none">â†’</span>
 		{:else}
-			<span class="text-2xl leading-none">←</span>
+			<span class="text-2xl leading-none">â†</span>
 			<span>Hub Active</span>
 		{/if}
 	</div>

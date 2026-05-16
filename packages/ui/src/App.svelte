@@ -1,6 +1,6 @@
 <script lang="ts">
 	import MainPage from "./MainPage.svelte";
-	import ScreenRouter from "./screens/ScreenRouter.svelte";
+	import ScreenRouter from "./ScreenRouter.svelte";
 	import { Router, Link, Route } from "svelte-routing";
 
 	let url = "";

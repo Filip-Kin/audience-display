@@ -27,13 +27,11 @@ export { SHIFT_PHASES, PROGRESS_PHASES, isShiftPhase } from "./types/match_phase
 export type { GameConfig, AuxIOConfigType } from "./types/game_config";
 
 export type {
-  EventConfig,
-  EventConfigTheme,
-  EventConfigAssets,
-  EventConfigLayout,
-  EventConfigEvent,
+  ProfileTheme,
+  ProfileAssets,
+  ProfileLayout,
   LogoPosition,
-} from "./types/event_config";
+} from "./types/profile";
 
 export type {
   BracketData,

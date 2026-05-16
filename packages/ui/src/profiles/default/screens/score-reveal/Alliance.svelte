@@ -1,9 +1,9 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { fly } from "svelte/transition";
-	import { state } from "../../lib/state";
-	import TeamCard from "../../lib/TeamCard.svelte";
+	import { state } from "../../../../lib/state";
+	import TeamCard from "../../../../lib/TeamCard.svelte";
 	import RankingPoints from "./RankingPoints.svelte";
-	import Trophy from "../../assets/trophy.svg";
+	import Trophy from "../../../../assets/trophy.svg";
 	import { onMount } from "svelte";
 
 	export let ready: boolean;

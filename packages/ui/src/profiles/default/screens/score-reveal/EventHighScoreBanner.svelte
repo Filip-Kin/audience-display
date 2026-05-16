@@ -1,6 +1,6 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { fade } from "svelte/transition";
-	import Star from "../../assets/star.svg";
+	import Star from "../../../../assets/star.svg";
 
 	export let visible: boolean;
 </script>

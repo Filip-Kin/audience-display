@@ -1,16 +1,12 @@
 <script lang="ts">
-	import { state } from "./state";
+	import { activeProfile } from "./state";
 
 	export let alt = "Logo";
 	let className = "";
 	export { className as class };
 	export let style = "";
 
-	$: configLogo = $state.eventConfig?.assets.logo;
-	$: activeName = $state.activeConfigName;
-	$: src = configLogo && activeName
-		? `/configs/${activeName}/${configLogo}`
-		: "/logo.png";
+	$: src = $activeProfile.assets.logo ?? "/logo.png";
 </script>
 
 <img {src} {alt} class={className} {style} />

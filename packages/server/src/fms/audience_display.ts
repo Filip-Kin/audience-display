@@ -25,7 +25,7 @@ import { getTeamName } from "../team_name";
 import { emptyAllianceScore, mapLiveScore, mapResultScore, defaultGameConfig } from "./score_mappers";
 import { fetchGameConfig } from "./game_config";
 import { fetchBracket } from "./bracket";
-import type { EventConfigManager } from "../config/event_config_manager";
+import type { ProfileSelector } from "../profile_selector";
 
 const PLAYOFF_LEVELS = new Set<LevelParam>([
   LevelParam.Playoff,
@@ -310,15 +310,15 @@ export class AudienceDisplayManager {
   private match: MatchState = defaultMatchState(1);
 
   private teamLineup: { red: number[]; blue: number[] } = { red: [], blue: [] };
-  private configManager: EventConfigManager | null = null;
+  private profileSelector: ProfileSelector | null = null;
 
-  constructor(server: Server, fmsUrl: string, configManager?: EventConfigManager) {
+  constructor(server: Server, fmsUrl: string, profileSelector?: ProfileSelector) {
     this.server = server;
     this.fmsUrl = fmsUrl;
     this.fmsConnection = new FMSSignalRConnection(fmsUrl);
-    this.configManager = configManager ?? null;
-    if (this.configManager) {
-      this.configManager.onChange(() => this.broadcastState());
+    this.profileSelector = profileSelector ?? null;
+    if (this.profileSelector) {
+      this.profileSelector.onChange(() => this.broadcastState());
     }
 
     const promises: Promise<void>[] = [];
@@ -588,9 +588,6 @@ export class AudienceDisplayManager {
   }
 
   broadcastState() {
-    const cfg = this.configManager?.active();
-    const eventName = cfg?.config.event.nameOverride ?? this.eventDetails.name;
-    const matchCount = cfg?.config.event.matchCountOverride ?? this.eventDetails.matchCount;
     this.server.publish(
       "audience-display",
       JSON.stringify({
@@ -600,22 +597,19 @@ export class AudienceDisplayManager {
           screen: this.screen,
           match: this.match,
           results: this.results,
-          eventDetails: { name: eventName, matchCount },
+          eventDetails: this.eventDetails,
           alliances: this.alliances,
           ranking: this.ranking,
           bracket: this.bracket,
           gameConfig: this.gameConfig,
-          eventConfig: cfg?.config ?? null,
-          availableConfigs: this.configManager?.list() ?? [],
-          activeConfigName: cfg?.name ?? null,
-          configError: cfg?.error ?? null,
+          activeProfileId: this.profileSelector?.get() ?? null,
         },
       })
     );
   }
 
-  selectConfig(name: string) {
-    this.configManager?.setActive(name);
+  selectProfile(id: string) {
+    this.profileSelector?.set(id);
   }
 
   playSound(soundName: string) {

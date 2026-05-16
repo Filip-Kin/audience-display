@@ -3,7 +3,6 @@ import type {
 } from "./FMS_API_audience";
 import type { MatchPhase } from "./match_phase";
 import type { GameConfig } from "./game_config";
-import type { EventConfig } from "./event_config";
 import type { BracketData, PlayoffTiebreakType } from "./bracket";
 
 export type Screen =
@@ -124,10 +123,7 @@ export type AudienceDisplayState = {
   ranking: Omit<Team, "name" | "card">[];
   bracket: BracketData | null;
   gameConfig: GameConfig | null;
-  eventConfig: EventConfig | null;
-  availableConfigs: string[];
-  activeConfigName: string | null;
-  configError: string | null;
+  activeProfileId: string | null;
 };
 
 export type AllianceSelection = {

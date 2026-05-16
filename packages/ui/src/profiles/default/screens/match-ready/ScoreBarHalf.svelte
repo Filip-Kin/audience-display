@@ -1,6 +1,6 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import type { AllianceScore } from "lib";
-	import { state } from "../../lib/state";
+	import { state } from "../../../../lib/state";
 	import ThresholdBar from "./ThresholdBar.svelte";
 
 	export let invert: boolean;

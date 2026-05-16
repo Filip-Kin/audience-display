@@ -5,7 +5,7 @@ export type LogoPosition =
   | "bottom-left"
   | "bottom-right";
 
-export type EventConfigTheme = {
+export type ProfileTheme = {
   primary: string;
   secondary: string;
   redAlliance: string;
@@ -16,28 +16,14 @@ export type EventConfigTheme = {
   text: string;
 };
 
-export type EventConfigAssets = {
+export type ProfileAssets = {
   logo?: string;
   logoSecondary?: string;
   sponsors: string[];
   backgroundImage?: string;
 };
 
-export type EventConfigLayout = {
+export type ProfileLayout = {
   logoPosition: LogoPosition;
   sponsorRotateMs: number;
-};
-
-export type EventConfigEvent = {
-  nameOverride?: string;
-  matchCountOverride?: number;
-};
-
-export type EventConfig = {
-  name: string;
-  event: EventConfigEvent;
-  theme: EventConfigTheme;
-  assets: EventConfigAssets;
-  animationPack: string;
-  layout: EventConfigLayout;
 };

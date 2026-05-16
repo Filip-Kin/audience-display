@@ -4,4 +4,4 @@ audience-display.exe
 audience-display-*.exe
 audience-display-*.zip
 .temp
-configs/.active
+.active-profile

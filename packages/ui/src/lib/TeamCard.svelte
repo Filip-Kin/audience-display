@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Team } from "lib";
 	import { fly } from "svelte/transition";
-	import { defaultAvatar } from "../screens/match-preview/avatar";
+	import { defaultAvatar } from "./avatar";
 	import ArrowUp from "../assets/arrow-up.svg";
 	import ArrowDown from "../assets/arrow-down.svg";
 	import NoChange from "../assets/no-change.svg";

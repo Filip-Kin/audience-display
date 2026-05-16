@@ -1,6 +1,6 @@
-<script lang="ts">
-	import { settings } from "../../lib/settings";
-	import { state } from "../../lib/state";
+﻿<script lang="ts">
+	import { settings } from "../../../../lib/settings";
+	import { state } from "../../../../lib/state";
 
 	export let wingSpring;
 

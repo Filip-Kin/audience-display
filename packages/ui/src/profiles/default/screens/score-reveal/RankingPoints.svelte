@@ -1,11 +1,11 @@
-<script lang="ts">
-	import { state } from "../../lib/state";
-	import Trophy from "../../assets/trophy.svg";
-	import Energized from "../../assets/rp-icons/energized.svg";
-	import Supercharged from "../../assets/rp-icons/supercharged.svg";
-	import Traversal from "../../assets/rp-icons/traversal.svg";
-	import Coopertition from "../../assets/rp-icons/coopertition.svg";
-	import Advantage from "../../assets/rp-icons/advantage.svg";
+﻿<script lang="ts">
+	import { state } from "../../../../lib/state";
+	import Trophy from "../../../../assets/trophy.svg";
+	import Energized from "../../../../assets/rp-icons/energized.svg";
+	import Supercharged from "../../../../assets/rp-icons/supercharged.svg";
+	import Traversal from "../../../../assets/rp-icons/traversal.svg";
+	import Coopertition from "../../../../assets/rp-icons/coopertition.svg";
+	import Advantage from "../../../../assets/rp-icons/advantage.svg";
 	import { fade, fly } from "svelte/transition";
 
 	export let ready = false;

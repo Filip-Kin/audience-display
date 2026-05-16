@@ -1,9 +1,9 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { spring } from "svelte/motion";
-	import { state } from "../../lib/state";
+	import { state } from "../../../../lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
-	import SmallTopBar from "../../lib/SmallTopBar.svelte";
-	import Logo from "../../lib/Logo.svelte";
+	import SmallTopBar from "../../../../lib/SmallTopBar.svelte";
+	import Logo from "../../../../lib/Logo.svelte";
 
 	let ready = false;
 	const dispatcher = createEventDispatcher();

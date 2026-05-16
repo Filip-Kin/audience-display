@@ -1,14 +1,14 @@
-<script lang="ts">
-	import { state } from "../../lib/state";
+﻿<script lang="ts">
+	import { state } from "../../../../lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { spring, tweened } from "svelte/motion";
-	import { settings } from "../../lib/settings";
+	import { settings } from "../../../../lib/settings";
 	import ScoreBarTimer from "./ScoreBarTimer.svelte";
 	import ScoreBarHalf from "./ScoreBarHalf.svelte";
 	import ShiftProgress from "./ShiftProgress.svelte";
 	import HubActiveIndicator from "./HubActiveIndicator.svelte";
-	import SmallTopBar from "../../lib/SmallTopBar.svelte";
-	import Logo from "../../lib/Logo.svelte";
+	import SmallTopBar from "../../../../lib/SmallTopBar.svelte";
+	import Logo from "../../../../lib/Logo.svelte";
 	import { fade } from "svelte/transition";
 
 	let positionSpring = spring(-400, {

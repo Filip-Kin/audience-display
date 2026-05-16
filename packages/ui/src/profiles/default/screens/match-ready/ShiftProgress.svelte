@@ -1,5 +1,5 @@
-<script lang="ts">
-	import { state } from "../../lib/state";
+﻿<script lang="ts">
+	import { state } from "../../../../lib/state";
 	import type { MatchPhase } from "lib";
 
 	type Segment = { id: MatchPhase; label: string; getLength: () => number };

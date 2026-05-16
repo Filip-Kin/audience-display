@@ -1,18 +1,12 @@
 <script lang="ts">
-	import { onMount, type ComponentType } from "svelte";
-	import { state } from "../lib/state";
+	import { onMount } from "svelte";
+	import { state } from "./lib/state";
 	import type { Screen } from "lib";
-	import MatchPreview from "./match-preview/MatchPreview.svelte";
-	import MatchReady from "./match-ready/MatchReady.svelte";
-	import SettingsIcon from "../assets/settings.svg";
-	import SettingsModal from "../lib/SettingsModal.svelte";
-	import EnableAudioModal from "../lib/EnableAudioModal.svelte";
-	import ScoresReady from "./scores-ready/ScoresReady.svelte";
-	import ScoresReveal from "./score-reveal/ScoresReveal.svelte";
-	import AllianceSelection from "./alliance-selection/AllianceSelection.svelte";
-	import { settings } from "../lib/settings";
-	import Timeout from "./time-out/Timeout.svelte";
-	import PlayoffBracket from "./playoff-bracket/PlayoffBracket.svelte";
+	import SettingsIcon from "./assets/settings.svg";
+	import SettingsModal from "./lib/SettingsModal.svelte";
+	import EnableAudioModal from "./lib/EnableAudioModal.svelte";
+	import { settings } from "./lib/settings";
+	import { resolveScreen } from "./profiles";
 
 	let transitioning = false;
 	let activeScreen: Screen = "none";
@@ -72,25 +66,7 @@
 		}
 	}
 
-	const screens: { [key in Screen]: ComponentType | null } = {
-		none: null,
-		"match-preview": MatchPreview,
-		"match-ready": MatchReady,
-		"match-auton": MatchReady,
-		"match-transition-shift": MatchReady,
-		"match-shift-1": MatchReady,
-		"match-shift-2": MatchReady,
-		"match-shift-3": MatchReady,
-		"match-shift-4": MatchReady,
-		"match-endgame": MatchReady,
-		"match-end": ScoresReady,
-		"scores-ready": ScoresReady,
-		"score-reveal": ScoresReveal,
-		"alliance-selection": AllianceSelection,
-		"alliance-selection-fullscreen": AllianceSelection,
-		"playoff-bracket": PlayoffBracket,
-		timeout: Timeout,
-	};
+	$: ScreenComponent = resolveScreen($state.activeProfileId, activeScreen);
 
 	let settingsOpen = false;
 
@@ -141,30 +117,28 @@
 	</div>
 {/if}
 
-{#if activeScreen in screens}
-	{#if screens[activeScreen] !== null}
-		{#if activeScreen === "score-reveal"}
-			<svelte:component
-				this={screens[activeScreen]}
-				exit={transitioning}
-				on:transitioned={() => {
-					transitioning = false;
-					activeScreen = $state.screen;
-				}}
-				on:loaded={() => {
-					preScoreReveal = false;
-				}}
-			/>
-		{:else}
-			<svelte:component
-				this={screens[activeScreen]}
-				exit={transitioning}
-				on:transitioned={() => {
-					transitioning = false;
-					activeScreen = $state.screen;
-				}}
-			/>
-		{/if}
+{#if ScreenComponent}
+	{#if activeScreen === "score-reveal"}
+		<svelte:component
+			this={ScreenComponent}
+			exit={transitioning}
+			on:transitioned={() => {
+				transitioning = false;
+				activeScreen = $state.screen;
+			}}
+			on:loaded={() => {
+				preScoreReveal = false;
+			}}
+		/>
+	{:else}
+		<svelte:component
+			this={ScreenComponent}
+			exit={transitioning}
+			on:transitioned={() => {
+				transitioning = false;
+				activeScreen = $state.screen;
+			}}
+		/>
 	{/if}
 {/if}
 

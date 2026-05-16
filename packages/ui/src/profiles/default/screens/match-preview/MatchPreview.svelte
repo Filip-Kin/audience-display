@@ -1,12 +1,12 @@
-<script lang="ts">
+﻿<script lang="ts">
 	import { spring } from "svelte/motion";
 	import { fade, fly } from "svelte/transition";
-	import { state } from "../../lib/state";
+	import { state } from "../../../../lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
-	import { displayEventName, matchName } from "../../lib/matchNamer";
+	import { displayEventName, matchName } from "../../../../lib/matchNamer";
 	import RobotShadow from "./RobotShadow.svelte";
-	import { settings } from "../../lib/settings";
-	import TeamCard from "../../lib/TeamCard.svelte";
+	import { settings } from "../../../../lib/settings";
+	import TeamCard from "../../../../lib/TeamCard.svelte";
 
 	let ready = false;
 	const dispatcher = createEventDispatcher();
