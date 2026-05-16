@@ -11,14 +11,17 @@ const profile: ProfileDefinition = {
   id: "default",
   name: "Default (Red + Blue)",
   theme: {
-    primary: "#DC2626",
-    secondary: "#2563EB",
-    redAlliance: "#DC2626",
-    blueAlliance: "#2563EB",
-    accentWarn: "#FACC15",
-    background: "#000000",
-    surface: "#1F2937",
-    text: "#FFFFFF",
+    // `primary` / `secondary` drive the shutter backgrounds — kept darker than
+    // the vivid alliance colors so score boxes / team cards / RP badges (which
+    // use `redAlliance` / `blueAlliance`) pop off the shutter behind them.
+    primary: "oklch(0.42 0.18 25)",
+    secondary: "oklch(0.36 0.20 258)",
+    redAlliance: "oklch(0.60 0.235 25)",
+    blueAlliance: "oklch(0.53 0.24 258)",
+    accentWarn: "oklch(0.88 0.19 92)",
+    background: "oklch(0.13 0.012 250)",
+    surface: "oklch(0.18 0.014 250)",
+    text: "oklch(0.98 0.005 250)",
   },
   assets: {
     sponsors: [],

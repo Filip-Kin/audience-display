@@ -18,13 +18,13 @@
 		{#if allianceName()}
 			<div class="flex flex-col shadow-lg rounded overflow-hidden">
 				{#if $state.results.score.winner === alliance.charAt(0).toUpperCase() + alliance.slice(1)}
-					<div class="h-16 flex flex-row bg-accentWarn gap-4 items-center text-white text-5xl font-bold justify-center">
+					<div class="h-16 flex flex-row bg-bannerAccent gap-4 items-center text-white text-5xl font-bold justify-center">
 						<img src={Trophy} alt="Trophy" class="size-16" />
 						<span class="align-middle">Winner</span>
 						<img src={Trophy} alt="Trophy" class="size-16" />
 					</div>
 				{:else if $state.results.score.winner === "Tie"}
-					<div class="h-16 flex flex-row bg-accentWarn gap-4 items-center text-white text-5xl font-bold justify-center">
+					<div class="h-16 flex flex-row bg-bannerAccent gap-4 items-center text-white text-5xl font-bold justify-center">
 						<img src={Trophy} alt="Trophy" class="size-16" />
 						<span class="align-middle">Tie!</span>
 						<img src={Trophy} alt="Trophy" class="size-16" />
@@ -37,13 +37,13 @@
 				</div>
 			</div>
 		{:else if $state.results.score.winner === alliance.charAt(0).toUpperCase() + alliance.slice(1)}
-			<div class="h-16 flex flex-row bg-accentWarn gap-4 items-center text-white text-5xl font-bold justify-center">
+			<div class="h-16 flex flex-row bg-bannerAccent gap-4 items-center text-white text-5xl font-bold justify-center">
 				<img src={Trophy} alt="Trophy" class="size-16" />
 				<span class="align-middle">Winner</span>
 				<img src={Trophy} alt="Trophy" class="size-16" />
 			</div>
 		{:else if $state.results.score.winner === "Tie"}
-			<div class="h-16 flex flex-row bg-accentWarn gap-4 items-center text-white text-5xl font-bold justify-center">
+			<div class="h-16 flex flex-row bg-bannerAccent gap-4 items-center text-white text-5xl font-bold justify-center">
 				<img src={Trophy} alt="Trophy" class="size-16" />
 				<span class="align-middle">Tie!</span>
 				<img src={Trophy} alt="Trophy" class="size-16" />

@@ -16,7 +16,8 @@
 
 {#if ready}
 	<div
-		class="flex flex-col shadow-lg rounded overflow-hidden"
+		class="flex flex-col rounded overflow-hidden"
+		style="box-shadow: 0 6px 20px oklch(0 0 0 / 0.55);"
 		in:fly|local={{
 			x: 100 * (invert ? -1 : 1),
 			duration: 500,

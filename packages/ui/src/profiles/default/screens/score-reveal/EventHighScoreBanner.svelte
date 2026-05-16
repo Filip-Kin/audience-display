@@ -1,18 +1,25 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { fade } from "svelte/transition";
-	import Star from "../../../../assets/star.svg";
+	import Star from "../../components/icons/Star.svelte";
 
 	export let visible: boolean;
 </script>
 
 {#if visible}
 	<div
-		class="w-full h-16 flex flex-row bg-accentWarn gap-4 items-center text-white text-4xl font-bold justify-center"
+		class="w-full flex flex-row items-center justify-center bg-bannerAccent uppercase text-white"
+		style="
+			padding: 14px 24px;
+			gap: 22px;
+			font-weight: 900;
+			font-size: 30px;
+			letter-spacing: 0.18em;
+		"
 		in:fade={{ duration: 250 }}
 		out:fade={{ duration: 150 }}
 	>
-		<img src={Star} alt="Star" class="size-12 star-cw" />
-		<span class="align-middle">High Score!</span>
-		<img src={Star} alt="Star" class="size-12 star-ccw" />
+		<span class="star-cw inline-flex"><Star size={28} /></span>
+		<span>High Score</span>
+		<span class="star-ccw inline-flex"><Star size={28} /></span>
 	</div>
 {/if}

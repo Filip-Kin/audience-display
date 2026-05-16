@@ -132,20 +132,22 @@
 		<div class="flex flex-col row-span-2 pt-32">
 			<div class="max-w-3xl text-center text-6xl mx-auto w-full" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>
 				<TiebreakerBar {tiebreaker} />
-				<div class="flex" class:flex-row-reverse={$settings.invert}>
-					<div class="bg-blueAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
-						<span class="text-white font-bold">Blue</span>
-						<span class="text-8xl font-bold pt-2">{$state.results?.score.blue.score}</span>
-						{#if $state.results.details.blueSeriesWins !== undefined}
-							<span class="text-lg opacity-80">Series: {$state.results.details.blueSeriesWins}</span>
-						{/if}
-					</div>
-					<div class="bg-redAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
-						<span class="text-white font-bold">Red</span>
-						<span class="text-8xl font-bold pt-2">{$state.results?.score.red.score}</span>
-						{#if $state.results.details.redSeriesWins !== undefined}
-							<span class="text-lg opacity-80">Series: {$state.results.details.redSeriesWins}</span>
-						{/if}
+				<div class="overflow-hidden" style="box-shadow: 0 12px 40px oklch(0 0 0 / 0.6);">
+					<div class="flex" class:flex-row-reverse={$settings.invert}>
+						<div class="bg-blueAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
+							<span class="text-white font-bold">Blue</span>
+							<span class="text-8xl font-bold pt-2">{$state.results?.score.blue.score}</span>
+							{#if $state.results.details.blueSeriesWins !== undefined}
+								<span class="text-lg opacity-80">Series: {$state.results.details.blueSeriesWins}</span>
+							{/if}
+						</div>
+						<div class="bg-redAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
+							<span class="text-white font-bold">Red</span>
+							<span class="text-8xl font-bold pt-2">{$state.results?.score.red.score}</span>
+							{#if $state.results.details.redSeriesWins !== undefined}
+								<span class="text-lg opacity-80">Series: {$state.results.details.redSeriesWins}</span>
+							{/if}
+						</div>
 					</div>
 				</div>
 

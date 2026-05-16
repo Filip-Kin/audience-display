@@ -1,77 +1,114 @@
-﻿<script lang="ts">
-	import type { AllianceScore } from "lib";
-	import { state } from "../../../../lib/state";
-	import ThresholdBar from "./ThresholdBar.svelte";
+<script lang="ts">
+	import type { AllianceScore, Team } from "lib";
+	import FuelGauge from "./FuelGauge.svelte";
 
-	export let invert: boolean;
-	export let wingSpring;
-	export let opacityTween;
-	export let alliance: "red" | "blue";
+	export let side: "left" | "right";
+	export let color: "red" | "blue";
+	export let score: AllianceScore;
+	export let teams: Team[];
 
-	$: score = $state.match?.score[alliance] as AllianceScore | undefined;
-	$: bgClass = alliance === "red" ? "bg-redAlliance" : "bg-blueAlliance";
+	$: bgVar = color === "red" ? "var(--redAlliance)" : "var(--blueAlliance)";
+	$: isLeft = side === "left";
 </script>
 
-{#if $state.match && score}
-	<div class="flex flex-row justify-start">
-		<div
-			class="{bgClass} flex flex-row p{invert ? 'l' : 'r'}-16 -m{invert
-				? 'l'
-				: 'r'}-16 rounded-{invert ? 'r' : 'l'}-xl relative rainbow-shadow"
-		>
-			<div
-				class="flex flex-row z-10 relative"
-				style={`max-width: ${$wingSpring / 2}vw; opacity: ${$opacityTween}`}
-				class:flex-row-reverse={invert}
-			>
-				<!-- Total score -->
-				<div class="flex flex-col justify-center px-3 w-40 text-7xl font-bold text-center text-white">
-					{score.score}
-				</div>
-
-				<!-- Fuel count + climb points -->
-				<div class="flex flex-col justify-center px-3 min-w-32 text-white text-center">
-					<div class="text-xs uppercase tracking-wider opacity-80">Fuel</div>
-					<div class="text-4xl font-semibold leading-none tabular-nums">{score.totalFuelCount}</div>
-					<div class="text-xs uppercase tracking-wider opacity-80 mt-1">
-						Climb: <span class="font-semibold tabular-nums">{score.totalClimbPoints}</span>
-					</div>
-				</div>
-
-				<!-- Threshold bars stacked -->
-				<div class="flex flex-col justify-center gap-1 px-3 min-w-72 text-white">
-					<ThresholdBar
-						label="Energized"
-						current={score.totalFuelCount}
-						threshold={score.energizedThreshold}
-						achieved={score.energizedAchieved}
-					/>
-					<ThresholdBar
-						label="Supercharged"
-						current={score.totalFuelCount}
-						threshold={score.superchargedThreshold}
-						achieved={score.superchargedAchieved}
-					/>
-					<ThresholdBar
-						label="Traversal"
-						current={score.totalClimbPoints}
-						threshold={score.traversalThreshold}
-						achieved={score.traversalAchieved}
-					/>
-				</div>
-
-				<!-- Team numbers -->
+<div
+	class="grid items-center"
+	style="
+		background: {bgVar};
+		padding: 16px 28px;
+		grid-template-columns: auto 1fr auto;
+		gap: 24px;
+	"
+>
+	{#if isLeft}
+		<!-- Team stack on outer (left) edge -->
+		<div class="flex flex-col" style="gap: 6px;">
+			{#each teams.slice(0, 3) as team (team.number)}
 				<div
-					class="flex flex-col justify-center px-3 w-36 gap-1 tracking-tighter font-medium text-4xl text-white"
+					class="display team-num text-white text-center"
+					style="
+						font-size: 42px;
+						line-height: 1;
+						background: oklch(0 0 0 / 0.36);
+						padding: 4px 14px;
+						min-width: 5.6ch;
+					"
 				>
-					{#each $state.match.teams[alliance].slice(0, 3) as team}
-						<span
-							class="text-center text-black rounded {team.card !== 'None' ? 'bg-accentWarn' : 'bg-white'}"
-							>{team.number}</span
-						>
-					{/each}
+					{team.number}
 				</div>
+			{/each}
+		</div>
+
+		<!-- Hero score in middle of half -->
+		<div class="flex flex-col items-center justify-center">
+			<div
+				class="uppercase text-white"
+				style="font-size: 18px; font-weight: 900; letter-spacing: 0.22em;"
+			>
+				{color === "red" ? "RED" : "BLUE"}
+			</div>
+			<div
+				class="display tabular-nums text-white"
+				style="font-size: 140px; line-height: 0.88; letter-spacing: -0.03em; margin-top: 2px;"
+			>
+				{score.score}
 			</div>
 		</div>
-	</div>
-{/if}
+
+		<!-- Fuel gauge — shifted outward (more padding on inside edge) -->
+		<div style="padding-left: 0; padding-right: 56px;">
+			<FuelGauge
+				fuelCount={score.totalFuelCount}
+				energizedThreshold={score.energizedThreshold}
+				superchargedThreshold={score.superchargedThreshold}
+				energizedAchieved={score.energizedAchieved}
+				superchargedAchieved={score.superchargedAchieved}
+			/>
+		</div>
+	{:else}
+		<!-- Fuel gauge — shifted outward (more padding on inside edge) -->
+		<div style="padding-left: 56px; padding-right: 0;">
+			<FuelGauge
+				fuelCount={score.totalFuelCount}
+				energizedThreshold={score.energizedThreshold}
+				superchargedThreshold={score.superchargedThreshold}
+				energizedAchieved={score.energizedAchieved}
+				superchargedAchieved={score.superchargedAchieved}
+			/>
+		</div>
+
+		<!-- Hero score in middle of half -->
+		<div class="flex flex-col items-center justify-center">
+			<div
+				class="uppercase text-white"
+				style="font-size: 18px; font-weight: 900; letter-spacing: 0.22em;"
+			>
+				{color === "red" ? "RED" : "BLUE"}
+			</div>
+			<div
+				class="display tabular-nums text-white"
+				style="font-size: 140px; line-height: 0.88; letter-spacing: -0.03em; margin-top: 2px;"
+			>
+				{score.score}
+			</div>
+		</div>
+
+		<!-- Team stack on outer (right) edge -->
+		<div class="flex flex-col" style="gap: 6px;">
+			{#each teams.slice(0, 3) as team (team.number)}
+				<div
+					class="display team-num text-white text-center"
+					style="
+						font-size: 42px;
+						line-height: 1;
+						background: oklch(0 0 0 / 0.36);
+						padding: 4px 14px;
+						min-width: 5.6ch;
+					"
+				>
+					{team.number}
+				</div>
+			{/each}
+		</div>
+	{/if}
+</div>

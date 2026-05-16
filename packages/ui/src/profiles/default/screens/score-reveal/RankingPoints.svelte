@@ -1,4 +1,4 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { state } from "../../../../lib/state";
 	import Trophy from "../../../../assets/trophy.svg";
 	import Energized from "../../../../assets/rp-icons/energized.svg";
@@ -44,6 +44,7 @@
 						? 'bg-redAlliance'
 						: 'bg-blueAlliance'}"
 					title={badge.alt}
+					style="box-shadow: 0 4px 14px oklch(0 0 0 / 0.5);"
 					in:fly={{ x: 100 * (invert ? -1 : 1), duration: 500, delay: i * 100 }}
 				>
 					<img src={badge.src} alt={badge.alt} class="size-full" />

@@ -1,14 +1,14 @@
 import type { ProfileTheme } from "lib";
 
 const VAR_MAP: Record<keyof ProfileTheme, string> = {
-  primary: "--color-primary",
-  secondary: "--color-secondary",
-  redAlliance: "--color-red-alliance",
-  blueAlliance: "--color-blue-alliance",
-  accentWarn: "--color-accent-warn",
-  background: "--color-background",
-  surface: "--color-surface",
-  text: "--color-text",
+  primary: "--primary",
+  secondary: "--secondary",
+  redAlliance: "--redAlliance",
+  blueAlliance: "--blueAlliance",
+  accentWarn: "--accentWarn",
+  background: "--background",
+  surface: "--surface",
+  text: "--text",
 };
 
 export function applyTheme(theme: ProfileTheme): void {

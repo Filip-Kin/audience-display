@@ -1,60 +1,125 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@500;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    --font-display: 'Roboto', system-ui, -apple-system, sans-serif;
+    --font-body:    'Roboto', system-ui, -apple-system, sans-serif;
+    --font-mono:    'Roboto Mono', ui-monospace, monospace;
+
+    font-family: var(--font-body);
     line-height: 1.5;
     font-weight: 400;
 
     color-scheme: light dark;
-    color: rgba(255, 255, 255, 0.87);
-
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 
-    /* Theme CSS variables (hex strings, written by applyTheme at runtime). */
-    --color-primary: #DC2626;
-    --color-secondary: #2563EB;
-    --color-red-alliance: #DC2626;
-    --color-blue-alliance: #2563EB;
-    --color-accent-warn: #FACC15;
-    --color-background: #000000;
-    --color-surface: #1F2937;
-    --color-text: #FFFFFF;
+    /* Theme tokens — written by applyTheme() at runtime from the active profile. */
+    --primary:      oklch(0.60 0.235 25);
+    --secondary:    oklch(0.53 0.24 258);
+    --redAlliance:  oklch(0.60 0.235 25);
+    --blueAlliance: oklch(0.53 0.24 258);
+    --accentWarn:   oklch(0.88 0.19 92);
+    --background:   oklch(0.13 0.012 250);
+    --surface:      oklch(0.18 0.014 250);
+    --text:         oklch(0.98 0.005 250);
+
+    /* Design-system constants (not overridden per profile). */
+    --surface-2:    oklch(0.24 0.014 250);
+    --text-dim:     oklch(0.72 0.012 250);
+    --text-faint:   oklch(0.48 0.012 250);
+    --rule:         oklch(1 0 0 / 0.10);
+    --rule-strong:  oklch(1 0 0 / 0.22);
+    /* Banner accent — gold, darker than --accentWarn. Used for the
+       Winner / Tie / High Score callouts on the score reveal screen. */
+    --bannerAccent: oklch(0.83 0.19 85.6);
+
+    /* Rainbow stripe — preserved tradition. */
+    --rainbow: linear-gradient(90deg,
+        oklch(0.65 0.24 25)   0%,
+        oklch(0.78 0.18 60)  16%,
+        oklch(0.88 0.19 92)  33%,
+        oklch(0.72 0.20 145) 50%,
+        oklch(0.62 0.22 220) 66%,
+        oklch(0.55 0.24 258) 83%,
+        oklch(0.55 0.24 310) 100%
+    );
+
+    color: var(--text);
 }
 
-.bg-primary { background-color: var(--color-primary); }
-.bg-secondary { background-color: var(--color-secondary); }
-.bg-redAlliance { background-color: var(--color-red-alliance); }
-.bg-blueAlliance { background-color: var(--color-blue-alliance); }
-.bg-accentWarn { background-color: var(--color-accent-warn); }
-.bg-background { background-color: var(--color-background); }
-.bg-surface { background-color: var(--color-surface); }
+body, #app { height: 100vh; }
+html, body { background: transparent; color: var(--text); }
+body { font-family: var(--font-body); }
 
-.text-primary { color: var(--color-primary); }
-.text-secondary { color: var(--color-secondary); }
-.text-redAlliance { color: var(--color-red-alliance); }
-.text-blueAlliance { color: var(--color-blue-alliance); }
-.text-accentWarn { color: var(--color-accent-warn); }
-.text-text { color: var(--color-text); }
+/* Background utilities */
+.bg-primary       { background-color: var(--primary); }
+.bg-secondary     { background-color: var(--secondary); }
+.bg-redAlliance   { background-color: var(--redAlliance); }
+.bg-blueAlliance  { background-color: var(--blueAlliance); }
+.bg-accentWarn    { background-color: var(--accentWarn); }
+.bg-bannerAccent  { background-color: var(--bannerAccent); }
+.bg-background    { background-color: var(--background); }
+.bg-surface       { background-color: var(--surface); }
+.bg-surface-2     { background-color: var(--surface-2); }
+.bg-rainbow       { background: var(--rainbow); }
 
-.border-primary { border-color: var(--color-primary); }
-.border-redAlliance { border-color: var(--color-red-alliance); }
-.border-blueAlliance { border-color: var(--color-blue-alliance); }
+/* Text utilities */
+.text-primary       { color: var(--primary); }
+.text-secondary     { color: var(--secondary); }
+.text-redAlliance   { color: var(--redAlliance); }
+.text-blueAlliance  { color: var(--blueAlliance); }
+.text-accentWarn    { color: var(--accentWarn); }
+.text-text          { color: var(--text); }
+.text-dim           { color: var(--text-dim); }
+.text-faint         { color: var(--text-faint); }
 
-.from-primary { --tw-gradient-from: var(--color-primary) var(--tw-gradient-from-position); --tw-gradient-to: rgb(0 0 0 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-.to-primary { --tw-gradient-to: var(--color-primary) var(--tw-gradient-to-position); }
-.from-redAlliance { --tw-gradient-from: var(--color-red-alliance) var(--tw-gradient-from-position); --tw-gradient-to: rgb(0 0 0 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-.to-blueAlliance { --tw-gradient-to: var(--color-blue-alliance) var(--tw-gradient-to-position); }
+/* Border utilities */
+.border-primary       { border-color: var(--primary); }
+.border-redAlliance   { border-color: var(--redAlliance); }
+.border-blueAlliance  { border-color: var(--blueAlliance); }
+.border-accentWarn    { border-color: var(--accentWarn); }
+.border-rule          { border-color: var(--rule); }
+.border-rule-strong   { border-color: var(--rule-strong); }
 
-body,
-#app {
-    height: 100vh;
+/* Gradient fallbacks for existing usages */
+.from-primary { --tw-gradient-from: var(--primary) var(--tw-gradient-from-position); --tw-gradient-to: rgb(0 0 0 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.to-primary { --tw-gradient-to: var(--primary) var(--tw-gradient-to-position); }
+.from-redAlliance { --tw-gradient-from: var(--redAlliance) var(--tw-gradient-from-position); --tw-gradient-to: rgb(0 0 0 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.to-blueAlliance { --tw-gradient-to: var(--blueAlliance) var(--tw-gradient-to-position); }
+
+/* Hero display type — Roboto Black/900 for projector readability */
+.display {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+    letter-spacing: -0.005em;
 }
 
+/* Fixed-width digit slot for team numbers (max 5 digits in FRC) */
+.team-num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+    text-align: center;
+    display: inline-block;
+    min-width: 4.6ch;
+    letter-spacing: -0.01em;
+}
+
+/* Standard entry animation */
+@keyframes ad-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.ad-in { animation: ad-in 360ms cubic-bezier(.2,.7,.3,1) both; }
+
+/* Rainbow shadow effect — preserved for amplified state */
 .rainbow-shadow:before,
 .rainbow-shadow:after {
     opacity: 0;
@@ -62,21 +127,9 @@ body,
     content: "";
     background: linear-gradient(
         -45deg,
-        #f00,
-        #ff0,
-        #0f0,
-        #0ff,
-        #00f,
-        #f0f,
-        #f00,
-        #ff0,
-        #0f0,
-        #0ff,
-        #00f,
-        #f0f,
-        #f00,
-        #ff0,
-        #0f0
+        #f00, #ff0, #0f0, #0ff, #00f, #f0f,
+        #f00, #ff0, #0f0, #0ff, #00f, #f0f,
+        #f00, #ff0, #0f0
     );
     position: absolute;
     top: -2px;
@@ -87,7 +140,6 @@ body,
     z-index: -10;
     background-size: 200%;
     @apply rounded-l-xl;
-
     animation: rainbow 3s linear infinite;
 }
 
@@ -95,21 +147,9 @@ body,
 .bg-blueAlliance.rainbow-shadow:after {
     background: linear-gradient(
         45deg,
-        #f00,
-        #ff0,
-        #0f0,
-        #0ff,
-        #00f,
-        #f0f,
-        #f00,
-        #ff0,
-        #0f0,
-        #0ff,
-        #00f,
-        #f0f,
-        #f00,
-        #ff0,
-        #0f0
+        #f00, #ff0, #0f0, #0ff, #00f, #f0f,
+        #f00, #ff0, #0f0, #0ff, #00f, #f0f,
+        #f00, #ff0, #0f0
     );
     background-size: 200%;
     animation-direction: reverse;
@@ -118,100 +158,100 @@ body,
 }
 
 .amplified.rainbow-shadow:before,
-.amplified.rainbow-shadow:after {
-    opacity: 1;
-}
+.amplified.rainbow-shadow:after { opacity: 1; }
 
-.rainbow-shadow:before {
-    filter: blur(20px);
-}
+.rainbow-shadow:before { filter: blur(20px); }
 
 @keyframes rainbow {
-    0% {
-        background-position: 0 0;
-    }
-    100% {
-        background-position: 100% 0;
-    }
+    0%   { background-position: 0 0; }
+    100% { background-position: 100% 0; }
 }
 
 .rainbow-gradient {
-  background-image: linear-gradient(90deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff);
+    background: var(--rainbow);
 }
 
+/* Glint sweep for logo */
 .glint-wrapper {
-  position: relative;
-  display: inline-block;
+    position: relative;
+    display: inline-block;
 }
 
 .glint-image {
-  display: block;
-  height: auto;
-  z-index: 1;
-  position: relative;
+    display: block;
+    height: auto;
+    z-index: 1;
+    position: relative;
 }
 
 .glint-wrapper::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-
-  background: linear-gradient(
-    120deg,
-    rgba(255, 255, 255, 0) 45%,
-    rgba(255, 255, 255, 0.9) 50%,
-    rgba(255, 255, 255, 0) 55%
-  );
-  background-size: 300% 100%;
-  background-position: 0% 0;
-
-  -webkit-mask-image: url('/logo.png');
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-size: 100% 100%;
-  -webkit-mask-position: center;
-
-  mask-image: url('/logo.png');
-  mask-repeat: no-repeat;
-  mask-size: 100% 100%;
-  mask-position: center;
-
-  animation: glint-move 1.5s linear infinite;
-  pointer-events: none;
-  z-index: 2;
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        120deg,
+        rgba(255, 255, 255, 0) 45%,
+        rgba(255, 255, 255, 0.9) 50%,
+        rgba(255, 255, 255, 0) 55%
+    );
+    background-size: 300% 100%;
+    background-position: 0% 0;
+    -webkit-mask-image: url('/logo.png');
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    -webkit-mask-position: center;
+    mask-image: url('/logo.png');
+    mask-repeat: no-repeat;
+    mask-size: 100% 100%;
+    mask-position: center;
+    animation: glint-move 1.5s linear infinite;
+    pointer-events: none;
+    z-index: 2;
 }
 
 @keyframes glint-move {
-  0% {
-    background-position: 100% 0;
-  }
-  100% {
-    background-position: 0% 0;
-  }
+    0%   { background-position: 100% 0; }
+    100% { background-position: 0% 0; }
 }
 
+/* High-score star wiggle */
 @keyframes wiggle-cw {
-  0%   { transform: rotate(0deg); }
-  25%  { transform: rotate(-15deg); }
-  50%  { transform: rotate(0deg); }
-  75%  { transform: rotate(15deg); }
-  100% { transform: rotate(0deg); }
+    0%   { transform: rotate(0deg); }
+    25%  { transform: rotate(-15deg); }
+    50%  { transform: rotate(0deg); }
+    75%  { transform: rotate(15deg); }
+    100% { transform: rotate(0deg); }
 }
 
 @keyframes wiggle-ccw {
-  0%   { transform: rotate(0deg); }
-  25%  { transform: rotate(15deg); }
-  50%  { transform: rotate(0deg); }
-  75%  { transform: rotate(-15deg); }
-  100% { transform: rotate(0deg); }
+    0%   { transform: rotate(0deg); }
+    25%  { transform: rotate(15deg); }
+    50%  { transform: rotate(0deg); }
+    75%  { transform: rotate(-15deg); }
+    100% { transform: rotate(0deg); }
 }
 
-.star-cw {
-  animation: wiggle-cw 2s infinite;
-}
+.star-cw  { animation: wiggle-cw  2s infinite; }
+.star-ccw { animation: wiggle-ccw 2s infinite; }
 
-.star-ccw {
-  animation: wiggle-ccw 2s infinite;
+/* Looping ambient animations from the design spec */
+@keyframes ad-pulse-scale {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.04); }
 }
+.ad-pulse { animation: ad-pulse-scale 1.6s ease-in-out infinite; }
+
+@keyframes ad-pulse-opacity {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.55; }
+}
+.ad-pulse-opacity { animation: ad-pulse-opacity 1s ease-in-out infinite; }
+
+@keyframes ad-halo {
+    0%, 100% { transform: scale(1);   opacity: 0.55; }
+    50%      { transform: scale(1.10); opacity: 1; }
+}
+.ad-halo { animation: ad-halo 2.4s ease-in-out infinite; }
