@@ -738,13 +738,30 @@ export class AudienceDisplayManager {
   }
 
   private async getCurrentMatchAndPlayNumber() {
-    const res = await fetch(`http://${this.fmsUrl}/FieldMonitor/MatchNumberAndPlay`);
+    const res = await fetch(`http://${this.fmsUrl}/api/v1.0/audience/get/GetCurrentMatchAndPlayNumber`);
     const data = await res.json();
+    const levelString = data.item1 as "None" | "Practice" | "Qualification" | "Playoff";
+    let levelEnum = LevelParam.None;
+    switch (levelString) {
+        case "Practice": {
+            levelEnum = LevelParam.Practice;
+            break;
+        }
+        case "Qualification": {
+            levelEnum = LevelParam.Qualification;
+            break;
+        }
+        case "Playoff": {
+            levelEnum = LevelParam.Playoff;
+            break;
+        }
+    }
+
     return {
-      matchNumber: data[0],
-      playNumber: data[1],
-      level: data[2],
-    } as { matchNumber: number; playNumber: number; level: LevelParam };
+      matchNumber: data.item2,
+      playNumber: data.item3,
+      level: levelEnum,
+    };
   }
 
   private async getEventName() {
