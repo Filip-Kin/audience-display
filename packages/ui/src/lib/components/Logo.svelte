@@ -5,8 +5,9 @@
 	let className = "";
 	export { className as class };
 	export let style = "";
+    export let type: "event" | "livestream" = "event";
 
-	$: src = $activeProfile.assets.logo ?? "/logo.png";
+    $: src = $activeProfile.assets[type] ?? "/logo.png";
 </script>
 
 <img {src} {alt} class={className} {style} />

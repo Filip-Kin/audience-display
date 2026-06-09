@@ -28,9 +28,9 @@
 	$: arcColor = energizedAchieved ? "var(--accentWarn)" : "white";
 </script>
 
-<div class="flex flex-col items-center" style="gap: 4px;">
-	<div class="relative" style="width: 112px; height: 112px;">
-		<svg viewBox="0 0 100 100" width="112" height="112" style="display: block;">
+<div class="flex flex-col items-center gap-1">
+	<div class="relative size-28">
+		<svg viewBox="0 0 100 100" width="112" height="112" class="block">
 			<path
 				d={ARC_PATH}
 				fill="none"
@@ -49,18 +49,12 @@
 			/>
 		</svg>
 		<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-			<div
-				class="display tabular-nums text-white"
-				style="font-size: 32px; line-height: 1;"
-			>
+			<div class="display tabular-nums text-white text-[32px] leading-none">
 				{fuelCount}
 			</div>
 		</div>
 	</div>
-	<div
-		class="uppercase text-white"
-		style="font-size: 14px; font-weight: 900; letter-spacing: 0.22em;"
-	>
+	<div class="uppercase text-white text-sm font-black tracking-[0.22em]">
 		Fuel
 	</div>
 </div>

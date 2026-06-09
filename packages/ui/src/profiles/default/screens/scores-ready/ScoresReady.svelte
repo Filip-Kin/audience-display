@@ -26,7 +26,7 @@
 	on:transitioned={() => dispatcher("transitioned")}
 />
 
-<div class="fixed flex flex-col w-full h-full justify-around" style="z-index: 10;">
+<div class="fixed flex flex-col w-full h-full justify-around z-10">
 	<div class="w-full flex flex-row justify-around py-16">
 		{#if $state.match}
 			{#if ready}
@@ -40,7 +40,7 @@
 	{#if ready}
 		<div class="w-full flex justify-center" in:fly={{ y: -400, duration: 200 }} out:fly={{ y: 100, duration: 300 }}>
 			<div class:glint-wrapper={$state.screen === "scores-ready"}>
-				<Logo alt="Logo" style="width: 480px; height: 480px; display: block;" class="mx-auto {$state.screen === 'scores-ready' ? 'glint-image' : ''}" />
+				<Logo alt="Logo" class="mx-auto size-[480px] block {$state.screen === 'scores-ready' ? 'glint-image' : ''}" />
 			</div>
 		</div>
 	{/if}

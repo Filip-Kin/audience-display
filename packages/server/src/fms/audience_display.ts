@@ -48,7 +48,6 @@ function demoScore(opts: {
   supercharged: boolean;
   traversal: boolean;
   advantage: boolean | null;
-  coop: boolean;
   rp: number;
   isHigh: boolean;
 }): AllianceScore {
@@ -56,7 +55,7 @@ function demoScore(opts: {
     score: opts.score,
     autoFuelPoints: opts.autoFuel,
     teleopFuelPoints: opts.teleopFuel,
-    coopFuelPoints: 0,
+    transitionShiftFuelPoints: 0,
     shiftFuelPoints: [0, 0, 0, 0],
     endgameFuelPoints: 0,
     totalFuelPoints: opts.autoFuel + opts.teleopFuel,
@@ -69,7 +68,6 @@ function demoScore(opts: {
     superchargedAchieved: opts.supercharged,
     traversalAchieved: opts.traversal,
     advantageAchieved: opts.advantage,
-    coopertitionAchieved: opts.coop,
     energizedThreshold: 100,
     superchargedThreshold: 360,
     traversalThreshold: 50,
@@ -240,7 +238,6 @@ function demoResultsState(): MatchState {
         supercharged: false,
         traversal: true,
         advantage: true,
-        coop: true,
         rp: 2,
         isHigh: false,
       }),
@@ -255,7 +252,6 @@ function demoResultsState(): MatchState {
         supercharged: false,
         traversal: true,
         advantage: false,
-        coop: true,
         rp: 5,
         isHigh: true,
       }),
@@ -377,6 +373,10 @@ export class AudienceDisplayManager {
         if (time === 60) this.playSound("timeoutWarning");
         if (time === 0) this.playSound("timeoutEnd");
       }
+      if (this.screen === "alliance-selection" || this.screen === "alliance-selection-fullscreen") {
+        if (time === 5) this.playSound("pickClock");
+        if (time === 0) this.playSound("pickClockExpired");
+      }
     });
 
     this.fmsConnection.on("videoSwitch", async (screen: Screen | string) => {
@@ -491,7 +491,6 @@ export class AudienceDisplayManager {
         }
       }
 
-      const coopAchieved = !!results.cooppertitionBonusAchieved;
       const thresholds = {
         energized: this.gameConfig.energizedThreshold,
         supercharged: this.gameConfig.superchargedThreshold,
@@ -500,13 +499,11 @@ export class AudienceDisplayManager {
 
       this.results.score.red = mapResultScore(
         results.redAllianceData.scoreDetails,
-        coopAchieved,
         this.cachedAdvantage.red,
         thresholds
       );
       this.results.score.blue = mapResultScore(
         results.blueAllianceData.scoreDetails,
-        coopAchieved,
         this.cachedAdvantage.blue,
         thresholds
       );

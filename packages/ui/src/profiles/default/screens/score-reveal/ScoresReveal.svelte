@@ -117,20 +117,20 @@
 	{#if $state.results && ready}
 		<!-- Cell 1: left sponsors column -->
 		<div>
-			{#if sponsors[0]}
-				<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Event Sponsors</h2>
-				<img src={sponsors[0]} class="h-60 mx-auto self-center object-contain" alt="sponsor" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }} />
-			{:else}
-				<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Event Sponsors</h2>
-				<img src="/logo.png" class="h-60 mx-auto self-center object-contain" alt="event logo" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }} />
-			{/if}
+			<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Event Sponsors</h2>
+			<img
+				src={sponsors[0] ?? "/logo.png"}
+				class="h-60 mx-auto self-center object-contain"
+				alt={sponsors[0] ? "sponsor" : "event logo"}
+				in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}
+			/>
 		</div>
 
 		<!-- Cell 2: center match results, spans 2 rows -->
 		<div class="flex flex-col row-span-2 pt-32">
 			<div class="max-w-3xl text-center text-6xl mx-auto w-full" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>
 				<TiebreakerBar {tiebreaker} />
-				<div class="overflow-hidden" style="box-shadow: 0 12px 40px oklch(0 0 0 / 0.6);">
+				<div class="overflow-hidden shadow-[0_12px_40px_oklch(0_0_0/0.6)]">
 					<div class="flex" class:flex-row-reverse={$settings.invert}>
 						<div class="bg-blueAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
 							<span class="text-white font-bold">Blue</span>

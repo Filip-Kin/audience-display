@@ -30,7 +30,7 @@ export type AllianceScore = {
   // fuel
   autoFuelPoints: number;
   teleopFuelPoints: number;
-  coopFuelPoints: number;
+  transitionShiftFuelPoints: number;
   shiftFuelPoints: [number, number, number, number]; // shift1..4
   endgameFuelPoints: number;
   totalFuelPoints: number;
@@ -47,7 +47,6 @@ export type AllianceScore = {
   superchargedAchieved: boolean;
   traversalAchieved: boolean;
   advantageAchieved: boolean | null; // live-only field, null on results endpoint
-  coopertitionAchieved: boolean;
 
   // thresholds (echoed from FMS for UI progress bars)
   energizedThreshold: number;

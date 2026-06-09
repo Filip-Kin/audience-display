@@ -10,7 +10,7 @@ export function emptyAllianceScore(): AllianceScore {
     score: 0,
     autoFuelPoints: 0,
     teleopFuelPoints: 0,
-    coopFuelPoints: 0,
+    transitionShiftFuelPoints: 0,
     shiftFuelPoints: [0, 0, 0, 0],
     endgameFuelPoints: 0,
     totalFuelPoints: 0,
@@ -23,7 +23,6 @@ export function emptyAllianceScore(): AllianceScore {
     superchargedAchieved: false,
     traversalAchieved: false,
     advantageAchieved: null,
-    coopertitionAchieved: false,
     energizedThreshold: 0,
     superchargedThreshold: 0,
     traversalThreshold: 0,
@@ -40,7 +39,7 @@ export function mapLiveScore(data: ScoreChangedData): AllianceScore {
     score: data.TotalPoints,
     autoFuelPoints: data.AutoFuelPoints,
     teleopFuelPoints: data.TeleopFuelPoints,
-    coopFuelPoints: data.CoopFuelPoints,
+    transitionShiftFuelPoints: data.CoopFuelPoints,
     shiftFuelPoints: [
       data.Shift1FuelPoints,
       data.Shift2FuelPoints,
@@ -58,7 +57,6 @@ export function mapLiveScore(data: ScoreChangedData): AllianceScore {
     superchargedAchieved: data.SuperchargedAchieved,
     traversalAchieved: data.TraversalAchieved,
     advantageAchieved: data.AdvantageAchieved,
-    coopertitionAchieved: false, // coop is announced at result time
     energizedThreshold: data.EnergizedThreshold,
     superchargedThreshold: data.SuperchargedThreshold,
     traversalThreshold: data.TraversalThreshold,
@@ -80,7 +78,6 @@ export function mapLiveScore(data: ScoreChangedData): AllianceScore {
 
 export function mapResultScore(
   details: AllianceScoreDetails,
-  coopertitionAchieved: boolean,
   cachedAdvantage: boolean | null,
   thresholds: { energized: number; supercharged: number; traversal: number }
 ): AllianceScore {
@@ -88,7 +85,7 @@ export function mapResultScore(
     score: details.totalScore,
     autoFuelPoints: details.autoFuelPoints,
     teleopFuelPoints: details.teleopFuelPoints,
-    coopFuelPoints: 0,
+    transitionShiftFuelPoints: 0,
     shiftFuelPoints: [0, 0, 0, 0],
     endgameFuelPoints: 0,
     totalFuelPoints: details.autoFuelPoints + details.teleopFuelPoints,
@@ -101,7 +98,6 @@ export function mapResultScore(
     superchargedAchieved: details.superchargedAchieved,
     traversalAchieved: details.traversalAchieved,
     advantageAchieved: cachedAdvantage,
-    coopertitionAchieved: coopertitionAchieved,
     energizedThreshold: thresholds.energized,
     superchargedThreshold: thresholds.supercharged,
     traversalThreshold: thresholds.traversal,
@@ -130,7 +126,7 @@ export function defaultGameConfig(): GameConfig {
     traversalThreshold: 50,
     energizedThreshold: 100,
     superchargedThreshold: 360,
-    coopShiftLengthSeconds: 10,
+    transitionShiftLengthSeconds: 10,
     shift1LengthSeconds: 25,
     shift2LengthSeconds: 25,
     shift3LengthSeconds: 25,

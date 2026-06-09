@@ -7,6 +7,7 @@
 	import TopBar from "../../components/TopBar.svelte";
 	import ScoreBarHalf from "./ScoreBarHalf.svelte";
 	import BugCenter from "./BugCenter.svelte";
+	import Whistle from "../../../../assets/whistle.svg";
 
 	const dispatcher = createEventDispatcher();
 	export let exit = false;
@@ -51,19 +52,13 @@
 {#if $state.match}
 	{#if $state.match.underReview}
 		<div
-			class="fixed left-0 right-0 bg-accentWarn text-black uppercase text-center"
-			style="
-				{top ? 'bottom: 0;' : 'top: 0;'}
-				padding: 14px 24px;
-				font-weight: 900;
-				font-size: 28px;
-				letter-spacing: 0.24em;
-				z-index: 30;
-			"
+			class="fixed left-0 right-0 bg-accentWarn text-black uppercase text-center px-6 py-3.5 font-black text-[28px] tracking-[0.24em] z-30 flex items-center justify-center gap-4 {top ? 'bottom-0' : 'top-0'}"
 			in:fade={{ duration: 200 }}
 			out:fade={{ duration: 200 }}
 		>
+			<img src={Whistle} alt="" class="size-8 brightness-0" />
 			MATCH UNDER REVIEW
+			<img src={Whistle} alt="" class="size-8 brightness-0 scale-x-[-1]" />
 		</div>
 	{/if}
 
@@ -78,20 +73,12 @@
 	{#if ready && leftScore && rightScore}
 		<!-- Score bar — slides up from bottom -->
 		<div
-			class="fixed"
-			style="
-				left: 50%;
-				transform: translateX(-50%);
-				{top ? `top: 150px;` : `bottom: calc(72px - ${$barSpring}px);`}
-				width: min(1440px, calc(100vw - 80px));
-			"
+			class="fixed left-1/2 -translate-x-1/2 w-[min(1440px,calc(100vw-80px))]"
+			style="{top ? `top: 150px;` : `bottom: calc(72px - ${$barSpring}px);`}"
 			in:fade={{ duration: 150 }}
 			out:fade={{ duration: 150 }}
 		>
-			<div
-				class="grid overflow-hidden"
-				style="grid-template-columns: 1fr auto 1fr; box-shadow: 0 12px 40px oklch(0 0 0 / 0.55);"
-			>
+			<div class="grid overflow-hidden grid-cols-realtimeScores shadow-[0_12px_40px_oklch(0_0_0/0.55)]">
 				<ScoreBarHalf
 					side="left"
 					color={leftColor}
@@ -115,7 +102,7 @@
 					timer={$state.match.timer}
 					phase={$state.match.phase}
 				/>
-				<div class="bg-rainbow" style="grid-column: 1 / -1; height: 8px;"></div>
+				<div class="bg-rainbow col-span-full h-2"></div>
 			</div>
 		</div>
 	{/if}

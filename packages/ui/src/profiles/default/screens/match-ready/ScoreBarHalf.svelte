@@ -23,82 +23,46 @@
 </script>
 
 <div
-	class="grid items-center"
+	class="grid items-center px-5 py-4 grid-cols-[auto_1fr_auto] gap-4"
 	style="
 		background: {bgVar};
-		padding: 16px 20px;
-		grid-template-columns: auto 1fr auto;
-		gap: 16px;
 		transition: box-shadow 0.4s ease;
 		box-shadow: {!hubActive ? 'none' : isEndingPulse ? 'none' : `0 0 80px 18px ${bgVar}`};
 		{isEndingPulse ? `animation: glow-pulse-${color} 0.8s ease-in-out infinite;` : ''}
 	"
 >
-	{#if isLeft}
-		<div class="flex flex-col" style="gap: 6px;">
-			{#each teams.slice(0, 3) as team (team.number)}
-				<div
-					class="display team-num text-white text-center"
-					style="font-size: 42px; line-height: 1; background: oklch(0 0 0 / 0.36); padding: 4px 14px; min-width: 5.6ch;"
-				>
+	<!-- Team numbers -->
+	<div class="flex flex-col gap-1.5" style="order: {isLeft ? 1 : 3};">
+		{#each teams.slice(0, 3) as team (team.number)}
+			<div class="flex flex-col">
+				<div class="display team-num text-white text-center text-[42px] leading-none bg-[oklch(0_0_0/0.36)] px-3.5 py-1 min-w-[5.6ch]">
 					{team.number}
 				</div>
-			{/each}
-		</div>
-
-		<div class="flex flex-col items-center justify-center">
-			<div class="uppercase text-white" style="font-size: 18px; font-weight: 900; letter-spacing: 0.22em;">
-				{color === "red" ? "RED" : "BLUE"}
+				{#if team.card === "Yellow" || team.card === "Red"}
+					<div class="h-2.5 {team.card === 'Yellow' ? 'bg-accentWarn' : 'bg-white'}"></div>
+				{/if}
 			</div>
-			<div
-				class="display tabular-nums text-white"
-				style="font-size: 140px; line-height: 0.88; letter-spacing: -0.03em; margin-top: 2px; min-width: 3ch; text-align: center;"
-			>
-				{Math.round($displayScore)}
-			</div>
-		</div>
+		{/each}
+	</div>
 
-		<div style="padding-right: 8px;">
-			<FuelGauge
-				fuelCount={score.totalFuelCount}
-				energizedThreshold={score.energizedThreshold}
-				superchargedThreshold={score.superchargedThreshold}
-				energizedAchieved={score.energizedAchieved}
-				superchargedAchieved={score.superchargedAchieved}
-			/>
+	<!-- Alliance name + score -->
+	<div class="flex flex-col items-center justify-center" style="order: 2;">
+		<div class="uppercase text-white text-lg font-black tracking-[0.22em]">
+			{color === "red" ? "RED" : "BLUE"}
 		</div>
-	{:else}
-		<div style="padding-left: 8px;">
-			<FuelGauge
-				fuelCount={score.totalFuelCount}
-				energizedThreshold={score.energizedThreshold}
-				superchargedThreshold={score.superchargedThreshold}
-				energizedAchieved={score.energizedAchieved}
-				superchargedAchieved={score.superchargedAchieved}
-			/>
+		<div class="display tabular-nums text-white text-[140px] leading-[0.88] tracking-[-0.03em] mt-0.5 min-w-[3ch] text-center">
+			{Math.round($displayScore)}
 		</div>
+	</div>
 
-		<div class="flex flex-col items-center justify-center">
-			<div class="uppercase text-white" style="font-size: 18px; font-weight: 900; letter-spacing: 0.22em;">
-				{color === "red" ? "RED" : "BLUE"}
-			</div>
-			<div
-				class="display tabular-nums text-white"
-				style="font-size: 140px; line-height: 0.88; letter-spacing: -0.03em; margin-top: 2px; min-width: 3ch; text-align: center;"
-			>
-				{Math.round($displayScore)}
-			</div>
-		</div>
-
-		<div class="flex flex-col" style="gap: 6px;">
-			{#each teams.slice(0, 3) as team (team.number)}
-				<div
-					class="display team-num text-white text-center"
-					style="font-size: 42px; line-height: 1; background: oklch(0 0 0 / 0.36); padding: 4px 14px; min-width: 5.6ch;"
-				>
-					{team.number}
-				</div>
-			{/each}
-		</div>
-	{/if}
+	<!-- Fuel gauge -->
+	<div class="{isLeft ? 'pr-2' : 'pl-2'}" style="order: {isLeft ? 3 : 1};">
+		<FuelGauge
+			fuelCount={score.totalFuelCount}
+			energizedThreshold={score.energizedThreshold}
+			superchargedThreshold={score.superchargedThreshold}
+			energizedAchieved={score.energizedAchieved}
+			superchargedAchieved={score.superchargedAchieved}
+		/>
+	</div>
 </div>

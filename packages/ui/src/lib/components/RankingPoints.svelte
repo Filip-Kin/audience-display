@@ -48,27 +48,21 @@
 		<div class="flex justify-center gap-2 h-24 flex-wrap">
 			{#each earned as badge, i (badge.alt + i + "e")}
 				<div
-					class="size-20 p-2 flex items-center justify-center text-white {alliance === 'red'
+					class="size-20 p-2 flex items-center justify-center text-white shadow-[0_4px_14px_oklch(0_0_0/0.5)] {alliance === 'red'
 						? 'bg-redAlliance'
 						: 'bg-blueAlliance'}"
 					title={badge.alt}
-					style="box-shadow: 0 4px 14px oklch(0 0 0 / 0.5);"
 					in:fly={{ x: 100 * (invert ? -1 : 1), duration: 500, delay: i * 100 }}
 				>
-					<img src={badge.src} alt={badge.alt} class="size-full" style="filter: brightness(0) invert(1);" />
+					<img src={badge.src} alt={badge.alt} class="size-full brightness-0 invert" />
 				</div>
 			{/each}
 			{#each unearned as badge, i (badge.alt + i + "u")}
 				<div
-					class="size-20 p-2 flex items-center justify-center"
+					class="size-20 p-2 flex items-center justify-center bg-[oklch(0.22_0.01_250)] opacity-[0.45] shadow-none"
 					title="{badge.alt} (not achieved)"
-					style="
-						background: oklch(0.22 0.01 250);
-						opacity: 0.45;
-						box-shadow: none;
-					"
 				>
-					<img src={badge.src} alt={badge.alt} class="size-full" style="filter: brightness(0) invert(1) grayscale(1);" />
+					<img src={badge.src} alt={badge.alt} class="size-full brightness-0 invert grayscale" />
 				</div>
 			{/each}
 		</div>

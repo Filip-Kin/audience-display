@@ -4,7 +4,7 @@ export type GameConfig = {
   traversalThreshold: number;
   energizedThreshold: number;
   superchargedThreshold: number;
-  coopShiftLengthSeconds: number;
+  transitionShiftLengthSeconds: number;
   shift1LengthSeconds: number;
   shift2LengthSeconds: number;
   shift3LengthSeconds: number;

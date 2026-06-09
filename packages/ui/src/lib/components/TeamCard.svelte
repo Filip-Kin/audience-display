@@ -13,63 +13,46 @@
 	export let invert: boolean;
 	export let small: boolean = false;
 	export let showRank: boolean = true;
+
+	$: allianceBg = alliance === "red" ? "bg-redAlliance" : "bg-blueAlliance";
 </script>
 
 {#if ready}
 	<div
-		class="flex flex-col rounded overflow-hidden"
-		style="box-shadow: 0 6px 20px oklch(0 0 0 / 0.55);"
-		in:fly|local={{
-			x: 100 * (invert ? -1 : 1),
-			duration: 500,
-			delay: 150 * index + 150,
-		}}
-		out:fly|local={{
-			x: 400 * (invert ? -1 : 1),
-			duration: 100,
-		}}
+		class="flex flex-col rounded overflow-hidden shadow-[0_6px_20px_oklch(0_0_0/0.55)]"
+		in:fly|local={{ x: 100 * (invert ? -1 : 1), duration: 500, delay: 150 * index + 150 }}
+		out:fly|local={{ x: 400 * (invert ? -1 : 1), duration: 100 }}
 	>
-		{#if small}
-			<div class="flex flex-row {alliance === 'red' ? 'bg-redAlliance' : 'bg-blueAlliance'} text-white p-3 text-xl gap-4 align-middle">
-				<div style="width: 60px; height: 60px">
-					<img src="data:image/png;base64,{team.avatar || defaultAvatar}" alt="{team.number} Icon" width="60px" height="60px" />
-				</div>
-				<span class="text-5xl font-semibold">{team.number}</span>
+		<div class="flex flex-row {allianceBg} text-white p-3 text-xl gap-4 align-middle">
+			<div class="size-[60px]">
+				<img src="data:image/png;base64,{team.avatar || defaultAvatar}" alt="{team.number} Icon" width="60" height="60" />
 			</div>
+			<span class="text-5xl font-semibold">{team.number}</span>
+		</div>
+
+		{#if small}
 			<div class="bg-white text-black p-2 text-4xl h-16 line-clamp-2">
 				{team.name}
 			</div>
 		{:else}
-			<div class="flex flex-row {alliance === 'red' ? 'bg-redAlliance' : 'bg-blueAlliance'} text-white p-3 text-xl gap-4 align-middle">
-				<div style="width: 60px; height: 60px">
-					<img src="data:image/png;base64,{team.avatar || defaultAvatar}" alt="{team.number} Icon" width="60px" height="60px" />
-				</div>
-				<span class="text-5xl font-semibold">{team.number}</span>
-			</div>
 			<div
-				class="grid {showRank && team.rank ? 'grid-cols-[.7fr_.1fr_.2fr]' : 'grid-cols-[.9fr_.1fr]'} bg-white text-black p-3 {team.name.length > 22 && showRank && team.rank
-					? 'text-3xl'
-					: 'text-4xl'} font-bold justify-between"
+				class="grid {showRank && team.rank ? 'grid-cols-[.7fr_.1fr_.2fr]' : 'grid-cols-[.9fr_.1fr]'} bg-white text-black p-3 {team.name.length > 22 && showRank && team.rank ? 'text-3xl' : 'text-4xl'} font-bold justify-between"
 			>
 				<span>{team.name}</span>
 				{#if team.card && team.card !== "None"}
-					<span
-						class="w-full h-8 text-2xl text-center text-black rounded border border-gray-800 {team.card === 'Red' ? 'bg-red-400' : 'bg-yellow-400'}"
-					></span>
+					<span class="w-full h-8 text-2xl text-center text-black rounded border border-gray-800 {team.card === 'Red' ? 'bg-red-400' : 'bg-yellow-400'}"></span>
 				{:else}
 					<span></span>
 				{/if}
 				{#if showRank && team.rank}
 					<span class="flex gap-2 items-center justify-center">
 						<span>{team.rank}</span>
-						{#if team.rankChange}
-							{#if team.rankChange === "Up"}
-								<img src={ArrowUp} alt="up" class="size-8 fill-black" />
-							{:else if team.rankChange === "Down"}
-								<img src={ArrowDown} alt="down" class="size-8 fill-black" />
-							{:else if team.rankChange === "NoChange"}
-								<img src={NoChange} alt="no change" class="size-8 fill-black" />
-							{/if}
+						{#if team.rankChange === "Up"}
+							<img src={ArrowUp} alt="up" class="size-8 fill-black" />
+						{:else if team.rankChange === "Down"}
+							<img src={ArrowDown} alt="down" class="size-8 fill-black" />
+						{:else if team.rankChange === "NoChange"}
+							<img src={NoChange} alt="no change" class="size-8 fill-black" />
 						{/if}
 					</span>
 				{/if}

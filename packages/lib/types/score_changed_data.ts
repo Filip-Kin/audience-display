@@ -15,7 +15,7 @@ export type ScoreChangedData = {
   AdvantageAchieved: boolean;
 
   AutoFuelPoints: number;
-  CoopFuelPoints: number;
+  CoopFuelPoints: number; // FMS naming for transition-shift points
   Shift1FuelPoints: number;
   Shift2FuelPoints: number;
   Shift3FuelPoints: number;

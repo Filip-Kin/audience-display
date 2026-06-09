@@ -25,7 +25,9 @@ const profile: ProfileDefinition = {
     text: "oklch(0.98 0.005 250)",
   },
   assets: {
+    event: '/wrc.png',
     sponsors: [],
+    livestream: '/pitpodcast.png',
   },
   screens: {
     "match-preview": MatchPreview,

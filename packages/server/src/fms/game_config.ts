@@ -1,6 +1,10 @@
 import type { GameConfig } from "lib";
 import { defaultGameConfig } from "./score_mappers";
 
+type FMSGameConfig = Omit<GameConfig, "transitionShiftLengthSeconds"> & {
+  coopShiftLengthSeconds: number;
+};
+
 export async function fetchGameConfig(fmsUrl: string): Promise<GameConfig> {
   try {
     const res = await fetch(
@@ -12,7 +16,8 @@ export async function fetchGameConfig(fmsUrl: string): Promise<GameConfig> {
       );
       return defaultGameConfig();
     }
-    return (await res.json()) as GameConfig;
+    const { coopShiftLengthSeconds, ...rest } = (await res.json()) as FMSGameConfig;
+    return { ...rest, transitionShiftLengthSeconds: coopShiftLengthSeconds };
   } catch (err) {
     console.warn("GetGameConfig fetch failed; using defaults", err);
     return defaultGameConfig();

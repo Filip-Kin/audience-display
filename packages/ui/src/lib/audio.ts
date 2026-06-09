@@ -6,6 +6,8 @@ import matchStart_wav from "../assets/audio/start.wav";
 import endgameWarning_wav from "../assets/audio/warning.wav";
 import teleopStart_wav from "../assets/audio/resume.wav";
 import ready_wav from "../assets/audio/ready.wav";
+import pickClock_wav from "../assets/audio/pick_clock.wav";
+import pickClockExpired_wav from "../assets/audio/pick_clock_expired.wav";
 
 const matchStartSound = new Sound(matchStart_wav);
 const endgameWarningSound = new Sound(endgameWarning_wav);
@@ -13,6 +15,8 @@ const matchEndSound = new Sound(matchEnd_wav);
 const teleopStartSound = new Sound(teleopStart_wav);
 const abortSound = new Sound(abort_wav, { volume: 0.5 });
 const matchReadySound = new Sound(ready_wav);
+const pickClockSound = new Sound(pickClock_wav);
+const pickClockExpiredSound = new Sound(pickClockExpired_wav);
 
 export const playMatchStartSound = () => {
   matchStartSound.play();
@@ -61,5 +65,9 @@ export const playSound = (sound: string) => {
     playEndgameWarning();
   } else if (sound === "timeoutEnd") {
     playMatchEndSound();
+  } else if (sound === "pickClock") {
+    pickClockSound.play();
+  } else if (sound === "pickClockExpired") {
+    pickClockExpiredSound.play();
   }
 };

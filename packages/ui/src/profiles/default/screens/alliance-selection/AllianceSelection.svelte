@@ -58,101 +58,49 @@
 {#if ready}
 	<div class="fixed inset-0 bg-background overflow-hidden">
 		<!-- Header -->
-		<header
-			class="flex items-center justify-between border-b-4 border-accentWarn"
-			style="padding: 28px 56px 18px;"
-		>
-			<div class="flex items-center" style="gap: 22px;">
-				<Logo class="object-contain" style="width: 120px; height: 120px;" />
+		<header class="flex items-center justify-between border-b-4 border-accentWarn px-14 pt-7 pb-[18px]">
+			<div class="flex items-center gap-[22px]">
+				<Logo class="object-contain size-[120px]" />
 				<div>
-					<div
-						class="display uppercase"
-						style="font-size: 28px; letter-spacing: 0.16em; color: var(--text-dim);"
-					>
+					<div class="display uppercase text-[28px] tracking-[0.16em] text-dim">
 						{$eventDisplayName}
 					</div>
-					<div
-						class="display text-white"
-						style="font-size: 64px; line-height: 1; letter-spacing: 0.02em;"
-					>
+					<div class="display text-white text-[64px] leading-none tracking-[0.02em]">
 						ALLIANCE SELECTION
 					</div>
 				</div>
 			</div>
 
 			<!-- Pick timer pill: stacked layout -->
-			<div
-				class="flex flex-col items-center"
-				style="
-					padding: 10px 28px;
-					background: {pickWarning ? 'var(--accentWarn)' : 'oklch(0 0 0 / 0.6)'};
-					color: {pickWarning ? 'oklch(0.18 0.04 60)' : 'white'};
-					border: {pickWarning ? 'none' : '2px solid white'};
-					min-width: 160px;
-				"
-			>
-				<div
-					class="uppercase"
-					style="font-size: 12px; font-weight: 900; letter-spacing: 0.2em;"
-				>
+			<div class="flex flex-col items-center px-7 py-2.5 min-w-[160px] {pickWarning ? 'bg-accentWarn text-[oklch(0.18_0.04_60)]' : 'bg-[oklch(0_0_0/0.6)] text-white border-2 border-white'}">
+				<div class="uppercase text-xs font-black tracking-[0.2em]">
 					Pick Timer
 				</div>
-				<div
-					class="display tabular-nums"
-					style="font-size: 82px; line-height: 0.9;"
-				>
+				<div class="display tabular-nums text-[82px] leading-[0.9]">
 					{mmss(pickSeconds)}
 				</div>
 			</div>
 		</header>
 
 		<!-- Body: left (available teams + camera) | right (alliances + sponsor) -->
-		<div
-			class="grid"
-			style="
-				grid-template-columns: 1.85fr 1fr;
-				gap: 24px;
-				padding: 20px 56px 56px;
-				height: calc(100vh - 142px);
-			"
-		>
+		<div class="grid grid-cols-[1.85fr_1fr] gap-6 px-14 pt-5 pb-14 h-[calc(100vh-142px)]">
 			<!-- LEFT: available teams grid + fixed camera area -->
-			<div
-				style="
-					display: grid;
-					grid-template-rows: auto 1fr auto;
-					gap: 14px;
-					min-height: 0;
-				"
-			>
+			<div class="grid grid-rows-[auto_1fr_auto] gap-3.5 min-h-0">
 				<!-- Section label -->
-				<div
-					class="flex items-center uppercase"
-					style="
-						gap: 12px;
-						font-size: 14px;
-						letter-spacing: 0.22em;
-						color: var(--text-dim);
-						font-weight: 900;
-					"
-				>
-					<span class="bg-accentWarn" style="width: 8px; height: 8px;"></span>
+				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
+					<span class="bg-accentWarn size-2"></span>
 					Available Teams
-					<div class="flex-1" style="height: 2px; background: var(--rule);"></div>
+					<div class="flex-1 h-0.5 bg-[var(--rule)]"></div>
 				</div>
 
 				<!-- Rank grid: 7 cols, clips if too many teams -->
-				<div
-					class="grid"
-					style="grid-template-columns: repeat(7, 1fr); gap: 6px; align-content: start; overflow: hidden;"
-				>
+				<div class="grid grid-cols-7 gap-1.5 content-start overflow-hidden">
 					{#each availableTeams as team (team.number)}
 						{@const taken = team.unavailableForSelection}
 						{@const captain = team.potentialCaptain && !taken && !allCaptainsFilled}
 						<div
-							class="grid items-stretch overflow-hidden"
+							class="grid items-stretch overflow-hidden grid-cols-[44px_1fr]"
 							style="
-								grid-template-columns: 44px 1fr;
 								background: {taken
 									? 'oklch(0.18 0.012 250)'
 									: captain
@@ -163,7 +111,7 @@
 							"
 						>
 							<div
-								class="flex items-center justify-center"
+								class="flex items-center justify-center font-black text-[20px]"
 								style="
 									background: {taken
 										? 'oklch(0.26 0.012 250)'
@@ -171,21 +119,14 @@
 											? 'oklch(0.18 0.04 60)'
 											: 'oklch(0.16 0 0)'};
 									color: {taken || !captain ? 'white' : 'var(--accentWarn)'};
-									font-weight: 900;
-									font-size: 20px;
 									font-family: var(--font-mono);
 								"
 							>
 								{team.rank}
 							</div>
 							<div
-								class="display tabular-nums text-right"
-								style="
-									padding: 5px 8px;
-									font-size: 28px;
-									line-height: 1;
-									opacity: {taken ? 0.5 : 1};
-								"
+								class="display tabular-nums text-right px-2 py-[5px] text-[28px] leading-none"
+								style="opacity: {taken ? 0.5 : 1};"
 							>
 								{team.number}
 							</div>
@@ -193,81 +134,51 @@
 					{/each}
 				</div>
 
-				<!-- Camera area: fixed 200px, never shifts -->
-				<div
-					style="
-						height: 220px;
-						width: calc(220px * 16 / 9);
-						background: transparent;
-						border: 2px dashed oklch(1 0 0 / 0.4);
-					"
-				></div>
+				<!-- Camera area: fixed 220px height, 16:9 width, never shifts -->
+				<div class="h-[220px] w-[calc(220px*16/9)] bg-transparent border-2 border-dashed border-[oklch(1_0_0/0.4)]"></div>
 			</div>
 
 			<!-- RIGHT: alliances + sponsor -->
-			<div class="flex flex-col min-h-0" style="gap: 14px;">
-				<div
-					class="flex items-center uppercase"
-					style="
-						gap: 12px;
-						font-size: 14px;
-						letter-spacing: 0.22em;
-						color: var(--text-dim);
-						font-weight: 900;
-					"
-				>
-					<span class="bg-accentWarn" style="width: 8px; height: 8px;"></span>
+			<div class="flex flex-col min-h-0 gap-3.5">
+				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
+					<span class="bg-accentWarn size-2"></span>
 					Alliances
-					<div class="flex-1" style="height: 2px; background: var(--rule);"></div>
+					<div class="flex-1 h-0.5 bg-[var(--rule)]"></div>
 				</div>
 
-				<div class="flex flex-col" style="gap: 6px;">
+				<div class="flex flex-col gap-1.5">
 					{#each paddedAlliances as alliance (alliance.allianceNumber)}
 						{@const isCurrent = alliance.allianceNumber === currentPickAllianceNum}
 						<div
-							class="grid items-stretch"
+							class="grid items-stretch grid-cols-[48px_1fr] text-[oklch(0.14_0_0)]"
 							class:ad-pulse={isCurrent}
 							style="
-								grid-template-columns: 48px 1fr;
 								background: {isCurrent ? 'var(--accentWarn)' : 'white'};
-								color: oklch(0.14 0 0);
 								border: {isCurrent ? '3px solid white' : '2px solid transparent'};
 							"
 						>
 							<!-- Alliance number: just the digit -->
 							<div
-								class="flex items-center justify-center"
+								class="flex items-center justify-center font-black text-[26px]"
 								style="
-									background: {isCurrent
-										? 'oklch(0.18 0.04 60)'
-										: 'oklch(0.16 0 0)'};
+									background: {isCurrent ? 'oklch(0.18 0.04 60)' : 'oklch(0.16 0 0)'};
 									color: {isCurrent ? 'var(--accentWarn)' : 'white'};
-									font-weight: 900;
-									font-size: 26px;
 								"
 							>
 								{alliance.allianceNumber}
 							</div>
 
 							<!-- Team slots: flex-fill, always 4 slots -->
-							<div
-								class="flex items-center"
-								style="gap: 6px; padding: 6px 10px;"
-							>
+							<div class="flex items-center gap-1.5 px-2.5 py-1.5">
 								{#each [0, 1, 2, 3] as i}
 									{@const team = alliance.teams[i]}
 									{@const empty = !team}
 									<div
-										class="display tabular-nums flex items-center justify-center"
+										class="display tabular-nums flex items-center justify-center flex-1 min-w-0 py-[7px] text-[34px] leading-none"
 										style="
-											flex: 1;
-											min-width: 0;
-											padding: 7px 0;
 											background: {empty ? 'oklch(0 0 0 / 0.08)' : 'oklch(0.16 0 0)'};
 											color: {empty ? 'oklch(0.45 0 0)' : 'var(--accentWarn)'};
 											border: {empty ? '1px dashed oklch(0 0 0 / 0.25)' : 'none'};
-											font-size: 34px;
-											line-height: 1;
 										"
 									>
 										{empty ? "" : team.number}
@@ -275,16 +186,7 @@
 								{/each}
 
 								{#if isCurrent}
-									<div
-										class="uppercase ml-2"
-										style="
-											font-size: 11px;
-											font-weight: 900;
-											letter-spacing: 0.2em;
-											color: oklch(0.18 0.04 60);
-											white-space: nowrap;
-										"
-									>
+									<div class="uppercase ml-2 text-[11px] font-black tracking-[0.2em] text-[oklch(0.18_0.04_60)] whitespace-nowrap">
 										On the Clock
 									</div>
 								{/if}
@@ -294,15 +196,11 @@
 				</div>
 
 				<!-- Sponsor logo: constrained -->
-				<div
-					class="flex items-center justify-center"
-					style="flex: 1; margin-top: 4px; padding: 16px;"
-				>
+				<div class="flex items-center justify-center flex-1 mt-1 p-4">
 					<img
 						src="/pitpodcast.png"
 						alt="Pit Podcast"
-						class="object-contain"
-						style="max-height: 120px; max-width: 80%; width: auto;"
+						class="object-contain max-h-[120px] max-w-[80%] w-auto"
 					/>
 				</div>
 			</div>

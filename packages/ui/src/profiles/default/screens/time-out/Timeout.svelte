@@ -63,123 +63,61 @@
 {#if ready}
 	<div class="fixed inset-0 bg-background overflow-hidden">
 		<!-- Header -->
-		<header
-			class="flex items-center justify-between border-b-4 border-accentWarn"
-			style="padding: 28px 56px 18px;"
-		>
-			<div class="flex items-center" style="gap: 22px;">
-				<Logo class="object-contain" style="width: 70px; height: 70px;" />
+		<header class="flex items-center justify-between border-b-4 border-accentWarn px-14 pt-7 pb-[18px]">
+			<div class="flex items-center gap-[22px]">
+				<Logo class="object-contain size-[70px]" />
 				<div>
-					<div
-						class="display uppercase"
-						style="font-size: 26px; letter-spacing: 0.18em; color: var(--text-dim);"
-					>
+					<div class="display uppercase text-[26px] tracking-[0.18em] text-dim">
 						{$eventDisplayName}
 					</div>
-					<div
-						class="display text-white"
-						style="font-size: 56px; line-height: 1; letter-spacing: 0.02em;"
-					>
+					<div class="display text-white text-[56px] leading-none tracking-[0.02em]">
 						FIELD TIMEOUT
 					</div>
 				</div>
 			</div>
 
 			<!-- Resumes-in timer pill -->
-			<div
-				class="bg-accentWarn flex items-center"
-				style="gap: 20px; padding: 14px 36px;"
-			>
-				<div
-					class="uppercase"
-					style="
-						font-size: 16px;
-						font-weight: 900;
-						letter-spacing: 0.2em;
-						color: oklch(0.18 0.04 60);
-					"
-				>
+			<div class="bg-accentWarn flex items-center gap-5 px-9 py-3.5">
+				<div class="uppercase text-[16px] font-black tracking-[0.2em] text-[oklch(0.18_0.04_60)]">
 					Resumes In
 				</div>
-				<div
-					class="display tabular-nums"
-					style="font-size: 92px; line-height: 0.9; color: oklch(0.14 0.04 60);"
-				>
+				<div class="display tabular-nums text-[92px] leading-[0.9] text-[oklch(0.14_0.04_60)]">
 					{mmss(resumesIn)}
 				</div>
 			</div>
 		</header>
 
 		<!-- Body -->
-		<div
-			class="grid"
-			style="
-				grid-template-columns: 1.55fr 1fr;
-				gap: 24px;
-				padding: 24px 56px;
-				height: calc(100vh - 138px);
-			"
-		>
+		<div class="grid grid-cols-[1.55fr_1fr] gap-6 px-14 py-6 h-[calc(100vh-138px)]">
 			<!-- Left: slideshow -->
-			<div class="flex flex-col" style="gap: 14px;">
-				<div
-					class="flex items-center uppercase"
-					style="
-						gap: 12px;
-						font-size: 14px;
-						letter-spacing: 0.22em;
-						color: var(--text-dim);
-						font-weight: 900;
-					"
-				>
-					<span class="bg-accentWarn" style="width: 8px; height: 8px;"></span>
+			<div class="flex flex-col gap-3.5">
+				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
+					<span class="bg-accentWarn size-2"></span>
 					Featured
-					<div class="flex-1" style="height: 2px; background: var(--rule);"></div>
+					<div class="flex-1 h-0.5 bg-[var(--rule)]"></div>
 				</div>
 
-				<div
-					class="relative overflow-hidden"
-					style="
-						flex: 1;
-						background: oklch(0 0 0 / 0.6);
-						border: 2px solid white;
-					"
-				>
+				<div class="relative overflow-hidden flex-1 bg-[oklch(0_0_0/0.6)] border-2 border-white">
 					{#each slides as slide, i}
 						<div
-							class="absolute inset-0"
+							class="absolute inset-0 transition-opacity duration-500"
 							style="
 								opacity: {i === slideIdx ? 1 : 0};
-								transition: opacity 500ms ease;
 								pointer-events: {i === slideIdx ? 'auto' : 'none'};
 							"
 						>
 							{#if slide.kind === "sponsor"}
-								<div
-									class="w-full h-full flex items-center justify-center"
-									style="padding: 32px;"
-								>
+								<div class="w-full h-full flex items-center justify-center p-8">
 									{#if slide.src}
 										<img
 											src={slide.src}
 											alt={slide.label}
-											class="object-contain"
-											style="width: 92%; height: 92%;"
+											class="object-contain w-[92%] h-[92%]"
 										/>
 									{:else}
 										<div
-											class="flex items-center justify-center uppercase"
-											style="
-												width: 92%;
-												height: 92%;
-												background: oklch(0.94 0.005 250);
-												color: oklch(0.30 0 0);
-												font-size: 32px;
-												font-weight: 800;
-												font-family: var(--font-mono);
-												letter-spacing: 0.08em;
-												border: 1px dashed oklch(0 0 0 / 0.25);
-											"
+											class="flex items-center justify-center uppercase w-[92%] h-[92%] bg-[oklch(0.94_0.005_250)] text-[oklch(0.30_0_0)] text-[32px] font-extrabold tracking-[0.08em] border border-dashed border-[oklch(0_0_0/0.25)]"
+											style="font-family: var(--font-mono);"
 										>
 											{slide.label}
 										</div>
@@ -187,24 +125,11 @@
 								</div>
 							{:else}
 								<!-- Bracket slide — placeholder; full mini-bracket TBD when bracket data is wired up -->
-								<div
-									class="w-full h-full flex flex-col items-center justify-center text-center uppercase"
-									style="padding: 24px; gap: 12px;"
-								>
-									<div
-										class="display text-accentWarn"
-										style="font-size: 32px; letter-spacing: 0.16em;"
-									>
+								<div class="w-full h-full flex flex-col items-center justify-center text-center uppercase p-6 gap-3">
+									<div class="display text-accentWarn text-[32px] tracking-[0.16em]">
 										Playoff Bracket
 									</div>
-									<div
-										style="
-											font-size: 14px;
-											letter-spacing: 0.2em;
-											color: var(--text-dim);
-											font-weight: 900;
-										"
-									>
+									<div class="text-sm tracking-[0.2em] text-dim font-black">
 										See main bracket between matches
 									</div>
 								</div>
@@ -214,16 +139,13 @@
 				</div>
 
 				<!-- Slide dots -->
-				<div class="flex justify-center" style="gap: 8px;">
+				<div class="flex justify-center gap-2">
 					{#each slides as _, i}
 						<div
+							class="h-2 transition-all duration-300"
 							style="
-								height: 8px;
 								width: {i === slideIdx ? '32px' : '8px'};
-								background: {i === slideIdx
-									? 'var(--accentWarn)'
-									: 'oklch(1 0 0 / 0.25)'};
-								transition: all 300ms ease;
+								background: {i === slideIdx ? 'var(--accentWarn)' : 'oklch(1 0 0 / 0.25)'};
 							"
 						></div>
 					{/each}
@@ -231,137 +153,61 @@
 			</div>
 
 			<!-- Right: Up Next card -->
-			<div class="flex flex-col min-h-0" style="gap: 14px;">
-				<div
-					class="flex items-center uppercase"
-					style="
-						gap: 12px;
-						font-size: 14px;
-						letter-spacing: 0.22em;
-						color: var(--text-dim);
-						font-weight: 900;
-					"
-				>
-					<span class="bg-accentWarn" style="width: 8px; height: 8px;"></span>
+			<div class="flex flex-col min-h-0 gap-3.5">
+				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
+					<span class="bg-accentWarn size-2"></span>
 					Up Next
-					<div class="flex-1" style="height: 2px; background: var(--rule);"></div>
+					<div class="flex-1 h-0.5 bg-[var(--rule)]"></div>
 				</div>
 
-				<div
-					class="flex flex-col"
-					style="
-						flex: 1;
-						background: oklch(0 0 0 / 0.55);
-						border: 2px solid white;
-						padding: 24px;
-						gap: 18px;
-					"
-				>
+				<div class="flex flex-col flex-1 bg-[oklch(0_0_0/0.55)] border-2 border-white p-6 gap-[18px]">
 					<!-- Match label -->
 					<div class="text-center">
-						<div
-							class="display text-accentWarn"
-							style="font-size: 80px; line-height: 0.95;"
-						>
+						<div class="display text-accentWarn text-[80px] leading-[0.95]">
 							{nextMatchLabel}
 						</div>
 					</div>
 
 					<!-- Alliances stacked with VS divider -->
-					<div class="flex flex-col" style="gap: 14px; flex: 1;">
-						<div
-							class="flex flex-col"
-							style="
-								background: var(--redAlliance);
-								padding: 16px 20px;
-								gap: 10px;
-							"
-						>
+					<div class="flex flex-col gap-3.5 flex-1">
+						<div class="flex flex-col bg-redAlliance px-5 py-4 gap-2.5">
 							<div class="flex items-baseline justify-between">
-								<div
-									class="display text-white"
-									style="font-size: 32px; letter-spacing: 0.06em;"
-								>
+								<div class="display text-white text-[32px] tracking-[0.06em]">
 									RED
 								</div>
 								{#if nextRedAlliance}
-									<div
-										class="text-white"
-										style="
-											font-weight: 900;
-											font-size: 22px;
-											background: oklch(0 0 0 / 0.4);
-											padding: 4px 14px;
-										"
-									>
+									<div class="text-white font-black text-[22px] bg-[oklch(0_0_0/0.4)] px-3.5 py-1">
 										{nextRedAlliance}
 									</div>
 								{/if}
 							</div>
-							<div class="flex justify-between" style="gap: 8px;">
+							<div class="flex justify-between gap-2">
 								{#each nextRedTeams.slice(0, 3) as team (team.number)}
-									<div
-										class="display tabular-nums text-white text-center flex-1"
-										style="
-											font-size: 56px;
-											line-height: 0.95;
-											background: oklch(0 0 0 / 0.32);
-											padding: 4px 12px;
-										"
-									>
+									<div class="display tabular-nums text-white text-center flex-1 text-[56px] leading-[0.95] bg-[oklch(0_0_0/0.32)] px-3 py-1">
 										{team.number}
 									</div>
 								{/each}
 							</div>
 						</div>
 
-						<div
-							class="display text-center text-white"
-							style="font-size: 44px;"
-						>
+						<div class="display text-center text-white text-[44px]">
 							VS
 						</div>
 
-						<div
-							class="flex flex-col"
-							style="
-								background: var(--blueAlliance);
-								padding: 16px 20px;
-								gap: 10px;
-							"
-						>
+						<div class="flex flex-col bg-blueAlliance px-5 py-4 gap-2.5">
 							<div class="flex items-baseline justify-between">
-								<div
-									class="display text-white"
-									style="font-size: 32px; letter-spacing: 0.06em;"
-								>
+								<div class="display text-white text-[32px] tracking-[0.06em]">
 									BLUE
 								</div>
 								{#if nextBlueAlliance}
-									<div
-										class="text-white"
-										style="
-											font-weight: 900;
-											font-size: 22px;
-											background: oklch(0 0 0 / 0.4);
-											padding: 4px 14px;
-										"
-									>
+									<div class="text-white font-black text-[22px] bg-[oklch(0_0_0/0.4)] px-3.5 py-1">
 										{nextBlueAlliance}
 									</div>
 								{/if}
 							</div>
-							<div class="flex justify-between" style="gap: 8px;">
+							<div class="flex justify-between gap-2">
 								{#each nextBlueTeams.slice(0, 3) as team (team.number)}
-									<div
-										class="display tabular-nums text-white text-center flex-1"
-										style="
-											font-size: 56px;
-											line-height: 0.95;
-											background: oklch(0 0 0 / 0.32);
-											padding: 4px 12px;
-										"
-									>
+									<div class="display tabular-nums text-white text-center flex-1 text-[56px] leading-[0.95] bg-[oklch(0_0_0/0.32)] px-3 py-1">
 										{team.number}
 									</div>
 								{/each}

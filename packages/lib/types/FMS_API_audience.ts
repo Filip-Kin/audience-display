@@ -78,7 +78,6 @@ export type FMSMatchScore = {
   redAllianceData: FMSAllianceData;
   blueAllianceData: FMSAllianceData;
   matchWinner: "Red" | "Blue" | null;
-  cooppertitionBonusAchieved?: boolean; // note: FMS-side typo with extra "p"; qual/practice/test only
   playoffLevel?: PlayoffLevel;
   playoffBracket?: Bracket;
   allianceCount?: PlayoffSizeTypes;

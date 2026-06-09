@@ -17,10 +17,9 @@ export type ProfileTheme = {
 };
 
 export type ProfileAssets = {
-  logo?: string;
-  logoSecondary?: string;
+  event?: string;
+  livestream?: string;
   sponsors: string[];
-  backgroundImage?: string;
 };
 
 export type ProfileLayout = {

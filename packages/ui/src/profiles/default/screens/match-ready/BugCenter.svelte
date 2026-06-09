@@ -27,21 +27,12 @@
 	}
 </script>
 
-<div
-	class="relative flex flex-col items-center justify-center"
-	style="
-		background: oklch(0 0 0 / 0.88);
-		padding: 14px 28px;
-		border-left: 6px solid var(--accentWarn);
-		border-right: 6px solid var(--accentWarn);
-		min-width: 240px;
-	"
->
+<div class="relative flex flex-col items-center justify-center bg-[oklch(0_0_0/0.88)] px-7 py-3.5 border-l-[6px] border-r-[6px] border-accentWarn min-w-60">
 	<!-- Hub active corner indicators (absolute, never shift content) -->
 	{#if arrowSide === "left" || arrowSide === "both"}
 		<svg
 			width="18" height="22" viewBox="0 0 18 22"
-			style="position: absolute; top: 6px; left: 6px; filter: drop-shadow(0 0 5px oklch(0.86 0.18 92 / 0.9));"
+			class="absolute top-1.5 left-1.5 drop-shadow-[0_0_5px_oklch(0.86_0.18_92/0.9)]"
 		>
 			<path d="M 18 0 L 0 11 L 18 22 Z" fill="var(--accentWarn)" />
 		</svg>
@@ -49,7 +40,7 @@
 	{#if arrowSide === "right" || arrowSide === "both"}
 		<svg
 			width="18" height="22" viewBox="0 0 18 22"
-			style="position: absolute; top: 6px; right: 6px; filter: drop-shadow(0 0 5px oklch(0.86 0.18 92 / 0.9));"
+			class="absolute top-1.5 right-1.5 drop-shadow-[0_0_5px_oklch(0.86_0.18_92/0.9)]"
 		>
 			<path d="M 0 0 L 18 11 L 0 22 Z" fill="var(--accentWarn)" />
 		</svg>
@@ -57,23 +48,12 @@
 
 	<!-- Phase label: never shifts, no arrows here -->
 	{#if phaseLabel}
-		<div
-			class="uppercase"
-			style="
-				font-size: 20px;
-				font-weight: 900;
-				letter-spacing: 0.18em;
-				color: {isEndgame ? 'var(--accentWarn)' : 'white'};
-			"
-		>
+		<div class="uppercase text-[20px] font-black tracking-[0.18em] {isEndgame ? 'text-accentWarn' : 'text-white'}">
 			{phaseLabel}
 		</div>
 	{/if}
 
-	<div
-		class="display tabular-nums text-white"
-		style="font-size: 100px; line-height: 0.92; margin-top: 2px;"
-	>
+	<div class="display tabular-nums text-white text-[100px] leading-[0.92] mt-0.5">
 		{mmss(timer)}
 	</div>
 </div>
