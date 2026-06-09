@@ -17,7 +17,7 @@
 			? 'bg-redAlliance text-white font-bold'
 			: 'bg-redAlliance/40 text-white'}"
 	>
-		<span class="text-sm">Alliance {match.redAllianceNumber || "—"}</span>
+		<span class="text-sm">Alliance {match.redAllianceNumber || "-"}</span>
 		<span class="tabular-nums text-sm">{match.isComplete ? match.redAllianceScore : ""}</span>
 	</div>
 	<div
@@ -25,7 +25,7 @@
 			? 'bg-blueAlliance text-white font-bold'
 			: 'bg-blueAlliance/40 text-white'}"
 	>
-		<span class="text-sm">Alliance {match.blueAllianceNumber || "—"}</span>
+		<span class="text-sm">Alliance {match.blueAllianceNumber || "-"}</span>
 		<span class="tabular-nums text-sm">{match.isComplete ? match.blueAllianceScore : ""}</span>
 	</div>
 </div>

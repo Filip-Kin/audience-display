@@ -1,10 +1,10 @@
 <script lang="ts">
 	import type { Team } from "lib";
 	import { fly } from "svelte/transition";
-	import { defaultAvatar } from "./avatar";
-	import ArrowUp from "../assets/arrow-up.svg";
-	import ArrowDown from "../assets/arrow-down.svg";
-	import NoChange from "../assets/no-change.svg";
+	import { defaultAvatar } from "../avatar";
+	import ArrowUp from "../../assets/arrow-up.svg";
+	import ArrowDown from "../../assets/arrow-down.svg";
+	import NoChange from "../../assets/no-change.svg";
 
 	export let ready: boolean;
 	export let index: number;
@@ -12,6 +12,7 @@
 	export let alliance: "red" | "blue";
 	export let invert: boolean;
 	export let small: boolean = false;
+	export let showRank: boolean = true;
 </script>
 
 {#if ready}
@@ -46,7 +47,7 @@
 				<span class="text-5xl font-semibold">{team.number}</span>
 			</div>
 			<div
-				class="grid {team.rank ? 'grid-cols-[.7fr_.1fr_.2fr]' : 'grid-cols-[.9fr_.1fr]'} bg-white text-black p-3 {team.name.length > 22 && team.rank
+				class="grid {showRank && team.rank ? 'grid-cols-[.7fr_.1fr_.2fr]' : 'grid-cols-[.9fr_.1fr]'} bg-white text-black p-3 {team.name.length > 22 && showRank && team.rank
 					? 'text-3xl'
 					: 'text-4xl'} font-bold justify-between"
 			>
@@ -58,7 +59,7 @@
 				{:else}
 					<span></span>
 				{/if}
-				{#if team.rank}
+				{#if showRank && team.rank}
 					<span class="flex gap-2 items-center justify-center">
 						<span>{team.rank}</span>
 						{#if team.rankChange}

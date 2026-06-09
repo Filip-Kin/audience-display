@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { state } from "../../../../lib/state";
-	import { displayEventName } from "../../../../lib/matchNamer";
+	import { state, eventDisplayName } from "@lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
-	import Logo from "../../../../lib/Logo.svelte";
+	import Logo from "@lib/components/Logo.svelte";
 
 	const dispatcher = createEventDispatcher();
 	export let exit = false;
@@ -25,10 +24,14 @@
 
 	$: pickSeconds = $state.match?.timer ?? 0;
 	$: pickWarning = pickSeconds > 0 && pickSeconds <= 10;
-	$: eligibleTeams = $state.ranking.filter((t) => !t.unavailableForSelection);
+	$: availableTeams = $state.ranking.filter((t) => !t.unavailableForSelection);
 
-	// Always render exactly 8 alliances — fill in empty placeholders for
-	// alliances FMS hasn't seeded yet.
+	// Once all 8 alliances have at least one team (captain slot filled), stop
+	// highlighting potential captains.
+	$: allCaptainsFilled =
+		$state.alliances.length >= 8 &&
+		$state.alliances.every((a) => a.teams.length > 0);
+
 	$: paddedAlliances = Array.from({ length: 8 }, (_, i) => {
 		const num = i + 1;
 		const existing = $state.alliances.find((a) => a.allianceNumber === num);
@@ -42,9 +45,6 @@
 		);
 	});
 
-	// Heuristic for "on the clock" — first alliance whose team count is below
-	// the maximum. Works for serpentine rounds in practice because FMS fills
-	// alliances in order within each round.
 	$: currentPickAllianceNum = (() => {
 		const seeded = $state.alliances;
 		if (!seeded.length) return null;
@@ -69,7 +69,7 @@
 						class="display uppercase"
 						style="font-size: 28px; letter-spacing: 0.16em; color: var(--text-dim);"
 					>
-						{displayEventName($state.eventDetails?.name)}
+						{$eventDisplayName}
 					</div>
 					<div
 						class="display text-white"
@@ -80,20 +80,20 @@
 				</div>
 			</div>
 
-			<!-- Pick timer pill -->
+			<!-- Pick timer pill: stacked layout -->
 			<div
-				class="flex items-center"
+				class="flex flex-col items-center"
 				style="
-					gap: 18px;
-					padding: 12px 32px;
+					padding: 10px 28px;
 					background: {pickWarning ? 'var(--accentWarn)' : 'oklch(0 0 0 / 0.6)'};
 					color: {pickWarning ? 'oklch(0.18 0.04 60)' : 'white'};
 					border: {pickWarning ? 'none' : '2px solid white'};
+					min-width: 160px;
 				"
 			>
 				<div
 					class="uppercase"
-					style="font-size: 16px; font-weight: 900; letter-spacing: 0.2em;"
+					style="font-size: 12px; font-weight: 900; letter-spacing: 0.2em;"
 				>
 					Pick Timer
 				</div>
@@ -106,7 +106,7 @@
 			</div>
 		</header>
 
-		<!-- Body -->
+		<!-- Body: left (available teams + camera) | right (alliances + sponsor) -->
 		<div
 			class="grid"
 			style="
@@ -116,8 +116,15 @@
 				height: calc(100vh - 142px);
 			"
 		>
-			<!-- LEFT: rank grid + chroma key -->
-			<div class="flex flex-col min-h-0" style="gap: 14px;">
+			<!-- LEFT: available teams grid + fixed camera area -->
+			<div
+				style="
+					display: grid;
+					grid-template-rows: auto 1fr auto;
+					gap: 14px;
+					min-height: 0;
+				"
+			>
 				<!-- Section label -->
 				<div
 					class="flex items-center uppercase"
@@ -130,19 +137,22 @@
 					"
 				>
 					<span class="bg-accentWarn" style="width: 8px; height: 8px;"></span>
-					Eligible Teams
+					Available Teams
 					<div class="flex-1" style="height: 2px; background: var(--rule);"></div>
 				</div>
 
-				<!-- Rank grid -->
-				<div class="grid" style="grid-template-columns: repeat(6, 1fr); gap: 8px;">
-					{#each eligibleTeams as team (team.number)}
+				<!-- Rank grid: 7 cols, clips if too many teams -->
+				<div
+					class="grid"
+					style="grid-template-columns: repeat(7, 1fr); gap: 6px; align-content: start; overflow: hidden;"
+				>
+					{#each availableTeams as team (team.number)}
 						{@const taken = team.unavailableForSelection}
-						{@const captain = team.potentialCaptain && !taken}
+						{@const captain = team.potentialCaptain && !taken && !allCaptainsFilled}
 						<div
 							class="grid items-stretch overflow-hidden"
 							style="
-								grid-template-columns: 38px 1fr;
+								grid-template-columns: 44px 1fr;
 								background: {taken
 									? 'oklch(0.18 0.012 250)'
 									: captain
@@ -162,7 +172,7 @@
 											: 'oklch(0.16 0 0)'};
 									color: {taken || !captain ? 'white' : 'var(--accentWarn)'};
 									font-weight: 900;
-									font-size: 16px;
+									font-size: 20px;
 									font-family: var(--font-mono);
 								"
 							>
@@ -171,8 +181,8 @@
 							<div
 								class="display tabular-nums text-right"
 								style="
-									padding: 6px 10px;
-									font-size: 32px;
+									padding: 5px 8px;
+									font-size: 28px;
 									line-height: 1;
 									opacity: {taken ? 0.5 : 1};
 								"
@@ -183,20 +193,15 @@
 					{/each}
 				</div>
 
-				<!-- Camera area — transparent so OBS can overlay the live camera feed
-				     directly. Locked to 16:9 aspect ratio, pinned to the bottom of
-				     the column so it lines up with the sponsor block on the right. -->
-				<div class="flex flex-col" style="flex: 1; min-height: 0; margin-top: 4px;">
-					<div
-						style="
-							margin-top: auto;
-							width: 100%;
-							aspect-ratio: 16 / 9;
-							background: transparent;
-							border: 2px dashed oklch(1 0 0 / 0.4);
-						"
-					></div>
-				</div>
+				<!-- Camera area: fixed 200px, never shifts -->
+				<div
+					style="
+						height: 220px;
+						width: calc(220px * 16 / 9);
+						background: transparent;
+						border: 2px dashed oklch(1 0 0 / 0.4);
+					"
+				></div>
 			</div>
 
 			<!-- RIGHT: alliances + sponsor -->
@@ -223,12 +228,13 @@
 							class="grid items-stretch"
 							class:ad-pulse={isCurrent}
 							style="
-								grid-template-columns: 58px 1fr;
+								grid-template-columns: 48px 1fr;
 								background: {isCurrent ? 'var(--accentWarn)' : 'white'};
 								color: oklch(0.14 0 0);
 								border: {isCurrent ? '3px solid white' : '2px solid transparent'};
 							"
 						>
+							<!-- Alliance number: just the digit -->
 							<div
 								class="flex items-center justify-center"
 								style="
@@ -237,43 +243,46 @@
 										: 'oklch(0.16 0 0)'};
 									color: {isCurrent ? 'var(--accentWarn)' : 'white'};
 									font-weight: 900;
-									font-size: 20px;
+									font-size: 26px;
 								"
 							>
-								A{alliance.allianceNumber}
+								{alliance.allianceNumber}
 							</div>
+
+							<!-- Team slots: flex-fill, always 4 slots -->
 							<div
 								class="flex items-center"
-								style="gap: 8px; padding: 8px 12px;"
+								style="gap: 6px; padding: 6px 10px;"
 							>
-								{#each [0, 1, 2] as i}
+								{#each [0, 1, 2, 3] as i}
 									{@const team = alliance.teams[i]}
 									{@const empty = !team}
 									<div
 										class="display tabular-nums flex items-center justify-center"
 										style="
-											width: 96px;
-											flex: 0 0 96px;
-											padding: 8px 0;
+											flex: 1;
+											min-width: 0;
+											padding: 7px 0;
 											background: {empty ? 'oklch(0 0 0 / 0.08)' : 'oklch(0.16 0 0)'};
 											color: {empty ? 'oklch(0.45 0 0)' : 'var(--accentWarn)'};
 											border: {empty ? '1px dashed oklch(0 0 0 / 0.25)' : 'none'};
-											font-size: 26px;
+											font-size: 34px;
 											line-height: 1;
 										"
 									>
-										{empty ? "—" : team.number}
+										{empty ? "" : team.number}
 									</div>
 								{/each}
 
 								{#if isCurrent}
 									<div
-										class="uppercase ml-auto"
+										class="uppercase ml-2"
 										style="
 											font-size: 11px;
 											font-weight: 900;
 											letter-spacing: 0.2em;
 											color: oklch(0.18 0.04 60);
+											white-space: nowrap;
 										"
 									>
 										On the Clock
@@ -284,22 +293,16 @@
 					{/each}
 				</div>
 
-				<!-- Sponsor at the bottom — Pit Podcast logo. No background panel so
-				     the logo's own dark background sits cleanly on the page. -->
+				<!-- Sponsor logo: constrained -->
 				<div
 					class="flex items-center justify-center"
-					style="
-						flex: 1;
-						margin-top: 4px;
-						padding: 20px;
-						min-height: 200px;
-					"
+					style="flex: 1; margin-top: 4px; padding: 16px;"
 				>
 					<img
 						src="/pitpodcast.png"
 						alt="Pit Podcast"
 						class="object-contain"
-						style="width: 100%; height: 100%;"
+						style="max-height: 120px; max-width: 80%; width: auto;"
 					/>
 				</div>
 			</div>

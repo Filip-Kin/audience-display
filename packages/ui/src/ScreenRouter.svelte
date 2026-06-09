@@ -3,8 +3,8 @@
 	import { state } from "./lib/state";
 	import type { Screen } from "lib";
 	import SettingsIcon from "./assets/settings.svg";
-	import SettingsModal from "./lib/SettingsModal.svelte";
-	import EnableAudioModal from "./lib/EnableAudioModal.svelte";
+	import SettingsModal from "./lib/components/SettingsModal.svelte";
+	import EnableAudioModal from "./lib/components/EnableAudioModal.svelte";
 	import { settings } from "./lib/settings";
 	import { resolveScreen } from "./profiles";
 

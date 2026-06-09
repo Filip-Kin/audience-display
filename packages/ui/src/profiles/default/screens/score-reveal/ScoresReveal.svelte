@@ -1,29 +1,27 @@
-﻿<script lang="ts">
-	import { spring } from "svelte/motion";
+<script lang="ts">
 	import { fade, fly } from "svelte/transition";
-	import { state, activeProfile } from "../../../../lib/state";
+	import { state, activeProfile, eventDisplayName } from "@lib/state";
 	import { createEventDispatcher, onMount } from "svelte";
-	import { displayEventName, matchName } from "../../../../lib/matchNamer";
-	import { settings } from "../../../../lib/settings";
+	import { matchName } from "@lib/matchNamer";
+	import { settings } from "@lib/settings";
 	import Alliance from "./Alliance.svelte";
+	import ScoreBreakdown from "@lib/components/ScoreBreakdown.svelte";
 	import EventHighScoreBanner from "./EventHighScoreBanner.svelte";
 	import MatchUnderReviewOverlay from "./MatchUnderReviewOverlay.svelte";
 	import TiebreakerBar from "./TiebreakerBar.svelte";
-	import Logo from "../../../../lib/Logo.svelte";
-	import { packUrl } from "../../../../lib/animation_pack.js";
+	import Logo from "@lib/components/Logo.svelte";
+	import Shutter from "@lib/components/Shutter.svelte";
+	import MatchEventHeader from "@lib/components/MatchEventHeader.svelte";
+	import { packUrl } from "@lib/animation_pack.js";
 	import { get } from "svelte/store";
 
 	let ready = false;
+	let videoReady = false;
 	const dispatcher = createEventDispatcher();
 	export let exit = false;
 
 	let animation: string;
 	let videoElm: HTMLVideoElement;
-
-	let shutterSpring = spring(120, {
-		stiffness: 0.1,
-		damping: 0.5,
-	});
 
 	onMount(() => {
 		if ($state.results?.score.winner) {
@@ -47,8 +45,7 @@
 			dispatcher("loaded");
 			setTimeout(
 				() => {
-					ready = true;
-					shutterSpring.set(50);
+					videoReady = true;
 				},
 				videoElm.duration * 1000 - 500
 			);
@@ -67,16 +64,20 @@
 
 	$: if (exit) {
 		videoElm.style.display = "none";
-		shutterSpring.set(120);
+		videoReady = false;
 		ready = false;
-		setTimeout(() => {
-			dispatcher("transitioned");
-		}, 500);
 	}
+
+	$: eventLabel = $eventDisplayName;
+	$: matchLabel = $state.results
+		? matchName($state.results.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.results.details.matchType) ?? ""
+		: "";
 
 	$: redScore = $state.results?.score.red;
 	$: blueScore = $state.results?.score.blue;
 	$: highScoreVisible = !!(redScore?.isHighScore || blueScore?.isHighScore);
+	$: leftBreakdownScore = $state.results?.score[$settings.invert ? "red" : "blue"];
+	$: rightBreakdownScore = $state.results?.score[$settings.invert ? "blue" : "red"];
 	$: tiebreaker = $state.results?.tiebreaker;
 	$: sponsors = $activeProfile.assets.sponsors;
 </script>
@@ -90,30 +91,24 @@
 	</video>
 </div>
 
-<div
-	class="w-full {$settings.invert ? 'bg-primary' : 'bg-secondary'} h-full fixed -skew-x-12 flex flex-row justify-end"
-	style={`right: ${$shutterSpring}vw`}
-></div>
-
-<div
-	class="w-full {$settings.invert ? 'bg-secondary' : 'bg-primary'} h-full fixed -skew-x-12 flex flex-row justify-start"
-	style={`left: ${$shutterSpring}vw`}
-></div>
+<Shutter
+	{exit}
+	startOpen={videoReady}
+	leftColor={$settings.invert ? "var(--primary)" : "var(--secondary)"}
+	rightColor={$settings.invert ? "var(--secondary)" : "var(--primary)"}
+	on:ready={() => { ready = true; }}
+	on:transitioned={() => dispatcher("transitioned")}
+/>
 
 <!-- Top title bar -->
 {#if $state.results && ready}
 	<div class="fixed z-10 flex w-full justify-center">
 		<div
-			class="mt-8 h-32 bg-black rounded text-4xl max-w-5xl text-center flex flex-col justify-center px-8"
+			class="mt-8"
 			in:fly={{ y: -50, duration: 200 }}
 			out:fade={{ duration: 100 }}
 		>
-			<p class="text-accentWarn font-bold text-4xl">
-				{displayEventName($state.eventDetails?.name)}
-			</p>
-			<p class="text-accentWarn font-bold">
-				{matchName($state.results.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.results.details.matchType)}
-			</p>
+			<MatchEventHeader {eventLabel} {matchLabel} />
 		</div>
 	</div>
 {/if}
@@ -125,6 +120,9 @@
 			{#if sponsors[0]}
 				<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Event Sponsors</h2>
 				<img src={sponsors[0]} class="h-60 mx-auto self-center object-contain" alt="sponsor" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }} />
+			{:else}
+				<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Event Sponsors</h2>
+				<img src="/logo.png" class="h-60 mx-auto self-center object-contain" alt="event logo" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }} />
 			{/if}
 		</div>
 
@@ -155,53 +153,23 @@
 			</div>
 
 			<div class="flex flex-col items-center">
-				<div
-					class="w-full max-w-3xl mx-auto h-fit justify-around bg-white text-black font-semibold text-4xl flex flex-col text-center"
-					in:fade={{ duration: 250 }}
-					out:fade={{ duration: 100 }}
-				>
-					<div class="grid grid-cols-[.2fr_.6fr_.2fr] even:bg-gray-200 px-2 py-2">
-						<span class="tabular-nums">{$state.results?.score[$settings.invert ? "red" : "blue"].autoFuelPoints}</span>
-						<span>Auto Fuel</span>
-						<span class="tabular-nums">{$state.results?.score[$settings.invert ? "blue" : "red"].autoFuelPoints}</span>
-					</div>
-					<div class="grid grid-cols-[.2fr_.6fr_.2fr] even:bg-gray-200 px-2 py-2">
-						<span class="tabular-nums">{$state.results?.score[$settings.invert ? "red" : "blue"].teleopFuelPoints}</span>
-						<span>Teleop Fuel</span>
-						<span class="tabular-nums">{$state.results?.score[$settings.invert ? "blue" : "red"].teleopFuelPoints}</span>
-					</div>
-					<div class="grid grid-cols-[.2fr_.6fr_.2fr] even:bg-gray-200 px-2 py-2">
-						<span class="tabular-nums">{$state.results?.score[$settings.invert ? "red" : "blue"].autoClimbPoints}</span>
-						<span>Auto Climb</span>
-						<span class="tabular-nums">{$state.results?.score[$settings.invert ? "blue" : "red"].autoClimbPoints}</span>
-					</div>
-					<div class="grid grid-cols-[.2fr_.6fr_.2fr] even:bg-gray-200 px-2 py-2">
-						<span class="tabular-nums">{$state.results?.score[$settings.invert ? "red" : "blue"].endgameClimbPoints}</span>
-						<span>Endgame Climb</span>
-						<span class="tabular-nums">{$state.results?.score[$settings.invert ? "blue" : "red"].endgameClimbPoints}</span>
-					</div>
-					<div class="grid grid-cols-[.2fr_.6fr_.2fr] even:bg-gray-200 px-2 py-2">
-						<span class="tabular-nums">{$state.results?.score[$settings.invert ? "red" : "blue"].foulPoints}</span>
-						<span>Penalty</span>
-						<span class="tabular-nums">{$state.results?.score[$settings.invert ? "blue" : "red"].foulPoints}</span>
-					</div>
-				</div>
+				{#if leftBreakdownScore && rightBreakdownScore}
+					<ScoreBreakdown leftScore={leftBreakdownScore} rightScore={rightBreakdownScore} />
+				{/if}
 
 				<div
 					in:fly={{ y: 200, duration: 500 }}
 					out:fly={{ y: -400, duration: 200 }}
 				>
-					<Logo alt="logo" class="h-72 mt-8 object-contain" />
+					<Logo alt="logo" class="h-96 mt-8 object-contain" />
 				</div>
 			</div>
 		</div>
 
-		<!-- Cell 3: right sponsors column -->
+		<!-- Cell 3: right column — always show Pit Podcast -->
 		<div>
-			{#if sponsors[1]}
-				<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Livestream Partner</h2>
-				<img src={sponsors[1]} class="size-60 mx-auto self-center object-contain" alt="sponsor" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }} />
-			{/if}
+			<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Livestream Partner</h2>
+			<img src="/pitpodcast.png" class="h-60 mx-auto self-center object-contain" alt="Pit Podcast" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }} />
 		</div>
 
 		<!-- Bottom-left: alliance card (blue or red depending on invert) -->

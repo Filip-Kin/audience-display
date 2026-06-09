@@ -4,6 +4,7 @@ import type { Screen, ProfileTheme, ProfileAssets } from "lib";
 export type ProfileDefinition = {
   id: string;
   name: string;
+  eventName?: string;
   screens: Partial<Record<Screen, ComponentType>>;
   theme: ProfileTheme;
   assets: ProfileAssets;

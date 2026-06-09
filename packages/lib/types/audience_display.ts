@@ -86,7 +86,7 @@ export type MatchState = {
   timer: number;
   phase: MatchPhase;
   phaseTimer: number;
-  hubActive: "Red" | "Blue" | "None";
+  hubActive: "Red" | "Blue" | "Both" | "None";
   underReview: boolean;
   tiebreaker?: PlayoffTiebreakType;
   score: {

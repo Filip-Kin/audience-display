@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { state } from "../../../../lib/state";
-	import { settings } from "../../../../lib/settings";
+	import { state } from "@lib/state";
+	import { settings } from "@lib/settings";
 	import { createEventDispatcher, onMount } from "svelte";
+	import { spring } from "svelte/motion";
 	import { fade } from "svelte/transition";
 	import TopBar from "../../components/TopBar.svelte";
 	import ScoreBarHalf from "./ScoreBarHalf.svelte";
@@ -11,13 +12,20 @@
 	export let exit = false;
 	let ready = false;
 
+	const barSpring = spring(-220, { stiffness: 0.08, damping: 0.35 });
+	const topSpring = spring(-80, { stiffness: 0.08, damping: 0.35 });
+
 	onMount(() => {
 		ready = true;
+		barSpring.set(0);
+		topSpring.set(0);
 	});
 
 	$: if (exit) {
 		ready = false;
-		setTimeout(() => dispatcher("transitioned"), 200);
+		barSpring.set(-220);
+		topSpring.set(-80);
+		setTimeout(() => dispatcher("transitioned"), 500);
 	}
 
 	$: leftIsRed = !$settings.invert;
@@ -27,12 +35,16 @@
 	$: rightScore = leftIsRed ? $state.match?.score.blue : $state.match?.score.red;
 	$: leftTeams = leftIsRed ? $state.match?.teams.red ?? [] : $state.match?.teams.blue ?? [];
 	$: rightTeams = leftIsRed ? $state.match?.teams.blue ?? [] : $state.match?.teams.red ?? [];
-	$: arrowSide = ((): "left" | "right" | "none" => {
-		const hub = $state.match?.hubActive;
-		if (hub === "None" || !hub) return "none";
-		const hubIsLeft = (hub === "Red") === leftIsRed;
-		return hubIsLeft ? "left" : "right";
-	})();
+
+	$: hub = $state.match?.hubActive ?? "None";
+	$: leftHubActive = hub === "Both" || (hub !== "None" && (hub === "Red") === leftIsRed);
+	$: rightHubActive = hub === "Both" || (hub !== "None" && (hub === "Red") !== leftIsRed);
+	$: arrowSide = (() => {
+		if (hub === "Both") return "both";
+		if (hub === "None") return "none";
+		return ((hub === "Red") === leftIsRed) ? "left" : "right";
+	})() as "left" | "right" | "both" | "none";
+
 	$: top = $settings.top;
 </script>
 
@@ -51,30 +63,30 @@
 			in:fade={{ duration: 200 }}
 			out:fade={{ duration: 200 }}
 		>
-			★ MATCH UNDER REVIEW ★
+			MATCH UNDER REVIEW
 		</div>
 	{/if}
 
-	<!-- Top bar (flips to bottom when settings.top is true) -->
+	<!-- Top bar — slides down from top -->
 	<div
 		class="fixed left-0 right-0"
-		style="{top ? 'bottom: 0;' : 'top: 0;'}"
+		style="{top ? `bottom: ${$topSpring}px;` : `top: ${$topSpring}px;`}"
 	>
 		<TopBar />
 	</div>
 
 	{#if ready && leftScore && rightScore}
-		<!-- Floating score bug -->
+		<!-- Score bar — slides up from bottom -->
 		<div
 			class="fixed"
 			style="
 				left: 50%;
 				transform: translateX(-50%);
-				{top ? 'top: 150px;' : 'bottom: 56px;'}
-				width: 1480px;
+				{top ? `top: 150px;` : `bottom: calc(72px - ${$barSpring}px);`}
+				width: min(1440px, calc(100vw - 80px));
 			"
-			in:fade={{ duration: 300 }}
-			out:fade={{ duration: 200 }}
+			in:fade={{ duration: 150 }}
+			out:fade={{ duration: 150 }}
 		>
 			<div
 				class="grid overflow-hidden"
@@ -85,6 +97,9 @@
 					color={leftColor}
 					score={leftScore}
 					teams={leftTeams}
+					hubActive={leftHubActive}
+					timer={$state.match.timer}
+					phase={$state.match.phase}
 				/>
 				<BugCenter
 					phase={$state.match.phase}
@@ -96,6 +111,9 @@
 					color={rightColor}
 					score={rightScore}
 					teams={rightTeams}
+					hubActive={rightHubActive}
+					timer={$state.match.timer}
+					phase={$state.match.phase}
 				/>
 				<div class="bg-rainbow" style="grid-column: 1 / -1; height: 8px;"></div>
 			</div>

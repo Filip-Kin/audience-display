@@ -1,52 +1,37 @@
-﻿<script lang="ts">
-	import { spring } from "svelte/motion";
-	import { blur, fade, fly } from "svelte/transition";
-	import { state } from "../../../../lib/state";
-	import { createEventDispatcher, onMount } from "svelte";
-	import { displayEventName, matchName } from "../../../../lib/matchNamer";
-	import { settings } from "../../../../lib/settings";
-	import Logo from "../../../../lib/Logo.svelte";
+<script lang="ts">
+	import { fade, fly } from "svelte/transition";
+	import { state, eventDisplayName } from "@lib/state";
+	import { settings } from "@lib/settings";
+	import { createEventDispatcher } from "svelte";
+	import { matchName } from "@lib/matchNamer";
+	import Logo from "@lib/components/Logo.svelte";
+	import Shutter from "@lib/components/Shutter.svelte";
+	import MatchEventHeader from "@lib/components/MatchEventHeader.svelte";
 
 	let ready = false;
 	const dispatcher = createEventDispatcher();
 	export let exit = false;
 
-	let shutterSpring = spring(120, {
-		stiffness: 0.1,
-		damping: 0.5,
-	});
-
-	onMount(() => {
-		shutterSpring.set(50);
-		setTimeout(() => {
-			ready = true;
-		}, 500);
-	});
-
-	$: if (exit) {
-		shutterSpring.set(120);
-		ready = false;
-		setTimeout(() => {
-			dispatcher("transitioned");
-		}, 500);
-	}
-
-	$: console.log($state.eventDetails);
+	$: eventLabel = $eventDisplayName;
+	$: matchLabel = $state.match
+		? matchName($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType) ?? ""
+		: "";
 </script>
 
-<div class="w-full {$settings.invert ? 'bg-primary' : 'bg-secondary'} h-full fixed -skew-x-12 flex flex-row justify-end" style={`right: ${$shutterSpring}vw`}></div>
+<Shutter
+	{exit}
+	leftColor={$settings.invert ? "var(--primary)" : "var(--secondary)"}
+	rightColor={$settings.invert ? "var(--secondary)" : "var(--primary)"}
+	on:ready={() => { ready = true; }}
+	on:transitioned={() => dispatcher("transitioned")}
+/>
 
-<div class="w-full {$settings.invert ? 'bg-secondary' : 'bg-primary'} h-full fixed -skew-x-12 flex flex-row justify-start" style={`left: ${$shutterSpring}vw`}></div>
-
-<div class="fixed flex flex-col w-full h-full justify-around">
+<div class="fixed flex flex-col w-full h-full justify-around" style="z-index: 10;">
 	<div class="w-full flex flex-row justify-around py-16">
 		{#if $state.match}
 			{#if ready}
-				<div class="bg-black min-w-96 rounded px-32 py-8 text-center text-3xl" in:fly={{ y: -50, duration: 100 }} out:fade={{ duration: 100 }}>
-					<span class="text-accentWarn font-bold">
-						{displayEventName($state.eventDetails?.name)}
-						{matchName($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType)}
-					</span>
+				<div in:fly={{ y: -50, duration: 100 }} out:fade={{ duration: 100 }}>
+					<MatchEventHeader {eventLabel} {matchLabel} />
 				</div>
 			{/if}
 		{/if}
@@ -55,7 +40,7 @@
 	{#if ready}
 		<div class="w-full flex justify-center" in:fly={{ y: -400, duration: 200 }} out:fly={{ y: 100, duration: 300 }}>
 			<div class:glint-wrapper={$state.screen === "scores-ready"}>
-				<Logo alt="Logo" class="size-96 mx-auto {$state.screen === 'scores-ready' ? 'glint-image' : ''}" style="animation-duration: 2s;" />
+				<Logo alt="Logo" style="width: 480px; height: 480px; display: block;" class="mx-auto {$state.screen === 'scores-ready' ? 'glint-image' : ''}" />
 			</div>
 		</div>
 	{/if}

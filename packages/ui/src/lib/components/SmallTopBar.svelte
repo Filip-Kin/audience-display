@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Spring } from "svelte/motion";
-	import { matchName } from "./matchNamer";
-	import { settings } from "./settings";
-	import { state } from "./state";
+	import { matchName } from "../matchNamer";
+	import { settings } from "../settings";
+	import { state } from "../state";
 
 	export let positionSpring: Spring<number> | undefined = undefined;
 	export let eventNameOnly = false;

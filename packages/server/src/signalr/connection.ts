@@ -398,6 +398,10 @@ export class FMSSignalRConnection {
       this.emit("videoSwitch", "alliance-selection");
     } else if (option === "AllianceFullscreen") {
       this.emit("videoSwitch", "alliance-selection-fullscreen");
+    } else if (option === "Bracket") {
+      this.emit("videoSwitch", "playoff-bracket");
+    } else if (option === "Rankings") {
+      this.emit("videoSwitch", "rankings");
     } else if (option === "Timeout") {
       this.emit("videoSwitch", "timeout");
     }

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "fake-fms": {
+      "type": "http",
+      "url": "http://10.0.100.5:3010/mcp"
+    }
+  }
+}

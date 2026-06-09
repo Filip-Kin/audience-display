@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { playSound } from "./audio";
-	import { settings } from "./settings"; // adjust if path is different
-	import { setScreen, state, sendSelectProfile } from "./state";
-	import { listProfiles, DEFAULT_PROFILE_ID } from "../profiles";
+	import { playSound } from "../audio";
+	import { settings } from "../settings"; // adjust if path is different
+	import { setScreen, state, sendSelectProfile } from "../state";
+	import { listProfiles, DEFAULT_PROFILE_ID } from "../../profiles";
 
 	export let settingsOpen: boolean;
 

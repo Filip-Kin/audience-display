@@ -1,5 +1,5 @@
 ﻿<script lang="ts">
-	import { state } from "../../../../lib/state";
+	import { state } from "@lib/state";
 
 	$: redWins = $state.results?.details.redSeriesWins ?? 0;
 	$: blueWins = $state.results?.details.blueSeriesWins ?? 0;
@@ -8,7 +8,7 @@
 </script>
 
 <div class="flex flex-col items-center gap-4">
-	<h2 class="text-3xl font-bold uppercase tracking-widest">Finals â€” Best of 3</h2>
+	<h2 class=”text-3xl font-bold uppercase tracking-widest”>Finals: Best of 3</h2>
 	<div class="grid grid-cols-2 gap-8 text-center">
 		<div class="flex flex-col items-center gap-2">
 			<span class="text-xl font-bold text-white">{redAllianceName}</span>

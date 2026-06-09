@@ -4,6 +4,7 @@ import { playSound } from "./audio";
 import { settings } from "./settings";
 import type { Screen } from "../../../lib/types/audience_display";
 import { applyTheme } from "./theme";
+import { displayEventName } from "./matchNamer";
 import { getProfile, DEFAULT_PROFILE_ID } from "../profiles";
 
 const defaultState: AudienceDisplayState = {
@@ -75,6 +76,10 @@ export const state = writable(defaultState, (set) => {
 
 export const activeProfileId = derived(state, ($s) => $s.activeProfileId);
 export const activeProfile = derived(state, ($s) => getProfile($s.activeProfileId));
+export const eventDisplayName = derived(
+  [state, activeProfile],
+  ([$s, $p]) => displayEventName($p.eventName || $s.eventDetails?.name)
+);
 
 export const setScreen = (screen: Screen) => {
   state.update((s) => {

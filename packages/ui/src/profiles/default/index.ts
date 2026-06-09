@@ -10,6 +10,7 @@ import PlayoffBracket from "./screens/playoff-bracket/PlayoffBracket.svelte";
 const profile: ProfileDefinition = {
   id: "default",
   name: "Default (Red + Blue)",
+  // eventName: "Kettering District Event",  // uncomment to override the FMS event name
   theme: {
     // `primary` / `secondary` drive the shutter backgrounds — kept darker than
     // the vivid alliance colors so score boxes / team cards / RP badges (which

@@ -3,12 +3,10 @@
 
 	export let phase: MatchPhase;
 	export let timer: number;
-	// Which side the yellow hub-active arrow protrudes from on this center
-	// panel. Computed by parent from match.hubActive + settings.invert.
-	export let arrowSide: "left" | "right" | "none";
+	export let arrowSide: "left" | "right" | "both" | "none";
 
 	const PHASE_LABELS: Record<MatchPhase, string> = {
-		PreMatch: "PRE-MATCH",
+		PreMatch: "",
 		Auto: "AUTO",
 		TransitionShift: "TRANSITION",
 		Shift1: "SHIFT 1",
@@ -39,58 +37,43 @@
 		min-width: 240px;
 	"
 >
-	<div
-		class="uppercase"
-		style="
-			font-size: 20px;
-			font-weight: 900;
-			letter-spacing: 0.18em;
-			color: {isEndgame ? 'var(--accentWarn)' : 'white'};
-		"
-	>
-		{phaseLabel}
-	</div>
+	<!-- Hub active corner indicators (absolute, never shift content) -->
+	{#if arrowSide === "left" || arrowSide === "both"}
+		<svg
+			width="18" height="22" viewBox="0 0 18 22"
+			style="position: absolute; top: 6px; left: 6px; filter: drop-shadow(0 0 5px oklch(0.86 0.18 92 / 0.9));"
+		>
+			<path d="M 18 0 L 0 11 L 18 22 Z" fill="var(--accentWarn)" />
+		</svg>
+	{/if}
+	{#if arrowSide === "right" || arrowSide === "both"}
+		<svg
+			width="18" height="22" viewBox="0 0 18 22"
+			style="position: absolute; top: 6px; right: 6px; filter: drop-shadow(0 0 5px oklch(0.86 0.18 92 / 0.9));"
+		>
+			<path d="M 0 0 L 18 11 L 0 22 Z" fill="var(--accentWarn)" />
+		</svg>
+	{/if}
+
+	<!-- Phase label: never shifts, no arrows here -->
+	{#if phaseLabel}
+		<div
+			class="uppercase"
+			style="
+				font-size: 20px;
+				font-weight: 900;
+				letter-spacing: 0.18em;
+				color: {isEndgame ? 'var(--accentWarn)' : 'white'};
+			"
+		>
+			{phaseLabel}
+		</div>
+	{/if}
+
 	<div
 		class="display tabular-nums text-white"
 		style="font-size: 100px; line-height: 0.92; margin-top: 2px;"
 	>
 		{mmss(timer)}
 	</div>
-
-	{#if arrowSide === "left"}
-		<div
-			class="absolute ad-pulse-opacity"
-			style="top: 50%; transform: translateY(-50%); left: -14px;"
-		>
-			<svg
-				width="56"
-				height="72"
-				viewBox="0 0 56 72"
-				style="
-					transform: scaleX(-1);
-					filter: drop-shadow(0 0 12px oklch(0.86 0.18 92 / 0.6));
-					display: block;
-				"
-			>
-				<path d="M 0 0 L 48 36 L 0 72 Z" fill="var(--accentWarn)" />
-			</svg>
-		</div>
-	{:else if arrowSide === "right"}
-		<div
-			class="absolute ad-pulse-opacity"
-			style="top: 50%; transform: translateY(-50%); right: -14px;"
-		>
-			<svg
-				width="56"
-				height="72"
-				viewBox="0 0 56 72"
-				style="
-					filter: drop-shadow(0 0 12px oklch(0.86 0.18 92 / 0.6));
-					display: block;
-				"
-			>
-				<path d="M 0 0 L 48 36 L 0 72 Z" fill="var(--accentWarn)" />
-			</svg>
-		</div>
-	{/if}
 </div>

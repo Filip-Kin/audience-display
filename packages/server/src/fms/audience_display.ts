@@ -450,7 +450,7 @@ export class AudienceDisplayManager {
       }
       const blueActive = data.BlueAllianceGoalActive;
       const redActive = data.RedAllianceGoalActive;
-      this.match.hubActive = blueActive ? "Blue" : redActive ? "Red" : "None";
+      this.match.hubActive = blueActive && redActive ? "Both" : blueActive ? "Blue" : redActive ? "Red" : "None";
       this.broadcastState();
     });
 

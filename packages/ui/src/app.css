@@ -255,3 +255,12 @@ body { font-family: var(--font-body); }
     50%      { transform: scale(1.10); opacity: 1; }
 }
 .ad-halo { animation: ad-halo 2.4s ease-in-out infinite; }
+
+@keyframes glow-pulse-red {
+    0%, 100% { box-shadow: 0 0 80px 18px var(--redAlliance); }
+    50%       { box-shadow: 0 0 20px 3px var(--redAlliance); }
+}
+@keyframes glow-pulse-blue {
+    0%, 100% { box-shadow: 0 0 80px 18px var(--blueAlliance); }
+    50%       { box-shadow: 0 0 20px 3px var(--blueAlliance); }
+}

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { activeProfile } from "./state";
+	import { activeProfile } from "../state";
 
 	export let alt = "Logo";
 	let className = "";

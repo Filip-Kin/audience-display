@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { state, activeProfile } from "../../../../lib/state";
-	import { displayEventName, matchName } from "../../../../lib/matchNamer";
+	import { state, activeProfile, eventDisplayName } from "@lib/state";
+	import { matchName } from "@lib/matchNamer";
 	import { createEventDispatcher, onMount, onDestroy } from "svelte";
-	import Logo from "../../../../lib/Logo.svelte";
+	import Logo from "@lib/components/Logo.svelte";
 
 	const dispatcher = createEventDispatcher();
 	export let exit = false;
@@ -74,7 +74,7 @@
 						class="display uppercase"
 						style="font-size: 26px; letter-spacing: 0.18em; color: var(--text-dim);"
 					>
-						{displayEventName($state.eventDetails?.name)}
+						{$eventDisplayName}
 					</div>
 					<div
 						class="display text-white"
