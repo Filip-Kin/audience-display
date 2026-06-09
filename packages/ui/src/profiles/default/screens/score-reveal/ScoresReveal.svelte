@@ -8,7 +8,6 @@
 	import ScoreBreakdown from "@lib/components/ScoreBreakdown.svelte";
 	import EventHighScoreBanner from "./EventHighScoreBanner.svelte";
 	import MatchUnderReviewOverlay from "./MatchUnderReviewOverlay.svelte";
-	import TiebreakerBar from "./TiebreakerBar.svelte";
 	import Logo from "@lib/components/Logo.svelte";
 	import Shutter from "@lib/components/Shutter.svelte";
 	import MatchEventHeader from "@lib/components/MatchEventHeader.svelte";
@@ -129,7 +128,6 @@
 		<!-- Cell 2: center match results, spans 2 rows -->
 		<div class="flex flex-col row-span-2 pt-32">
 			<div class="max-w-3xl text-center text-6xl mx-auto w-full" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>
-				<TiebreakerBar {tiebreaker} />
 				<div class="overflow-hidden shadow-[0_12px_40px_oklch(0_0_0/0.6)]">
 					<div class="flex" class:flex-row-reverse={$settings.invert}>
 						<div class="bg-blueAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">

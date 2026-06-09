@@ -9,7 +9,7 @@
 	// 2026 REBUILT playoff tiebreaker criteria, in FMS sort order (game manual Table 10-3).
 	const TIEBREAK_LABELS: Record<PlayoffTiebreakType, string> = {
 		Unknown: "Decided by Tiebreaker",
-		TrueTie: "True Tie: Match Replayed",
+		TrueTie: "True Tie: Match Replay",
 		TieBreakSortOrder1: "Tiebreaker: Major Foul Points",
 		TieBreakSortOrder2: "Tiebreaker: Auto Fuel Points",
 		TieBreakSortOrder3: "Tiebreaker: Tower Points",
