@@ -1,9 +1,24 @@
 <script lang="ts">
-	import type { AllianceScore } from "lib";
+	import type { AllianceScore, PlayoffTiebreakType } from "lib";
 	import { fade } from "svelte/transition";
 
 	export let leftScore: AllianceScore;
 	export let rightScore: AllianceScore;
+	export let tiebreaker: PlayoffTiebreakType | undefined = undefined;
+
+	// 2026 REBUILT playoff tiebreaker criteria, in FMS sort order (game manual Table 10-3).
+	const TIEBREAK_LABELS: Record<PlayoffTiebreakType, string> = {
+		Unknown: "Decided by Tiebreaker",
+		TrueTie: "True Tie: Match Replayed",
+		TieBreakSortOrder1: "Tiebreaker: Major Foul Points",
+		TieBreakSortOrder2: "Tiebreaker: Auto Fuel Points",
+		TieBreakSortOrder3: "Tiebreaker: Tower Points",
+		TieBreakSortOrder4: "Tiebreaker: Sort Order 4",
+		TieBreakSortOrder5: "Tiebreaker: Sort Order 5",
+		TieBreakSortOrder6: "Tiebreaker: Sort Order 6",
+	};
+
+	$: tiebreakLabel = tiebreaker ? TIEBREAK_LABELS[tiebreaker] : "";
 </script>
 
 <div
@@ -36,4 +51,12 @@
 		<span>Penalty</span>
 		<span class="tabular-nums">{rightScore.foulPoints}</span>
 	</div>
+	{#if tiebreakLabel}
+		<div
+			class="bg-accentWarn text-black px-2 py-2 text-2xl text-center uppercase tracking-wider"
+			in:fade={{ duration: 250 }}
+		>
+			{tiebreakLabel}
+		</div>
+	{/if}
 </div>

@@ -154,7 +154,7 @@
 
 			<div class="flex flex-col items-center">
 				{#if leftBreakdownScore && rightBreakdownScore}
-					<ScoreBreakdown leftScore={leftBreakdownScore} rightScore={rightBreakdownScore} />
+					<ScoreBreakdown leftScore={leftBreakdownScore} rightScore={rightBreakdownScore} {tiebreaker} />
 				{/if}
 
 				<div
