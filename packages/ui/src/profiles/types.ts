@@ -20,4 +20,16 @@ export type ProfileDefinition = {
      */
     cover?: string;
   };
+  /**
+   * Opt-in per-profile display tweaks to the shared default screens. Omit for
+   * the plain default look; a profile sets only the flags it wants.
+   */
+  options?: {
+    /**
+     * Match-preview: render each alliance's name on a full-width red/blue bar
+     * (matching the team-card width) instead of plain white text. Makes the
+     * red/blue alliance obvious at a glance. Off by default.
+     */
+    allianceNameBackground?: boolean;
+  };
 };

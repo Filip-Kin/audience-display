@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { state, eventDisplayName } from "@lib/state";
+	import { state, eventDisplayName, activeProfile } from "@lib/state";
 	import { settings } from "@lib/settings";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { matchName } from "@lib/matchNamer";
@@ -25,7 +25,11 @@
 
 	$: matchType = $state.match?.details.matchType ?? "q";
 	$: isPlayoff = matchType !== "q" && matchType !== "t";
-	$: leftIsRed = !$settings.invert;
+	// Match the score screen's arrangement: Blue on the left, Red on the right
+	// when not inverted (the score screen puts blue-left/red-right).
+	$: leftIsRed = $settings.invert;
+	// Per-profile: alliance names on full-width red/blue bars (WRC). Off = plain.
+	$: allianceNameBg = $activeProfile.options?.allianceNameBackground ?? false;
 	$: leftTeams = leftIsRed ? $state.match?.teams.red ?? [] : $state.match?.teams.blue ?? [];
 	$: rightTeams = leftIsRed ? $state.match?.teams.blue ?? [] : $state.match?.teams.red ?? [];
 
@@ -65,10 +69,15 @@
 			<div class="absolute grid items-center top-[130px] left-[60px] right-[60px] bottom-[60px] grid-cols-[1fr_auto_1fr] gap-10 z-10">
 				<!-- Left alliance -->
 				<div class="flex flex-col items-stretch" style="gap: {cardGap}px;">
-					<div class="flex flex-row items-center gap-4">
-						<div class="display text-white text-[52px] leading-none tracking-[0.04em]">
-							{leftAllianceName}
-						</div>
+					<div
+						class="display text-white text-[52px] leading-none tracking-[0.04em]"
+						class:w-full={allianceNameBg}
+						class:py-3={allianceNameBg}
+						class:text-center={allianceNameBg}
+						class:bg-redAlliance={allianceNameBg && leftIsRed}
+						class:bg-blueAlliance={allianceNameBg && !leftIsRed}
+					>
+						{leftAllianceName}
 					</div>
 
 					<AllianceSection teams={leftTeams} alliance={leftIsRed ? "red" : "blue"} {ready} {compact} gap={cardGap}>
@@ -89,10 +98,15 @@
 
 				<!-- Right alliance (mirrored) -->
 				<div class="flex flex-col items-stretch" style="gap: {cardGap}px;">
-					<div class="flex flex-row-reverse items-center gap-4">
-						<div class="display text-white text-[52px] leading-none tracking-[0.04em]">
-							{rightAllianceName}
-						</div>
+					<div
+						class="display text-white text-[52px] leading-none tracking-[0.04em] text-right"
+						class:w-full={allianceNameBg}
+						class:py-3={allianceNameBg}
+						class:!text-center={allianceNameBg}
+						class:bg-blueAlliance={allianceNameBg && leftIsRed}
+						class:bg-redAlliance={allianceNameBg && !leftIsRed}
+					>
+						{rightAllianceName}
 					</div>
 
 					<AllianceSection teams={rightTeams} alliance={leftIsRed ? "blue" : "red"} {ready} {compact} gap={cardGap}>

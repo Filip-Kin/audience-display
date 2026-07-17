@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Team } from "lib";
 	import { defaultAvatar } from "@lib/avatar";
+	import { fitTwoLines } from "@lib/fitText";
 
 	export let team: Team;
 	export let alliance: "red" | "blue";
@@ -13,6 +14,10 @@
 	$: avatarSize = compact ? 96 : 160;
 	$: numFont = compact ? 72 : 84;
 	$: nameFont = compact ? 24 : 48;
+	// Fixed footprint for the name = one line at the base size. Long names shrink
+	// (down to ~half) and wrap to two lines WITHIN this box, so the card height
+	// never changes whether a name is one line or two.
+	$: nameBoxH = Math.round(nameFont * 1.2);
 	$: rankFont = compact ? 44 : 56;
 	$: cardPad = compact ? "10px 12px" : "18px 24px";
 	$: cols = showRank
@@ -50,8 +55,13 @@
 		<div class="display team-num -mx-4 leading-[0.9] text-[oklch(0.14_0_0)]" style="font-size: {numFont}px;">
 			{team.number}
 		</div>
-		<div class="truncate font-bold mt-1 px-2 text-[oklch(0.28_0_0)]" style="font-size: {nameFont}px;">
-			{team.name}
+		<div class="mt-1 px-2 flex flex-col justify-center overflow-hidden" style="height: {nameBoxH}px;">
+			<div
+				class="font-bold text-[oklch(0.28_0_0)]"
+				use:fitTwoLines={{ max: nameFont, min: Math.floor(nameFont * 0.5), maxHeight: nameBoxH, text: team.name }}
+			>
+				{team.name}
+			</div>
 		</div>
 		{#if !showRank && hasCard}
 			<div class="inline-block mt-1 uppercase px-1.5 py-0.5 text-[10px] font-black tracking-[0.08em] {cardClass} w-16 h-8"></div>

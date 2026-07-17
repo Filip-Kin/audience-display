@@ -41,6 +41,12 @@ const profile: ProfileDefinition = {
     // First frame of the WRC victory videos; covers the buffering gap.
     cover: "/animations/wrc/first-frame.png",
   },
+  options: {
+    // WRC-only: put the alliance names on red/blue bars in match preview. The
+    // navy shutter theme makes plain names ambiguous, so the colored bars call
+    // out which side is which. Default profile keeps plain white names.
+    allianceNameBackground: true,
+  },
   // Override-only: omitted screens fall back to the default profile.
   screens: {},
 };
