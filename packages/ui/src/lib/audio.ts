@@ -1,4 +1,13 @@
 import { Sound } from "svelte-sound";
+import { writable } from "svelte/store";
+
+/**
+ * True once the browser will allow audio playback: either autoplay was already
+ * permitted on load, or the user pressed "Enable Audio" (a user gesture). The
+ * score-reveal video waits on this so it plays WITH sound instead of freezing
+ * (autoplay blocked) or starting muted before the user unlocks.
+ */
+export const audioUnlocked = writable(false);
 
 import abort_wav from "../assets/audio/abort.wav";
 import matchEnd_wav from "../assets/audio/end.wav";

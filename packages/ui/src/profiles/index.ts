@@ -2,9 +2,11 @@ import type { ComponentType } from "svelte";
 import type { Screen } from "lib";
 import type { ProfileDefinition } from "./types";
 import defaultProfile from "./default";
+import wrcProfile from "./wrc";
 
 const registry: Record<string, ProfileDefinition> = {
   [defaultProfile.id]: defaultProfile,
+  [wrcProfile.id]: wrcProfile,
 };
 
 export const DEFAULT_PROFILE_ID = defaultProfile.id;

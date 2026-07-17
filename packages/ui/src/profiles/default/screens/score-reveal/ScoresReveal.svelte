@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { fade, fly } from "svelte/transition";
 	import { state, activeProfile, eventDisplayName } from "@lib/state";
-	import { createEventDispatcher, onMount } from "svelte";
+	import { createEventDispatcher, onMount, onDestroy } from "svelte";
 	import { matchName } from "@lib/matchNamer";
 	import { settings } from "@lib/settings";
 	import Alliance from "./Alliance.svelte";
@@ -13,6 +13,7 @@
 	import MatchEventHeader from "@lib/components/MatchEventHeader.svelte";
 	import { packUrl } from "@lib/animation_pack.js";
 	import { get } from "svelte/store";
+	import { audioUnlocked } from "@lib/audio";
 
 	let ready = false;
 	let videoReady = false;
@@ -21,6 +22,9 @@
 
 	let animation: string;
 	let videoElm: HTMLVideoElement;
+	let canPlay = false;
+	let started = false;
+	let unsubAudio: (() => void) | undefined;
 
 	onMount(() => {
 		if ($state.results?.score.winner) {
@@ -39,8 +43,22 @@
 
 		videoElm.style.display = "block";
 
-		videoElm.addEventListener("canplay", () => {
-			videoElm.play();
+		function beginPlayback() {
+			if (started) return;
+			started = true;
+			// Audio is unlocked here, so play from the start with sound.
+			videoElm.muted = false;
+			try {
+				videoElm.currentTime = 0;
+			} catch {}
+			const played = videoElm.play();
+			if (played && typeof played.catch === "function") {
+				played.catch(() => {
+					// Should not happen once unlocked; never hang, play muted.
+					videoElm.muted = true;
+					videoElm.play().catch(() => {});
+				});
+			}
 			dispatcher("loaded");
 			setTimeout(
 				() => {
@@ -48,7 +66,22 @@
 				},
 				videoElm.duration * 1000 - 500
 			);
+		}
+
+		// Start only once the video can play AND the browser allows audio
+		// (autoplay permitted, or the user pressed "Enable Audio"). Until then
+		// the still-frame cover stays up, rather than freezing mid-frame or
+		// starting muted before the user unlocks.
+		function maybeBegin() {
+			if (canPlay && get(audioUnlocked)) beginPlayback();
+		}
+
+		videoElm.addEventListener("canplay", () => {
+			canPlay = true;
+			maybeBegin();
 		});
+
+		unsubAudio = audioUnlocked.subscribe(() => maybeBegin());
 
 		videoElm.addEventListener("error", () => {
 			if (animation && !animation.includes("/animations/default/")) {
@@ -59,6 +92,10 @@
 				videoElm.load();
 			}
 		});
+	});
+
+	onDestroy(() => {
+		unsubAudio?.();
 	});
 
 	$: if (exit) {

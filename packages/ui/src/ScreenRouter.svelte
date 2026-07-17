@@ -5,6 +5,7 @@
 	import SettingsIcon from "./assets/settings.svg";
 	import SettingsModal from "./lib/components/SettingsModal.svelte";
 	import EnableAudioModal from "./lib/components/EnableAudioModal.svelte";
+	import { audioUnlocked } from "./lib/audio";
 	import { settings } from "./lib/settings";
 	import { resolveScreen } from "./profiles";
 
@@ -100,13 +101,16 @@
 
 	onMount(async () => {
 		const success = await tryPlaySilentAudio();
-		if (!success) {
+		if (success) {
+			audioUnlocked.set(true);
+		} else {
 			showUnlockPopup = true;
 		}
 	});
 
 	function unlockManually() {
 		audioContext.resume();
+		audioUnlocked.set(true);
 		showUnlockPopup = false;
 	}
 </script>

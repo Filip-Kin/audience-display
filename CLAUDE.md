@@ -3,6 +3,81 @@
 Renders FRC match preview/results, the playoff bracket, alliance selection, and rankings from FMS
 (SignalR hubs + REST). Not yet validated against real 2026 FMS.
 
+Bun + Svelte (Vite). Workspaces: `packages/server` (FMS bridge + static host, port **3001**),
+`packages/ui` (Svelte UI), `packages/lib` (shared types).
+
+## Profiles (per-event branding + screen overrides)
+
+Profiles live in `packages/ui/src/profiles/`. Each profile is a `ProfileDefinition`
+(`profiles/types.ts`): `id`, `name`, optional `eventName`, `theme`, `assets`, `animations`, and a
+`screens` map. Register new profiles in `profiles/index.ts`.
+
+**There is one canonical set of screen components: `profiles/default/screens/`.** Other profiles are
+branding overrides (theme colors, event/livestream logos, victory animations) that reuse those
+components. This means any change to a component in `profiles/default/screens/` or to `app.css`, or
+anything driven off `activeProfile`, is global and applies to every profile automatically. That is
+the intended way to keep all profiles in sync: put shared behavior in the default screens / `app.css`,
+and reference `activeProfile.assets` / theme vars for anything logo- or color-specific.
+
+**Per-screen override:** `resolveScreen(profileId, screen)` (in `profiles/index.ts`) checks
+`profile.screens[screen]` first and falls back to `defaultProfile.screens[screen]` if the profile does
+not define it. So a profile's `screens` map is **override-only**: list only the screens you want to
+replace, and everything omitted falls back to default. To override one screen for a profile, create the
+component under `profiles/<id>/screens/...` and add it to that profile's `screens` map keyed by the
+`Screen` id (e.g. `screens: { "scores-ready": MyScoresReady }`). Do NOT set
+`screens: defaultProfile.screens` (that hard-copies the whole map and removes the ability to override).
+
+### WRC profile (`profiles/wrc/`)
+
+Wolverine Robotics Competition. `id: "wrc"`. Override-only `screens: {}` (all fall back to default).
+Branding: event logo `/wrc.png`, livestream `/pitpodcast.png`, theme reuses default's. `eventName`
+is left unset so the live FMS event name shows; set it to override. Victory animations are custom:
+`/animations/wrc/{redwins,bluewins,tie}.mp4` (see below).
+
+### Animations and the loading cover
+
+`animation_pack.ts` resolves victory videos: `packUrl(profile, key)` returns
+`profile.animations[key]` if set, else `/animations/default/<file>`. Keys: `victoryRed`,
+`victoryBlue`, `victoryTie`, `bgIdle`. `ScoresReveal.svelte` picks the video by match winner and, on a
+video error, falls back to the default pack.
+
+`/animations/first-frame.png` is a single shared still shown as the cover while the victory video
+loads (`ScreenRouter.svelte`). It should match the first frame of the victory clips. Regenerate with:
+`ffmpeg -y -i packages/ui/public/animations/wrc/redwins.mp4 -frames:v 1 -update 1 first-frame.png`
+(the WRC red/blue/tie clips share an identical opening frame).
+
+Optimize new victory videos for fast load with faststart:
+`ffmpeg -y -i IN -c:v libx264 -profile:v high -pix_fmt yuv420p -preset medium -crf 21 -maxrate 6M -bufsize 12M -movflags +faststart -c:a aac -b:a 128k OUT`
+
+### Glint (glimmer) sweep
+
+The logo shimmer on the scores-ready screen is a masked gradient in `app.css` (`.glint-wrapper::before`).
+The mask must be the **profile's** event logo, passed in via the `--glint-mask` CSS var set on the
+wrapper in `ScoresReady.svelte` (`style="--glint-mask: url('{eventLogo}')"`). Do not hardcode a logo
+path in `app.css` (a stale `/logo.png` there silently masked out the whole effect).
+
+## Building and running the demo
+
+The server (`packages/server/src/index.ts`) serves the built UI from `./.temp/dist` (relative to its
+cwd, `packages/server`) and hosts the WebSocket on port **3001**. It reads the active profile from a
+`.active-profile` marker file in that cwd, defaulting to `default`. FMS target: `FMS_URL` (default
+`10.0.100.5`); `FAKE_FMS=true` points at a local dotnet fake at `127.0.0.1:8080` instead.
+
+Build + run against the live `fake-fms` at `10.0.100.5`:
+
+```bash
+bun install
+bun run ui:build                                  # vite build + repack ui-dist.zip
+cp -r packages/ui/dist packages/server/.temp/dist # stage what the server serves in dev
+echo wrc > packages/server/.active-profile        # pick the profile
+cd packages/server && FMS_URL=10.0.100.5 bun src/index.ts
+# open http://<server-ip>:3001/display  (server LAN IP is 192.168.1.2)
+```
+
+The server only serves `./.temp/dist` in dev (the compiled `.exe` build unzips `ui-dist.zip` itself),
+so after a UI change rebuild and re-copy into `packages/server/.temp/dist`; the running process serves
+assets live with no restart.
+
 ## Testing with the Fake FMS emulator (MCP)
 
 `fake-fms` (repo `Filip-Kin/fake-fms`) emulates real 2026 FMS at **`10.0.100.5`** (same SignalR hubs +
