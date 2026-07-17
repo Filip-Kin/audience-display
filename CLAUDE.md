@@ -8,6 +8,26 @@ Bun + Svelte (Vite). Workspaces: `packages/server` (FMS bridge + static host, po
 
 ## Profiles (per-event branding + screen overrides)
 
+> **BE CAREFUL WHEN MAKING CHANGES.** For every change, stop and decide its scope FIRST. This is NOT
+> a flat rule you can apply mechanically — think about the specific change, and if you can't work out
+> which scope is intended, ASK the user.
+> - **All-profiles change:** edit a shared default screen / `app.css` / shared code and every profile
+>   inherits it. Right when the change is a genuine improvement to shared behavior or layout.
+> - **Per-profile change:** put it ONLY in that profile. Right when the change is specific to one
+>   event. Do NOT edit a shared file or another profile's assets, and do NOT overwrite a shared asset
+>   in place; give the asset a per-profile path with a default fallback instead.
+>
+> Anything can be either scope, including screen layout and behavior. A layout/behavior change can be
+> all-profiles (edit the default screen) OR per-profile (override just that screen via
+> `profiles/<id>/screens/...`, see below). Assets/colors/copy likewise: shared default vs. per-profile
+> override. So the question is never "is this the kind of thing that's shared?" but "for THIS change,
+> is it meant for one event or all of them?" When it's ambiguous, ask.
+>
+> Getting scope wrong breaks other profiles silently. Real example: the loading cover was one shared
+> `/animations/first-frame.png`; regenerating it for WRC clobbered the stock cover for the default
+> profile (whose videos still expect the stock frame). The cover is now per-profile (see below) for
+> exactly this reason.
+
 Profiles live in `packages/ui/src/profiles/`. Each profile is a `ProfileDefinition`
 (`profiles/types.ts`): `id`, `name`, optional `eventName`, `theme`, `assets`, `animations`, and a
 `screens` map. Register new profiles in `profiles/index.ts`.
@@ -41,9 +61,13 @@ is left unset so the live FMS event name shows; set it to override. Victory anim
 `victoryBlue`, `victoryTie`, `bgIdle`. `ScoresReveal.svelte` picks the video by match winner and, on a
 video error, falls back to the default pack.
 
-`/animations/first-frame.png` is a single shared still shown as the cover while the victory video
-loads (`ScreenRouter.svelte`). It should match the first frame of the victory clips. Regenerate with:
-`ffmpeg -y -i packages/ui/public/animations/wrc/redwins.mp4 -frames:v 1 -update 1 first-frame.png`
+The loading cover is the still shown while the victory video buffers (`ScreenRouter.svelte`, via
+`coverUrl($activeProfile)` in `animation_pack.ts`). It is **per-profile**: `coverUrl(profile)` returns
+`profile.animations.cover` if set, else the stock `/animations/first-frame.png` (which matches the
+default `/animations/default/*` videos). A profile with custom victory videos MUST ship its own cover
+(the first frame of ITS clips) and must NOT overwrite the shared stock cover. WRC's cover is
+`/animations/wrc/first-frame.png`. Regenerate a profile's cover from its own clip:
+`ffmpeg -y -i packages/ui/public/animations/wrc/redwins.mp4 -frames:v 1 -update 1 packages/ui/public/animations/wrc/first-frame.png`
 (the WRC red/blue/tie clips share an identical opening frame).
 
 Optimize new victory videos for fast load with faststart:

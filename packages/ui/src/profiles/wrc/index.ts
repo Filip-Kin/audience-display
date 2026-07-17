@@ -38,6 +38,8 @@ const profile: ProfileDefinition = {
     victoryRed: "/animations/wrc/redwins.mp4",
     victoryBlue: "/animations/wrc/bluewins.mp4",
     victoryTie: "/animations/wrc/tie.mp4",
+    // First frame of the WRC victory videos; covers the buffering gap.
+    cover: "/animations/wrc/first-frame.png",
   },
   // Override-only: omitted screens fall back to the default profile.
   screens: {},

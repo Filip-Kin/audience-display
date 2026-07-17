@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { state } from "./lib/state";
+	import { state, activeProfile } from "./lib/state";
 	import type { Screen } from "lib";
 	import SettingsIcon from "./assets/settings.svg";
 	import SettingsModal from "./lib/components/SettingsModal.svelte";
@@ -8,6 +8,7 @@
 	import { audioUnlocked } from "./lib/audio";
 	import { settings } from "./lib/settings";
 	import { resolveScreen } from "./profiles";
+	import { coverUrl } from "./lib/animation_pack";
 
 	let transitioning = false;
 	let activeScreen: Screen = "none";
@@ -117,7 +118,7 @@
 
 {#if preScoreReveal}
 	<div class="fixed w-full h-full">
-		<img class="w-full h-full object-contain" src="/animations/first-frame.png" alt="" />
+		<img class="w-full h-full object-contain" src={coverUrl($activeProfile)} alt="" />
 	</div>
 {/if}
 

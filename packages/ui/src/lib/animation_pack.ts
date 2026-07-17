@@ -27,3 +27,11 @@ export function packUrl(profile: ProfileDefinition, key: AnimationKey): string {
 export function defaultPackUrl(key: AnimationKey): string {
   return `/animations/default/${KEY_FILES[key]}`;
 }
+
+/**
+ * Resolve the still-frame cover shown while a victory video buffers. Falls back
+ * to the stock cover that matches the default `/animations/default/*` videos.
+ */
+export function coverUrl(profile: ProfileDefinition): string {
+  return profile.animations?.cover ?? "/animations/first-frame.png";
+}
