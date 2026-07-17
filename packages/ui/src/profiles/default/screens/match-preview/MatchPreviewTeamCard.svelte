@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Team } from "lib";
-	import { defaultAvatar } from "@lib/avatar";
+	import Avatar from "@lib/components/Avatar.svelte";
 	import { fitTwoLines } from "@lib/fitText";
 
 	export let team: Team;
@@ -43,8 +43,9 @@
 	"
 >
 	<!-- Avatar -->
-	<img
-		src="data:image/png;base64,{team.avatar || defaultAvatar}"
+	<Avatar
+		avatar={team.avatar}
+		team={team.number}
 		alt="Team {team.number}"
 		class="rounded-[6px] {alliance === 'red' ? 'bg-red-900' : 'bg-blue-900'} p-1"
 		style="width: {avatarSize}px; order: {invert ? 3 : 1};"

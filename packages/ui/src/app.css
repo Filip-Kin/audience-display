@@ -57,6 +57,9 @@ body, #app { height: 100vh; }
 html, body { background: transparent; color: var(--text); }
 body { font-family: var(--font-body); }
 
+/* Crisp (non-blurry) scaling for small source images like 40px team avatars. */
+.pixelated { image-rendering: pixelated; }
+
 /* Background utilities */
 .bg-primary       { background-color: var(--primary); }
 .bg-secondary     { background-color: var(--secondary); }

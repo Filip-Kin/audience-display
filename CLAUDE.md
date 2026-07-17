@@ -80,6 +80,30 @@ The mask must be the **profile's** event logo, passed in via the `--glint-mask` 
 wrapper in `ScoresReady.svelte` (`style="--glint-mask: url('{eventLogo}')"`). Do not hardcode a logo
 path in `app.css` (a stale `/logo.png` there silently masked out the whole effect).
 
+## Avatars (pixelated + optional avatar store)
+
+FRC avatars come from FMS as 40x40 base64 PNGs and are shown much larger. All
+avatar `<img>`s go through `lib/components/Avatar.svelte`, which:
+- renders the raw FMS avatar with `image-rendering: pixelated` (crisp, not blurry)
+  when no better source exists, and
+- if a hand-made 160px avatar has been uploaded for that team to the external
+  **avatar-store** service, uses that instead (crisp, full quality).
+
+AI upscaling was tried (Real-ESRGAN) and dropped: it smudged small details on
+logo/text avatars, and a 40px source has nothing to reconstruct.
+
+The avatar store is `Projects/avatar-store` on the NAS, public at
+`https://avatars.filipkin.com` (Cloudflare-proxied for edge caching): a
+password-protected portal to upload avatars per team (single, a ZIP of
+`<team>.png` files, or a shared default), plus public `GET /avatars` and
+`GET /avatar/{team}.png?s=160&v=<ver>` (originals kept full-res, scaled to `s`
+on request; `.png` + `Cache-Control: immutable` so Cloudflare caches, `v` =
+mtime for instant cache-busting on re-upload). Client side, `lib/avatarStore.ts` fetches
+the list of teams that have an upload (refreshed periodically) so `Avatar.svelte`
+picks the source up front. Opt-in via **`VITE_AVATAR_STORE_URL`** at UI build time
+(unset = pixelated raw avatars only). Wired into `MatchPreviewTeamCard.svelte` and
+shared `lib/components/TeamCard.svelte`. The server/exe is untouched.
+
 ## Building and running the demo
 
 The server (`packages/server/src/index.ts`) serves the built UI from `./.temp/dist` (relative to its

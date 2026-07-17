@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Team } from "lib";
 	import { fly } from "svelte/transition";
-	import { defaultAvatar } from "../avatar";
+	import Avatar from "./Avatar.svelte";
 	import ArrowUp from "../../assets/arrow-up.svg";
 	import ArrowDown from "../../assets/arrow-down.svg";
 	import NoChange from "../../assets/no-change.svg";
@@ -25,7 +25,7 @@
 	>
 		<div class="flex flex-row {allianceBg} text-white p-3 text-xl gap-4 align-middle">
 			<div class="size-[60px]">
-				<img src="data:image/png;base64,{team.avatar || defaultAvatar}" alt="{team.number} Icon" width="60" height="60" />
+				<Avatar avatar={team.avatar} team={team.number} alt="{team.number} Icon" width="60" height="60" />
 			</div>
 			<span class="text-5xl font-semibold">{team.number}</span>
 		</div>
