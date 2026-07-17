@@ -60,7 +60,7 @@
 		<!-- Centered header -->
 		{#if ready}
 			<div class="absolute left-0 right-0 flex justify-center top-7 z-10">
-				<MatchEventHeader {eventLabel} {matchLabel} />
+				<MatchEventHeader {eventLabel} {matchLabel} matchLabelSize="69px" />
 			</div>
 		{/if}
 

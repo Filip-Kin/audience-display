@@ -22,11 +22,11 @@
 	$: cardPad = compact ? "10px 12px" : "18px 24px";
 	$: cols = showRank
 		? invert
-			? (compact ? "60px 1fr 72px" : "76px 1fr 120px")
-			: (compact ? "72px 1fr 60px" : "120px 1fr 76px")
+			? (compact ? "60px 1fr 96px" : "76px 1fr 120px")
+			: (compact ? "96px 1fr 60px" : "120px 1fr 76px")
 		: invert
-			? (compact ? "1fr 60px" : "1fr 120px")
-			: (compact ? "60px 1fr" : "120px 1fr");
+			? (compact ? "1fr 96px" : "1fr 120px")
+			: (compact ? "96px 1fr" : "120px 1fr");
 
 	$: hasCard = team.card === "Yellow" || team.card === "Red";
 	$: cardClass = team.card === "Yellow"
@@ -53,7 +53,9 @@
 
 	<!-- Team number + name (+ card badge when rank hidden) -->
 	<div class="min-w-0" style="order: 2; text-align: {invert ? 'right' : 'left'};">
-		<div class="display team-num -mx-4 leading-[0.9] text-[oklch(0.14_0_0)]" style="font-size: {numFont}px;">
+		<!-- text-align: inherit overrides .team-num's centering so the number flushes
+		     to the same side (left/right) as the name; px-2 matches the name padding. -->
+		<div class="display team-num leading-[0.9] text-[oklch(0.14_0_0)] px-2" style="font-size: {numFont}px; text-align: inherit;">
 			{team.number}
 		</div>
 		<div class="mt-1 px-2 flex flex-col justify-center overflow-hidden" style="height: {nameBoxH}px;">
