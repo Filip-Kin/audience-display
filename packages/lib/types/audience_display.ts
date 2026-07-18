@@ -22,6 +22,7 @@ export type Screen =
   | "alliance-selection"
   | "alliance-selection-fullscreen"
   | "playoff-bracket"
+  | "rankings"
   | "timeout";
 
 export type AllianceScore = {
@@ -124,9 +125,24 @@ export type AudienceDisplayState = {
   allianceSize: number;
   /** Whether the selection clock counting down is a pick clock or a between-rounds break. */
   pickTimerType: "pick" | "break";
+  /** Full qualification standings for the rankings screen (from GetQualificationRankData). */
+  rankData: QualRanking[];
   bracket: BracketData | null;
   gameConfig: GameConfig | null;
   activeProfileId: string | null;
+};
+
+export type QualRanking = {
+  rank: number;
+  teamNumber: number;
+  teamName: string;
+  /** Base64 PNG from FMS, empty string when the team has none. */
+  avatar: string;
+  /** Ranking score (average RP); total RP = rankingScore * (wins + losses + ties). */
+  rankingScore: number;
+  wins: number;
+  losses: number;
+  ties: number;
 };
 
 export type AllianceSelection = {

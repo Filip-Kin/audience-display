@@ -31,7 +31,8 @@ const profile: ProfileDefinition = {
   },
   assets: {
     event: "/wrc.png", // center logo on the score-reveal screen
-    sponsors: ["/sponsor2.png"], // top-left "Event Sponsors" slot
+    // [0] is also the score-reveal sponsor slot; keep FAMNM there.
+    sponsors: ["/famnm.png", "/pitpodcast.png", "/uofmrobotics.jpg"],
     livestream: "/pitpodcast.png",
   },
   animations: {

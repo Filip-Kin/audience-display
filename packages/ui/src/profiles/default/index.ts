@@ -6,6 +6,7 @@ import ScoresReveal from "./screens/score-reveal/ScoresReveal.svelte";
 import AllianceSelection from "./screens/alliance-selection/AllianceSelection.svelte";
 import Timeout from "./screens/time-out/Timeout.svelte";
 import PlayoffBracket from "./screens/playoff-bracket/PlayoffBracket.svelte";
+import Rankings from "./screens/rankings/Rankings.svelte";
 
 const profile: ProfileDefinition = {
   id: "default",
@@ -26,7 +27,7 @@ const profile: ProfileDefinition = {
   },
   assets: {
     event: '/wrc.png',
-    sponsors: [],
+    sponsors: ['/famnm.png', '/pitpodcast.png', '/sponsors.png'],
     livestream: '/pitpodcast.png',
   },
   screens: {
@@ -45,6 +46,7 @@ const profile: ProfileDefinition = {
     "alliance-selection": AllianceSelection,
     "alliance-selection-fullscreen": AllianceSelection,
     "playoff-bracket": PlayoffBracket,
+    rankings: Rankings,
     timeout: Timeout,
   },
 };

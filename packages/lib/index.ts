@@ -7,6 +7,7 @@ export type {
   EventDetails,
   MatchType,
   AllianceSelection,
+  QualRanking,
 } from "./types/audience_display";
 
 export type {

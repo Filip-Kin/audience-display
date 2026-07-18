@@ -17,6 +17,7 @@ const defaultState: AudienceDisplayState = {
   ranking: [],
   allianceSize: 3,
   pickTimerType: "pick",
+  rankData: [],
   bracket: null,
   gameConfig: null,
   activeProfileId: null,

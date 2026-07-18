@@ -19,8 +19,9 @@ import {
   type FMSMatchSchedule,
   type FMSMatchScore,
   type FMSRankingTeam,
+  type FMSQualRankData,
 } from "lib/types/FMS_API_audience";
-import type { AllianceSelection, Team } from "lib/types/audience_display";
+import type { AllianceSelection, QualRanking, Team } from "lib/types/audience_display";
 import { getTeamName } from "../team_name";
 import { emptyAllianceScore, mapLiveScore, mapResultScore, defaultGameConfig } from "./score_mappers";
 import { fetchGameConfig } from "./game_config";
@@ -287,6 +288,7 @@ export class AudienceDisplayManager {
   private ranking: Omit<Team, "name" | "card">[] = demoRanking();
   private allianceSize = 3;
   private pickTimerType: "pick" | "break" = "pick";
+  private rankData: QualRanking[] = [];
   private connected = false;
   private bracket: BracketData | null = demoBracket();
   private gameConfig: GameConfig = defaultGameConfig();
@@ -420,6 +422,14 @@ export class AudienceDisplayManager {
         await this.updateAllianceSize();
         this.updateAllianceData(alliances);
       } else if (next === "playoff-bracket") {
+        await this.refreshBracket();
+        this.startBracketRefresh();
+        this.broadcastState();
+        return;
+      } else if (next === "rankings") {
+        await this.refreshRankData();
+      } else if (next === "timeout" && PLAYOFF_LEVELS.has(this.currentLevel)) {
+        // The timeout slideshow includes a live mini bracket during playoffs.
         await this.refreshBracket();
         this.startBracketRefresh();
         this.broadcastState();
@@ -612,6 +622,7 @@ export class AudienceDisplayManager {
           ranking: this.ranking,
           allianceSize: this.allianceSize,
           pickTimerType: this.pickTimerType,
+          rankData: this.rankData,
           bracket: this.bracket,
           gameConfig: this.gameConfig,
           activeProfileId: this.profileSelector?.get() ?? null,
@@ -904,5 +915,26 @@ export class AudienceDisplayManager {
       rank: r.rank,
       potentialCaptain: r.inPotentialCaptainPosition,
     }));
+  }
+
+  private async refreshRankData() {
+    try {
+      const res = await fetch(
+        `http://${this.fmsUrl}/api/v1.0/audience/get/GetQualificationRankData`
+      );
+      const data = (await res.json()) as FMSQualRankData;
+      this.rankData = data.teamRanks.map((t) => ({
+        rank: t.rank,
+        teamNumber: t.teamNumber,
+        teamName: t.teamName,
+        avatar: t.teamAvatar ?? "",
+        rankingScore: t.sort1,
+        wins: t.wins,
+        losses: t.losses,
+        ties: t.ties,
+      }));
+    } catch (err) {
+      console.log("Failed to fetch qualification rank data:", err);
+    }
   }
 }

@@ -163,3 +163,32 @@ export type FMSRankingTeam = {
   teamNumber: number;
   inPotentialCaptainPosition: boolean;
 };
+
+/** One entry of GetQualificationRankData's teamRanks (AudienceQualRankingTeamData). */
+export type FMSQualRankTeam = {
+  rank: number;
+  /** Base64 PNG, may be empty. */
+  teamAvatar: string;
+  teamNumber: number;
+  teamName: string;
+  /** sort1 is the ranking score (average ranking points). */
+  sort1: number;
+  sort2: number;
+  sort3: number;
+  sort4: number;
+  sort5: number;
+  sort6: number;
+  wins: number;
+  losses: number;
+  ties: number;
+};
+
+/** GetQualificationRankData response (AudienceQualRankingData). */
+export type FMSQualRankData = {
+  eventDescription: string;
+  eventLocation: string;
+  eventCode: string;
+  seasonYear: number;
+  tournamentType: string;
+  teamRanks: FMSQualRankTeam[];
+};

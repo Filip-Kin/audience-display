@@ -235,7 +235,7 @@
 						class="object-contain max-h-[180px] max-w-[45%] w-auto"
 					/>
 					<img
-						src="/sponsor2.png"
+						src="/famnm.png"
 						alt="FAMNM"
 						class="object-contain max-h-[180px] max-w-[45%] w-auto"
 					/>
