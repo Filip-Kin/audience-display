@@ -1,62 +1,51 @@
 <script lang="ts">
-	import { state } from "@lib/state";
-	import BracketNode from "./BracketNode.svelte";
-	import FinalsSeries from "./FinalsSeries.svelte";
-	import { fade } from "svelte/transition";
-	import { createEventDispatcher } from "svelte";
-	import type { AudienceDoubleElimMatch } from "lib";
+	import { state, eventDisplayName } from "@lib/state";
+	import BracketGrid from "./BracketGrid.svelte";
+	import { createEventDispatcher, onMount } from "svelte";
+	import Logo from "@lib/components/Logo.svelte";
 
 	const dispatcher = createEventDispatcher();
 	export let exit = false;
+	let ready = false;
+
+	onMount(() => {
+		ready = true;
+	});
 
 	$: if (exit) {
-		setTimeout(() => dispatcher("transitioned"), 300);
+		ready = false;
+		setTimeout(() => dispatcher("transitioned"), 200);
 	}
 
 	$: bracket = $state.bracket;
-
-	// Group matches by their column position in a standard 13-match double-elim layout.
-	// Columns: R1 (1-4) | R2 (5-8) | R3 (9-10) | R4 (11-12) | R5 (13) | Finals (right)
-	$: columns = ((): AudienceDoubleElimMatch[][] => {
-		if (!bracket) return [];
-		const matches = bracket.doubleElimMatchesList;
-		return [
-			matches.filter((m) => m.matchNumber >= 1 && m.matchNumber <= 4),
-			matches.filter((m) => m.matchNumber >= 5 && m.matchNumber <= 8),
-			matches.filter((m) => m.matchNumber >= 9 && m.matchNumber <= 10),
-			matches.filter((m) => m.matchNumber >= 11 && m.matchNumber <= 12),
-			matches.filter((m) => m.matchNumber === 13),
-		];
-	})();
 </script>
 
-<div class="w-screen h-screen bg-background text-text p-8 overflow-auto" in:fade={{ duration: 300 }}>
-	<div class="flex flex-col gap-6 h-full">
-		<h1 class="text-5xl font-bold text-center">
-			{bracket?.eventName ?? $state.eventDetails?.name ?? "Playoffs"} Bracket
-		</h1>
-
-		{#if !bracket}
-			<div class="flex-1 flex items-center justify-center text-3xl opacity-60">
-				Loading bracket...
-			</div>
-		{:else}
-			<div class="flex-1 grid grid-cols-[repeat(5,1fr)_2fr] gap-4 items-stretch">
-				{#each columns as col, ci}
-					<div class="flex flex-col justify-around gap-3">
-						{#each col as match (match.matchNumber)}
-							<BracketNode {match} />
-						{/each}
+{#if ready}
+	<div class="fixed inset-0 bg-background overflow-hidden">
+		<!-- Header -->
+		<header class="flex items-center justify-between border-b-4 border-accentWarn px-14 pt-7 pb-[18px]">
+			<div class="flex items-center gap-[22px]">
+				<Logo class="object-contain size-[150px]" />
+				<div>
+					<div class="display uppercase text-[28px] tracking-[0.16em] text-dim">
+						{$eventDisplayName}
 					</div>
-				{/each}
-
-				<div class="flex flex-col justify-center gap-4 border-l border-white/20 pl-4">
-					{#if bracket.finals}
-						<BracketNode match={bracket.finals} />
-					{/if}
-					<FinalsSeries />
+					<div class="display text-white text-[64px] leading-none tracking-[0.02em]">
+						PLAYOFF BRACKET
+					</div>
 				</div>
 			</div>
-		{/if}
+		</header>
+
+		<!-- Bracket -->
+		<div class="px-14 pt-6 pb-10 h-[calc(100vh-200px)]">
+			{#if bracket}
+				<BracketGrid {bracket} />
+			{:else}
+				<div class="h-full flex items-center justify-center uppercase text-[28px] tracking-[0.2em] text-dim font-black">
+					Loading bracket
+				</div>
+			{/if}
+		</div>
 	</div>
-</div>
+{/if}
