@@ -13,6 +13,7 @@ export type {
 export type {
   ScoreChangedData,
   GameSpecificMessage,
+  FMSWireMatchPhase,
   PlcMatchStatusData,
 } from "./types/score_changed_data";
 

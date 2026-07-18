@@ -71,10 +71,11 @@ export type AllianceScore = {
 export type Team = {
   number: number;
   name: string;
-  rank: number;
+  /** Qualification rank; absent for playoff/finals teams (the wire DTOs carry no rank there). */
+  rank?: number;
   avatar?: string;
   card: FMSMatchResultsTeam["cardCarryStatus"];
-  rankChange?: FMSMatchResultsTeam["teamRankChange"] | "NoChange";
+  rankChange?: FMSMatchResultsTeam["teamRankChange"];
   isCaptain?: boolean;
   potentialCaptain?: boolean;
   unavailableForSelection?: boolean;

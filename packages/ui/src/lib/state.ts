@@ -35,45 +35,60 @@ function applyProfileTheme(profileId: string | null) {
 }
 
 export const state = writable(defaultState, (set) => {
-  let reconnectInterval: Timer | null = null;
-  socket = new WebSocket(`ws://${location.host}/ws`);
+  let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+  let stopped = false;
 
-  socket.onopen = () => {
-    console.log("Connected to server!");
-    if (reconnectInterval) clearInterval(reconnectInterval);
-  };
+  // Every (re)connection goes through here so each socket gets the full set of
+  // handlers, and every close (including failed reconnect attempts) reschedules
+  // another attempt.
+  function connect() {
+    const ws = new WebSocket(`ws://${location.host}/ws`);
+    socket = ws;
 
-  socket.onmessage = (event) => {
-    const message = JSON.parse(event.data);
-    if (message.type === "state") {
-      const newState = message.data as AudienceDisplayState;
-      set(newState);
-      applyProfileTheme(newState.activeProfileId);
-    }
-    if (message.type === "sound") {
-      console.log("Playing sound:", message.data);
-      if (message.data === "matchReady" && !get(settings).matchReadySound) {
-        console.log("Match ready sound is disabled in settings.");
-      } else {
-        playSound(message.data);
+    ws.onopen = () => {
+      console.log("Connected to server!");
+    };
+
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      if (message.type === "state") {
+        const newState = message.data as AudienceDisplayState;
+        set(newState);
+        applyProfileTheme(newState.activeProfileId);
       }
-    }
-  };
+      if (message.type === "sound") {
+        console.log("Playing sound:", message.data);
+        if (message.data === "matchReady" && !get(settings).matchReadySound) {
+          console.log("Match ready sound is disabled in settings.");
+        } else {
+          playSound(message.data);
+        }
+      }
+    };
 
-  socket.onclose = () => {
-    console.log("Disconnected from server!");
-    set(defaultState);
-    reconnectInterval = setTimeout(() => {
-      socket = new WebSocket(`ws://${location.host}/ws`);
-    }, 5000);
-  };
+    ws.onerror = (event) => {
+      console.log("Websocket error:", event);
+    };
+
+    ws.onclose = () => {
+      console.log("Disconnected from server!");
+      set(defaultState);
+      if (stopped) return;
+      reconnectTimeout = setTimeout(connect, 5000);
+    };
+  }
+
+  connect();
 
   // Apply the default theme immediately so the UI isn't unthemed before the
   // first state message arrives.
   applyProfileTheme(null);
 
   return () => {
+    stopped = true;
+    if (reconnectTimeout) clearTimeout(reconnectTimeout);
     socket?.close();
+    socket = null;
   };
 });
 

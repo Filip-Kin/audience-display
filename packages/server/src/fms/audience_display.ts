@@ -3,23 +3,33 @@ import type {
   MatchState,
   Screen,
   EventDetails,
-  ScoreChangedData,
-  GameSpecificMessage,
-  PlcMatchStatusData,
   AllianceScore,
   BracketData,
   GameConfig,
   MatchPhase,
+  MatchType,
+  PlayoffLevel,
+  PlayoffTiebreakType,
 } from "lib";
 import { FMSSignalRConnection } from "../signalr/connection";
 import {
   LevelParam,
+  type AllianceScoreDetails,
   type FMSAllianceSelection,
-  type FMSMatchPreview,
+  type FMSFinalMatchPreview,
+  type FMSFinalMatchScore,
+  type FMSFinalResultsAlliance,
   type FMSMatchSchedule,
-  type FMSMatchScore,
-  type FMSRankingTeam,
+  type FMSPlayoffMatchPreview,
+  type FMSPlayoffMatchScore,
+  type FMSPlayoffPreviewAlliance,
+  type FMSPlayoffResultsAlliance,
+  type FMSQualMatchPreview,
+  type FMSQualMatchScore,
+  type FMSQualPreviewAlliance,
+  type FMSQualResultsAlliance,
   type FMSQualRankData,
+  type FMSRankingTeam,
 } from "lib/types/FMS_API_audience";
 import type { AllianceSelection, QualRanking, Team } from "lib/types/audience_display";
 import { getTeamName } from "../team_name";
@@ -28,11 +38,31 @@ import { fetchGameConfig } from "./game_config";
 import { fetchBracket } from "./bracket";
 import type { ProfileSelector } from "../profile_selector";
 
-const PLAYOFF_LEVELS = new Set<LevelParam>([
-  LevelParam.Playoff,
-  LevelParam.DoubleElimPlayoff,
-  LevelParam.DoubleElimFinal,
-]);
+/** Normalized (level-independent) match preview the display state is built from. */
+type NormalizedMatchPreview = {
+  matchNumber: number;
+  matchType: MatchType;
+  redAllianceName?: string;
+  blueAllianceName?: string;
+  redTeams: Team[];
+  blueTeams: Team[];
+};
+
+/** Normalized (level-independent) match results the display state is built from. */
+type NormalizedMatchResults = {
+  matchNumber: number;
+  matchType: MatchType;
+  redAllianceName?: string;
+  blueAllianceName?: string;
+  redSeriesWins?: number;
+  blueSeriesWins?: number;
+  redTeams: Team[];
+  blueTeams: Team[];
+  redScoreDetails: AllianceScoreDetails;
+  blueScoreDetails: AllianceScoreDetails;
+  matchWinner: "Red" | "Blue" | null;
+  tiebreaker?: PlayoffTiebreakType;
+};
 
 function demoTeam(num: number, name: string, rank: number): Team {
   return { number: num, name, rank, card: "None" };
@@ -294,6 +324,11 @@ export class AudienceDisplayManager {
   private gameConfig: GameConfig = defaultGameConfig();
   private bracketRefreshTimer: ReturnType<typeof setInterval> | null = null;
 
+  // Bumped on every screen-changing command (video switch, results, match end/commit)
+  // so in-flight async handlers can tell they were superseded and stop touching state.
+  private screenCommandSeq = 0;
+  private scoreRevealFlipTimer: ReturnType<typeof setTimeout> | null = null;
+
   // advantageAchieved is live-event-only; cache it across the match so we can
   // include it on the results screen even though FMS omits it from the result endpoint.
   private cachedAdvantage: { red: boolean | null; blue: boolean | null } = {
@@ -327,12 +362,13 @@ export class AudienceDisplayManager {
 
     promises.push(
       this.getEventName().then((eventName) => {
-        this.eventDetails.name = eventName;
+        if (eventName !== null) this.eventDetails.name = eventName;
       })
     );
 
     promises.push(
       this.getCurrentMatchAndPlayNumber().then((data) => {
+        if (data === null) return;
         this.match.details.matchNumber = data.matchNumber;
         this.currentLevel = data.level;
         this.match.details.matchType = this.getMatchTypeFromLevel(data.level);
@@ -341,9 +377,10 @@ export class AudienceDisplayManager {
 
     promises.push(
       this.getAlliances().then(async (alliances) => {
-        this.ranking = await this.getRankings();
+        const ranking = await this.getRankings();
+        if (ranking !== null) this.ranking = ranking;
         await this.updateAllianceSize();
-        this.updateAllianceData(alliances);
+        if (alliances !== null) this.updateAllianceData(alliances);
       })
     );
 
@@ -365,7 +402,7 @@ export class AudienceDisplayManager {
         this.currentLevel,
         this.match.details.matchNumber
       );
-      this.updateMatchPreview(matchPreview);
+      if (matchPreview !== null) this.applyMatchPreview(matchPreview);
 
       this.broadcastState();
     });
@@ -384,63 +421,81 @@ export class AudienceDisplayManager {
       }
     });
 
-    this.fmsConnection.on("videoSwitch", async (screen: Screen | string) => {
-      // Playoff break auto-show: when FMS sends "none" in a playoff tournament, show the bracket.
-      let next = screen as Screen;
-      if (next === "none" && PLAYOFF_LEVELS.has(this.currentLevel)) {
+    this.fmsConnection.on("videoSwitch", async (screen) => {
+      const seq = ++this.screenCommandSeq;
+      const isCurrent = () => seq === this.screenCommandSeq;
+      this.cancelScoreRevealFlip();
+
+      if (screen === "match-reveal") {
+        // FMS option MatchResult: re-show the currently loaded results by routing
+        // through scores-ready then score-reveal.
+        this.stopBracketRefresh();
+        this.screen = "scores-ready";
+        this.broadcastState();
+        this.scheduleScoreRevealFlip();
+        return;
+      }
+
+      // Playoff break auto-show: when FMS idles the screen (VideoOnly/Background)
+      // during a playoff tournament, show the bracket instead.
+      let next: Screen = screen;
+      if (next === "none" && this.currentLevel === LevelParam.Playoff) {
         next = "playoff-bracket";
       }
 
       this.screen = next;
 
       if (next === "match-preview") {
-        const { matchNumber, level } = await this.getCurrentMatchAndPlayNumber();
-        this.match.details.matchNumber = matchNumber;
-        this.currentLevel = level;
-        this.match.details.matchType = this.getMatchTypeFromLevel(level);
-        this.match.score.winner = undefined;
-        this.match.phase = "PreMatch";
-        this.match.phaseTimer = 0;
-        this.match.hubActive = "None";
-        this.match.underReview = false;
-        this.cachedAdvantage = { red: null, blue: null };
+        const current = await this.getCurrentMatchAndPlayNumber();
+        if (!isCurrent()) return;
+        if (current !== null) {
+          this.match.details.matchNumber = current.matchNumber;
+          this.currentLevel = current.level;
+          this.match.details.matchType = this.getMatchTypeFromLevel(current.level);
+          this.match.score.winner = undefined;
+          this.match.phase = "PreMatch";
+          this.match.phaseTimer = 0;
+          this.match.hubActive = "None";
+          this.match.underReview = false;
+          this.cachedAdvantage = { red: null, blue: null };
 
-        const matchPreview = await this.getMatchPreview(this.currentLevel, matchNumber);
-        this.updateMatchPreview(matchPreview);
-      } else if (next === "match-reveal" as unknown as Screen) {
-        // legacy: route through scores-ready then score-reveal
-        this.screen = "scores-ready";
-        this.broadcastState();
-        setTimeout(() => {
-          this.screen = "score-reveal";
-          this.broadcastState();
-        }, 500);
-        return;
+          const matchPreview = await this.getMatchPreview(this.currentLevel, current.matchNumber);
+          if (!isCurrent()) return;
+          if (matchPreview !== null) this.applyMatchPreview(matchPreview);
+        } else {
+          console.log("No current match loaded; showing match preview with existing data");
+        }
       } else if (next === "alliance-selection" || next === "alliance-selection-fullscreen") {
         const alliances = await this.getAlliances();
-        this.ranking = await this.getRankings();
+        const ranking = await this.getRankings();
         await this.updateAllianceSize();
-        this.updateAllianceData(alliances);
+        if (!isCurrent()) return;
+        if (ranking !== null) this.ranking = ranking;
+        if (alliances !== null) this.updateAllianceData(alliances);
       } else if (next === "playoff-bracket") {
         await this.refreshBracket();
+        if (!isCurrent()) return;
         this.startBracketRefresh();
         this.broadcastState();
         return;
       } else if (next === "rankings") {
         await this.refreshRankData();
-      } else if (next === "timeout" && PLAYOFF_LEVELS.has(this.currentLevel)) {
+        if (!isCurrent()) return;
+      } else if (next === "timeout" && this.currentLevel === LevelParam.Playoff) {
         // The timeout slideshow includes a live mini bracket during playoffs.
         await this.refreshBracket();
+        if (!isCurrent()) return;
         this.startBracketRefresh();
         this.broadcastState();
         return;
       }
 
+      if (!isCurrent()) return;
       this.stopBracketRefresh();
       this.broadcastState();
     });
 
-    this.fmsConnection.on("blueScoreChanged", (data: ScoreChangedData) => {
+    this.fmsConnection.on("blueScoreChanged", (data) => {
       this.match.score.blue = mapLiveScore(data);
       this.cachedAdvantage.blue = data.AdvantageAchieved;
       if (this.screen !== "match-end" && this.screen !== "scores-ready") {
@@ -448,7 +503,7 @@ export class AudienceDisplayManager {
       }
     });
 
-    this.fmsConnection.on("redScoreChanged", (data: ScoreChangedData) => {
+    this.fmsConnection.on("redScoreChanged", (data) => {
       this.match.score.red = mapLiveScore(data);
       this.cachedAdvantage.red = data.AdvantageAchieved;
       if (this.screen !== "match-end" && this.screen !== "scores-ready") {
@@ -456,12 +511,12 @@ export class AudienceDisplayManager {
       }
     });
 
-    this.fmsConnection.on("gameSpecificMessage", (data: GameSpecificMessage) => {
+    this.fmsConnection.on("gameSpecificMessage", (data) => {
       if (data.MessageType === "MatchPhaseChanged" || data.MatchPhase !== "None") {
         // FMS uses its "Coop" naming for the transition shift (cf. CoopFuelPoints);
         // normalize it to our TransitionShift phase so the label reads correctly.
         const raw = data.MatchPhase === "Coop" ? "TransitionShift" : data.MatchPhase;
-        const phase = raw === "None" ? "PreMatch" : (raw as MatchPhase);
+        const phase: MatchPhase = raw === "None" ? "PreMatch" : raw;
         this.match.phase = phase;
         this.match.phaseTimer = data.CurrentPhaseTimeSeconds;
       }
@@ -471,41 +526,19 @@ export class AudienceDisplayManager {
       this.broadcastState();
     });
 
-    this.fmsConnection.on("plcMatchStatus", (data: PlcMatchStatusData) => {
+    this.fmsConnection.on("plcMatchStatus", (data) => {
       this.match.underReview = data.RefUnderReview;
       this.broadcastState();
     });
 
-    this.fmsConnection.on("showResults", async (data: { matchNumber: number; level: keyof typeof LevelParam }) => {
+    this.fmsConnection.on("showResults", async (data) => {
+      const seq = ++this.screenCommandSeq;
+      this.cancelScoreRevealFlip();
+
       const results = await this.getMatchResults(LevelParam[data.level], data.matchNumber);
-
-      this.results.teams.red = [];
-      this.results.teams.blue = [];
-
-      for (let i = 0; i < 4; i++) {
-        const keyFor = (n: number) => `team${n + 1}` as "team1" | "team2" | "team3" | "team4";
-        const redTeam = results.redAllianceData[keyFor(i)];
-        if (redTeam) {
-          this.results.teams.red.push({
-            name: getTeamName(redTeam.teamNumber, redTeam.teamName),
-            number: redTeam.teamNumber,
-            rank: redTeam.teamRank,
-            avatar: redTeam.avatar,
-            card: redTeam.cardEffectiveStatus,
-            rankChange: redTeam.teamRankChange,
-          });
-        }
-        const blueTeam = results.blueAllianceData[keyFor(i)];
-        if (blueTeam) {
-          this.results.teams.blue.push({
-            name: getTeamName(blueTeam.teamNumber, blueTeam.teamName),
-            number: blueTeam.teamNumber,
-            rank: blueTeam.teamRank,
-            avatar: blueTeam.avatar,
-            card: blueTeam.cardEffectiveStatus,
-            rankChange: blueTeam.teamRankChange,
-          });
-        }
+      if (results === null) {
+        console.log("Match results unavailable; keeping current screen");
+        return;
       }
 
       const thresholds = {
@@ -514,23 +547,18 @@ export class AudienceDisplayManager {
         traversal: this.gameConfig.traversalThreshold,
       };
 
-      this.results.score.red = mapResultScore(
-        results.redAllianceData.scoreDetails,
-        this.cachedAdvantage.red,
-        thresholds
-      );
-      this.results.score.blue = mapResultScore(
-        results.blueAllianceData.scoreDetails,
-        this.cachedAdvantage.blue,
-        thresholds
-      );
-
+      // The results object is fully built before any of it is assigned, so a
+      // failure above never leaves the display with half-cleared teams/scores.
+      this.results.teams.red = results.redTeams;
+      this.results.teams.blue = results.blueTeams;
+      this.results.score.red = mapResultScore(results.redScoreDetails, this.cachedAdvantage.red, thresholds);
+      this.results.score.blue = mapResultScore(results.blueScoreDetails, this.cachedAdvantage.blue, thresholds);
       this.results.details.matchNumber = results.matchNumber;
-      this.results.details.matchType = this.getMatchTypeFromLevel(this.currentLevel);
-      this.results.details.redAlliance = results.redAllianceData.allianceName ?? undefined;
-      this.results.details.blueAlliance = results.blueAllianceData.allianceName ?? undefined;
-      this.results.details.redSeriesWins = results.redAllianceData.seriesWins;
-      this.results.details.blueSeriesWins = results.blueAllianceData.seriesWins;
+      this.results.details.matchType = results.matchType;
+      this.results.details.redAlliance = results.redAllianceName;
+      this.results.details.blueAlliance = results.blueAllianceName;
+      this.results.details.redSeriesWins = results.redSeriesWins;
+      this.results.details.blueSeriesWins = results.blueSeriesWins;
       this.results.tiebreaker = results.tiebreaker;
       this.results.score.winner = results.matchWinner === null ? "Tie" : results.matchWinner;
 
@@ -538,13 +566,16 @@ export class AudienceDisplayManager {
       this.results.underReview = false;
       this.match.underReview = false;
 
+      if (seq !== this.screenCommandSeq) {
+        // A newer command took the screen while we were fetching; keep the fresh
+        // results data but don't steal the screen back.
+        this.broadcastState();
+        return;
+      }
+
       this.screen = "scores-ready";
       this.broadcastState();
-
-      setTimeout(() => {
-        this.screen = "score-reveal";
-        this.broadcastState();
-      }, 500);
+      this.scheduleScoreRevealFlip();
     });
 
     this.fmsConnection.on("matchReady", () => this.playSound("matchReady"));
@@ -554,12 +585,16 @@ export class AudienceDisplayManager {
     this.fmsConnection.on("endgameWarning", () => this.playSound("endgameWarning"));
     this.fmsConnection.on("matchEnd", () => {
       this.playSound("matchEnd");
+      this.screenCommandSeq++;
+      this.cancelScoreRevealFlip();
       this.screen = "match-end";
       this.broadcastState();
     });
     this.fmsConnection.on("matchAbort", () => this.playSound("matchAbort"));
 
     this.fmsConnection.on("matchCommit", () => {
+      this.screenCommandSeq++;
+      this.cancelScoreRevealFlip();
       this.screen = "scores-ready";
       this.broadcastState();
     });
@@ -572,15 +607,26 @@ export class AudienceDisplayManager {
     this.fmsConnection.on("allianceSelectionChanged", async () => {
       await new Promise((resolve) => setTimeout(resolve, 500));
       const alliances = await this.getAlliances();
-      this.ranking = await this.getRankings();
+      const ranking = await this.getRankings();
       await this.updateAllianceSize();
-      this.updateAllianceData(alliances);
+      if (ranking !== null) this.ranking = ranking;
+      if (alliances !== null) this.updateAllianceData(alliances);
       this.broadcastState();
     });
 
     this.fmsConnection.on("connected", async () => {
       this.connected = true;
+      // Resync everything that can change while disconnected (an FMS restart
+      // mid-event must not leave the display on stale state). The connection
+      // also refetches the video switch option itself and re-emits videoSwitch.
       this.gameConfig = await fetchGameConfig(this.fmsUrl);
+      await this.updateMatchCount();
+      const current = await this.getCurrentMatchAndPlayNumber();
+      if (current !== null) {
+        this.currentLevel = current.level;
+        this.match.details.matchNumber = current.matchNumber;
+        this.match.details.matchType = this.getMatchTypeFromLevel(current.level);
+      }
       this.broadcastState();
     });
 
@@ -660,112 +706,228 @@ export class AudienceDisplayManager {
     }
   }
 
+  /** Flip scores-ready to score-reveal after the UI has had a moment to preload. */
+  private scheduleScoreRevealFlip() {
+    this.cancelScoreRevealFlip();
+    this.scoreRevealFlipTimer = setTimeout(() => {
+      this.scoreRevealFlipTimer = null;
+      if (this.screen !== "scores-ready") return; // a newer command took the screen
+      this.screen = "score-reveal";
+      this.broadcastState();
+    }, 500);
+  }
+
+  private cancelScoreRevealFlip() {
+    if (this.scoreRevealFlipTimer) {
+      clearTimeout(this.scoreRevealFlipTimer);
+      this.scoreRevealFlipTimer = null;
+    }
+  }
+
+  // #region FMS REST access
+
+  /**
+   * Fetch + parse an FMS REST endpoint. Returns null (after logging) on any
+   * failure mode the real FMS exhibits: HTTP errors, 204 No Content, empty
+   * bodies, and literal JSON null bodies.
+   */
+  private async fetchJson<T>(path: string, label: string): Promise<T | null> {
+    try {
+      const res = await fetch(`http://${this.fmsUrl}${path}`);
+      if (res.status === 204) {
+        console.log(`${label} returned 204 (no content)`);
+        return null;
+      }
+      if (!res.ok) {
+        console.log(`${label} returned HTTP ${res.status}`);
+        return null;
+      }
+      const text = (await res.text()).trim();
+      if (!text) {
+        console.log(`${label} returned an empty body`);
+        return null;
+      }
+      return JSON.parse(text) as T;
+    } catch (err) {
+      console.log(`${label} request failed:`, err);
+      return null;
+    }
+  }
+
+  /**
+   * Wire finals/overtime matches are numbered 1-3 (4-6 overtime); the display's
+   * bracket/matchNamer logic numbers them 14-19 continuing the double-elim
+   * sequence. This is the ONLY place that conversion happens.
+   */
+  private finalsWireToInternal(matchNumber: number): number {
+    return 13 + matchNumber;
+  }
+
+  /**
+   * The playoff level decides playoff-vs-finals endpoints, exactly like the
+   * official client: it queries GetCurrentPlayoffLevel ("Final" or "Level2".."Level7")
+   * and passes the raw wire match number through to the DoubleElim endpoints.
+   */
+  private async getCurrentPlayoffLevel(): Promise<PlayoffLevel | null> {
+    return this.fetchJson<PlayoffLevel>(
+      "/api/v1.0/audience/get/GetCurrentPlayoffLevel",
+      "GetCurrentPlayoffLevel"
+    );
+  }
+
+  // #endregion
+
   private async updateMatchCount() {
-    this.currentLevel = await this.getActiveTournamentLevel();
+    const level = await this.getActiveTournamentLevel();
+    if (level !== null) this.currentLevel = level;
     if (this.currentLevel === LevelParam.Qualification) {
       const schedule = await this.getCurrentSchedule();
-      const matchCount = schedule.filter(
-        (match) => match.tournamentLevel === "Qualification"
-      ).length;
-      this.eventDetails.matchCount = matchCount;
+      if (schedule !== null) {
+        this.eventDetails.matchCount = schedule.filter(
+          (match) => match.tournamentLevel === "Qualification"
+        ).length;
+      }
     }
   }
 
-  private async updateMatchPreview(matchPreview: FMSMatchPreview) {
-    this.match.details.redAlliance = matchPreview.redAlliance.allianceName ?? undefined;
-    this.match.details.blueAlliance = matchPreview.blueAlliance.allianceName ?? undefined;
+  /** Apply a normalized preview to the live match state, ordering teams to match the field lineup. */
+  private applyMatchPreview(preview: NormalizedMatchPreview) {
+    this.match.details.matchNumber = preview.matchNumber;
+    this.match.details.matchType = preview.matchType;
+    this.match.details.redAlliance = preview.redAllianceName;
+    this.match.details.blueAlliance = preview.blueAllianceName;
 
-    this.match.teams.red = [];
-    this.match.teams.blue = [];
+    const orderByLineup = (teams: Team[], lineup: number[]): Team[] => {
+      const inLineup = teams.filter((t) => lineup.includes(t.number));
+      const extras = teams.filter((t) => !lineup.includes(t.number));
+      return [...inLineup, ...extras];
+    };
 
-    const redExtraTeams: Team[] = [];
-    const blueExtraTeams: Team[] = [];
-
-    for (let i = 0; i < 4; i++) {
-      const key = `team${i + 1}` as "team1" | "team2" | "team3" | "team4";
-
-      const red = matchPreview.redAlliance[key];
-      if (red) {
-        const team: Team = {
-          name: getTeamName(red.teamNumber, red.teamName),
-          number: red.teamNumber,
-          rank: red.teamRank,
-          avatar: red.avatar,
-          card: (red.carryingCard ?? matchPreview.redAlliance.carryingCard) ? "Yellow" : "None",
-        };
-        if (this.teamLineup.red.includes(red.teamNumber)) {
-          this.match.teams.red.push(team);
-        } else {
-          redExtraTeams.push(team);
-        }
-      }
-
-      const blue = matchPreview.blueAlliance[key];
-      if (blue) {
-        const team: Team = {
-          name: getTeamName(blue.teamNumber, blue.teamName),
-          number: blue.teamNumber,
-          rank: blue.teamRank,
-          avatar: blue.avatar,
-          card: (blue.carryingCard ?? matchPreview.blueAlliance.carryingCard) ? "Yellow" : "None",
-        };
-        if (this.teamLineup.blue.includes(blue.teamNumber)) {
-          this.match.teams.blue.push(team);
-        } else {
-          blueExtraTeams.push(team);
-        }
-      }
-    }
-
-    this.match.teams.red = [...this.match.teams.red, ...redExtraTeams];
-    this.match.teams.blue = [...this.match.teams.blue, ...blueExtraTeams];
+    this.match.teams.red = orderByLineup(preview.redTeams, this.teamLineup.red);
+    this.match.teams.blue = orderByLineup(preview.blueTeams, this.teamLineup.blue);
   }
 
-  private async getMatchPreview(level: LevelParam, matchNumber: number) {
-    let levelString = LevelParam[level];
-    let matchString = matchNumber.toString();
+  private mapQualPreviewTeams(alliance: FMSQualPreviewAlliance): Team[] {
+    const teams: Team[] = [];
+    for (const t of [alliance.team1, alliance.team2, alliance.team3]) {
+      if (!t || t.teamNumber <= 0) continue;
+      teams.push({
+        name: getTeamName(t.teamNumber, t.teamName ?? ""),
+        number: t.teamNumber,
+        rank: t.teamRank,
+        avatar: t.avatar,
+        card: t.carryingCard ? "Yellow" : "None",
+      });
+    }
+    return teams;
+  }
 
-    if (level === LevelParam.Qualification) {
-      levelString = "Qual";
-    } else if (level === LevelParam.None) {
-      levelString = "Test";
-    } else if (level === LevelParam.Playoff) {
-      if (matchNumber > 13) {
-        levelString = "DoubleElimFinal";
-        matchString = (matchNumber - 13).toString();
-      } else {
-        levelString = "DoubleElimPlayoff";
-      }
+  private mapPlayoffPreviewTeams(alliance: FMSPlayoffPreviewAlliance): Team[] {
+    const teams: Team[] = [];
+    for (const t of [alliance.team1, alliance.team2, alliance.team3, alliance.team4]) {
+      // Official client guard: team4 exists as a zeroed object when the backup
+      // slot is unfilled; never render a "team 0" card. No per-team rank/cards
+      // exist at this level; the carried card is alliance-wide.
+      if (!t || t.teamNumber <= 0) continue;
+      teams.push({
+        name: getTeamName(t.teamNumber, t.teamName ?? ""),
+        number: t.teamNumber,
+        avatar: t.avatar,
+        card: alliance.carryingCard ? "Yellow" : "None",
+      });
+    }
+    return teams;
+  }
+
+  private async getMatchPreview(
+    level: LevelParam,
+    matchNumber: number
+  ): Promise<NormalizedMatchPreview | null> {
+    if (level === LevelParam.Playoff) {
+      const playoffLevel = await this.getCurrentPlayoffLevel();
+      const isFinals = playoffLevel === "Final";
+      const endpoint = isFinals
+        ? "GetDoubleElimFinalMatchPreviewData"
+        : "GetDoubleElimPlayoffMatchPreviewData";
+      const data = await this.fetchJson<FMSPlayoffMatchPreview | FMSFinalMatchPreview>(
+        `/api/v1.0/audience/get/${endpoint}/${matchNumber}`,
+        endpoint
+      );
+      if (data === null) return null;
+      return {
+        matchNumber: isFinals ? this.finalsWireToInternal(data.matchNumber) : data.matchNumber,
+        matchType: isFinals ? "f" : "sf",
+        redAllianceName: data.redAlliance.allianceName ?? undefined,
+        blueAllianceName: data.blueAlliance.allianceName ?? undefined,
+        redTeams: this.mapPlayoffPreviewTeams(data.redAlliance),
+        blueTeams: this.mapPlayoffPreviewTeams(data.blueAlliance),
+      };
     }
 
-    const res = await fetch(
-      `http://${this.fmsUrl}/api/v1.0/audience/get/Get${levelString}MatchPreviewData/${matchString}`
+    const levelString =
+      level === LevelParam.Qualification ? "Qual"
+      : level === LevelParam.Practice ? "Practice"
+      : "Test";
+    const data = await this.fetchJson<FMSQualMatchPreview>(
+      `/api/v1.0/audience/get/Get${levelString}MatchPreviewData/${matchNumber}`,
+      `Get${levelString}MatchPreviewData`
     );
-    return (await res.json()) as FMSMatchPreview;
+    if (data === null) return null;
+    return {
+      matchNumber: data.matchNumber,
+      matchType: this.getMatchTypeFromLevel(level),
+      redTeams: this.mapQualPreviewTeams(data.redAlliance),
+      blueTeams: this.mapQualPreviewTeams(data.blueAlliance),
+    };
   }
 
-  private async getActiveTournamentLevel() {
-    const res = await fetch(
-      `http://${this.fmsUrl}/api/v1.0/systembase/get/get_CurrentlyActiveTournamentLevel`
-    );
-    const data = await res.text();
-    switch (data) {
-      case '"None"': return LevelParam.None;
-      case '"Practice"': return LevelParam.Practice;
-      case '"Qualification"': return LevelParam.Qualification;
-      case '"Playoff"': return LevelParam.Playoff;
-      case '"DoubleElimPlayoff"': return LevelParam.DoubleElimPlayoff;
-      case '"DoubleElimFinal"': return LevelParam.DoubleElimFinal;
-      default: throw new Error(`Unknown tournament level: ${data}`);
+  private async getActiveTournamentLevel(): Promise<LevelParam | null> {
+    try {
+      const res = await fetch(
+        `http://${this.fmsUrl}/api/v1.0/systembase/get/get_CurrentlyActiveTournamentLevel`
+      );
+      if (!res.ok) {
+        console.log(`get_CurrentlyActiveTournamentLevel returned HTTP ${res.status}`);
+        return null;
+      }
+      const data = (await res.text()).trim();
+      switch (data) {
+        case '"None"': return LevelParam.None;
+        case '"Practice"': return LevelParam.Practice;
+        case '"Qualification"': return LevelParam.Qualification;
+        case '"Playoff"': return LevelParam.Playoff;
+        case "":
+          // Pre-event the endpoint returns 200 with an empty body; keep the current level.
+          console.log("Tournament level not set yet (empty body); keeping current level");
+          return null;
+        default:
+          console.log(`Unknown tournament level: ${data}; keeping current level`);
+          return null;
+      }
+    } catch (err) {
+      console.log("get_CurrentlyActiveTournamentLevel request failed:", err);
+      return null;
     }
   }
 
-  private async getCurrentMatchAndPlayNumber() {
-    const res = await fetch(`http://${this.fmsUrl}/api/v1.0/audience/get/GetCurrentMatchAndPlayNumber`);
-    const data = await res.json();
-    const levelString = data.item1 as "None" | "Practice" | "Qualification" | "Playoff";
+  private async getCurrentMatchAndPlayNumber(): Promise<{
+    matchNumber: number;
+    playNumber: number;
+    level: LevelParam;
+  } | null> {
+    // Returns HTTP 204 with an empty body when no match is loaded.
+    const data = await this.fetchJson<{
+      item1: keyof typeof LevelParam;
+      item2: number;
+      item3: number;
+    }>(
+      "/api/v1.0/audience/get/GetCurrentMatchAndPlayNumber",
+      "GetCurrentMatchAndPlayNumber"
+    );
+    if (data === null) return null;
+
     let levelEnum = LevelParam.None;
-    switch (levelString) {
+    switch (data.item1) {
         case "Practice": {
             levelEnum = LevelParam.Practice;
             break;
@@ -787,60 +949,148 @@ export class AudienceDisplayManager {
     };
   }
 
-  private async getEventName() {
-    const res = await fetch(
-      `http://${this.fmsUrl}/api/v1.0/systembase/get/get_CurrentlyActiveEventName`
+  private async getEventName(): Promise<string | null> {
+    try {
+      const res = await fetch(
+        `http://${this.fmsUrl}/api/v1.0/systembase/get/get_CurrentlyActiveEventName`
+      );
+      if (!res.ok) {
+        console.log(`get_CurrentlyActiveEventName returned HTTP ${res.status}`);
+        return null;
+      }
+      const data = (await res.text()).trim();
+      if (data.length < 2) return null;
+      return data.substring(1, data.length - 1);
+    } catch (err) {
+      console.log("get_CurrentlyActiveEventName request failed:", err);
+      return null;
+    }
+  }
+
+  private async getCurrentSchedule(): Promise<FMSMatchSchedule[] | null> {
+    return this.fetchJson<FMSMatchSchedule[]>(
+      "/api/v1.0/match/get/GetCurrentSchedule",
+      "GetCurrentSchedule"
     );
-    const data = await res.text();
-    return data.substring(1, data.length - 1);
   }
 
-  private async getCurrentSchedule() {
-    const res = await fetch(`http://${this.fmsUrl}/api/v1.0/match/get/GetCurrentSchedule`);
-    return (await res.json()) as FMSMatchSchedule[];
-  }
-
-  private getMatchTypeFromLevel(level: LevelParam) {
+  private getMatchTypeFromLevel(level: LevelParam): MatchType {
     switch (level) {
       case LevelParam.None: return "t";
       case LevelParam.Practice: return "p";
       case LevelParam.Qualification: return "q";
-      case LevelParam.DoubleElimFinal: return "f";
+      // Playoff resolves to "sf" here; finals are detected via GetCurrentPlayoffLevel
+      // when previews/results are fetched, which set matchType "f" directly.
       default: return "sf";
     }
   }
 
-  private async getMatchResults(level: LevelParam, matchNumber: number) {
-    let levelString = LevelParam[level];
-    let matchString = matchNumber.toString();
-
-    if (level === LevelParam.Qualification) {
-      levelString = "Qual";
-    } else if (level === LevelParam.None) {
-      levelString = "TestMatch";
-    } else if (level === LevelParam.Playoff) {
-      if (matchNumber > 13) {
-        levelString = "DoubleElimFinal";
-        matchString = (matchNumber - 13).toString();
-      } else {
-        levelString = "DoubleElimPlayoff";
-      }
+  private mapQualResultTeams(alliance: FMSQualResultsAlliance): Team[] {
+    const teams: Team[] = [];
+    for (const t of [alliance.team1, alliance.team2, alliance.team3]) {
+      if (!t || t.teamNumber <= 0) continue;
+      teams.push({
+        name: getTeamName(t.teamNumber, t.teamName ?? ""),
+        number: t.teamNumber,
+        rank: t.teamRank,
+        avatar: t.avatar,
+        card: t.cardEffectiveStatus,
+        rankChange: t.teamRankChange ?? "NoChange",
+      });
     }
-
-    const res = await fetch(
-      `http://${this.fmsUrl}/api/v1.0/audience_gs/get/GetMatchResults${levelString}Data/${matchString}`
-    );
-    const data = await res.json();
-    // FMS restarts match numbers at 1 for finals; preserve the human-readable number
-    if (level === LevelParam.Playoff && matchNumber > 13) {
-      data.matchNumber = matchNumber;
-    }
-    return data as FMSMatchScore;
+    return teams;
   }
 
-  private async getAlliances() {
-    const res = await fetch(`http://${this.fmsUrl}/api/v1.0/audience/get/GetAlliances`);
-    return (await res.json()) as FMSAllianceSelection[];
+  private mapPlayoffResultTeams(
+    alliance: FMSPlayoffResultsAlliance | FMSFinalResultsAlliance
+  ): Team[] {
+    const teams: Team[] = [];
+    for (const t of [alliance.team1, alliance.team2, alliance.team3, alliance.team4]) {
+      // Same guard as the official client: skip null/zeroed backup slots. Playoff
+      // teams carry no rank; the effective card is alliance-wide.
+      if (!t || t.teamNumber <= 0) continue;
+      teams.push({
+        name: getTeamName(t.teamNumber, t.teamName ?? ""),
+        number: t.teamNumber,
+        avatar: t.avatar,
+        card: alliance.cardEffectiveStatus,
+      });
+    }
+    return teams;
+  }
+
+  private async getMatchResults(
+    level: LevelParam,
+    matchNumber: number
+  ): Promise<NormalizedMatchResults | null> {
+    if (level === LevelParam.Playoff) {
+      const playoffLevel = await this.getCurrentPlayoffLevel();
+      const isFinals = playoffLevel === "Final";
+      if (isFinals) {
+        const data = await this.fetchJson<FMSFinalMatchScore>(
+          `/api/v1.0/audience_gs/get/GetMatchResultsDoubleElimFinalData/${matchNumber}`,
+          "GetMatchResultsDoubleElimFinalData"
+        );
+        if (data === null) return null;
+        return {
+          matchNumber: this.finalsWireToInternal(data.matchNumber),
+          matchType: "f",
+          redAllianceName: data.redAllianceData.allianceName ?? undefined,
+          blueAllianceName: data.blueAllianceData.allianceName ?? undefined,
+          redSeriesWins: data.redAllianceData.seriesWins,
+          blueSeriesWins: data.blueAllianceData.seriesWins,
+          redTeams: this.mapPlayoffResultTeams(data.redAllianceData),
+          blueTeams: this.mapPlayoffResultTeams(data.blueAllianceData),
+          redScoreDetails: data.redAllianceData.scoreDetails,
+          blueScoreDetails: data.blueAllianceData.scoreDetails,
+          matchWinner: data.matchWinner,
+          tiebreaker: data.tiebreaker ?? undefined,
+        };
+      }
+      const data = await this.fetchJson<FMSPlayoffMatchScore>(
+        `/api/v1.0/audience_gs/get/GetMatchResultsDoubleElimPlayoffData/${matchNumber}`,
+        "GetMatchResultsDoubleElimPlayoffData"
+      );
+      if (data === null) return null;
+      return {
+        matchNumber: data.matchNumber,
+        matchType: "sf",
+        redAllianceName: data.redAllianceData.allianceName ?? undefined,
+        blueAllianceName: data.blueAllianceData.allianceName ?? undefined,
+        redTeams: this.mapPlayoffResultTeams(data.redAllianceData),
+        blueTeams: this.mapPlayoffResultTeams(data.blueAllianceData),
+        redScoreDetails: data.redAllianceData.scoreDetails,
+        blueScoreDetails: data.blueAllianceData.scoreDetails,
+        matchWinner: data.matchWinner,
+        tiebreaker: data.tiebreaker ?? undefined,
+      };
+    }
+
+    const levelString =
+      level === LevelParam.Qualification ? "Qual"
+      : level === LevelParam.Practice ? "Practice"
+      : "TestMatch";
+    const data = await this.fetchJson<FMSQualMatchScore>(
+      `/api/v1.0/audience_gs/get/GetMatchResults${levelString}Data/${matchNumber}`,
+      `GetMatchResults${levelString}Data`
+    );
+    if (data === null) return null;
+    return {
+      matchNumber: data.matchNumber,
+      matchType: this.getMatchTypeFromLevel(level),
+      redTeams: this.mapQualResultTeams(data.redAllianceData),
+      blueTeams: this.mapQualResultTeams(data.blueAllianceData),
+      redScoreDetails: data.redAllianceData.scoreDetails,
+      blueScoreDetails: data.blueAllianceData.scoreDetails,
+      matchWinner: data.matchWinner,
+    };
+  }
+
+  private async getAlliances(): Promise<FMSAllianceSelection[] | null> {
+    return this.fetchJson<FMSAllianceSelection[]>(
+      "/api/v1.0/audience/get/GetAlliances",
+      "GetAlliances"
+    );
   }
 
   /** Teams per alliance (2/3/4) from FMS's allianceSelectionType; keeps the last value on error. */
@@ -907,9 +1157,12 @@ export class AudienceDisplayManager {
     }
   }
 
-  private async getRankings() {
-    const res = await fetch(`http://${this.fmsUrl}/api/v1.0/audience/get/GetQualRankings`);
-    const rankings = (await res.json()) as FMSRankingTeam[];
+  private async getRankings(): Promise<Omit<Team, "name" | "card">[] | null> {
+    const rankings = await this.fetchJson<FMSRankingTeam[]>(
+      "/api/v1.0/audience/get/GetQualRankings",
+      "GetQualRankings"
+    );
+    if (rankings === null) return null;
     return rankings.map((r) => ({
       number: r.teamNumber,
       rank: r.rank,
@@ -918,23 +1171,21 @@ export class AudienceDisplayManager {
   }
 
   private async refreshRankData() {
-    try {
-      const res = await fetch(
-        `http://${this.fmsUrl}/api/v1.0/audience/get/GetQualificationRankData`
-      );
-      const data = (await res.json()) as FMSQualRankData;
-      this.rankData = data.teamRanks.map((t) => ({
-        rank: t.rank,
-        teamNumber: t.teamNumber,
-        teamName: t.teamName,
-        avatar: t.teamAvatar ?? "",
-        rankingScore: t.sort1,
-        wins: t.wins,
-        losses: t.losses,
-        ties: t.ties,
-      }));
-    } catch (err) {
-      console.log("Failed to fetch qualification rank data:", err);
-    }
+    // Pre-event the body can be literal JSON null and teamRanks can be null/[];
+    // show an empty table rather than dying (fetchJson maps all of those to null).
+    const data = await this.fetchJson<FMSQualRankData>(
+      "/api/v1.0/audience/get/GetQualificationRankData",
+      "GetQualificationRankData"
+    );
+    this.rankData = (data?.teamRanks ?? []).map((t) => ({
+      rank: t.rank,
+      teamNumber: t.teamNumber,
+      teamName: t.teamName,
+      avatar: t.teamAvatar ?? "",
+      rankingScore: t.sort1,
+      wins: t.wins,
+      losses: t.losses,
+      ties: t.ties,
+    }));
   }
 }

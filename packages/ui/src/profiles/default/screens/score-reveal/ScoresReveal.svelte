@@ -26,6 +26,14 @@
 	let canPlay = false;
 	let started = false;
 	let unsubAudio: (() => void) | undefined;
+	let revealTimer: ReturnType<typeof setTimeout> | null = null;
+
+	function cancelRevealTimer() {
+		if (revealTimer) {
+			clearTimeout(revealTimer);
+			revealTimer = null;
+		}
+	}
 
 	onMount(() => {
 		if ($state.results?.score.winner) {
@@ -54,22 +62,39 @@
 			} catch {}
 			const played = videoElm.play();
 			if (played && typeof played.catch === "function") {
-				played.catch(() => {
+				played.catch((err) => {
 					// Should not happen once unlocked; never hang, play muted.
+					console.log("Victory video playback with audio failed; retrying muted:", err);
 					videoElm.muted = true;
-					videoElm.play().catch(() => {});
+					videoElm.play().catch((mutedErr) => {
+						console.log("Muted victory video playback also failed:", mutedErr);
+					});
 				});
 			}
 			dispatcher("loaded");
 			// Open the shutter onto the results this many ms before the video ends
 			// (per-profile; WRC reveals 1s early, everything else 500ms).
 			const revealLeadMs = get(activeProfile).options?.victoryRevealLeadMs ?? 500;
-			setTimeout(
-				() => {
+			cancelRevealTimer();
+			if (Number.isFinite(videoElm.duration) && videoElm.duration > 0) {
+				revealTimer = setTimeout(
+					() => {
+						videoReady = true;
+					},
+					Math.max(0, videoElm.duration * 1000 - revealLeadMs)
+				);
+			} else {
+				// Duration unknown (NaN/Infinity, e.g. a broken or streaming source):
+				// open on the video's "ended" event, with a fixed fallback so the
+				// scores can never stay hidden.
+				console.log("Victory video duration unavailable; opening on ended event");
+				videoElm.addEventListener("ended", () => {
 					videoReady = true;
-				},
-				videoElm.duration * 1000 - revealLeadMs
-			);
+				}, { once: true });
+				revealTimer = setTimeout(() => {
+					videoReady = true;
+				}, 10_000);
+			}
 		}
 
 		// Start only once the video can play AND the browser allows audio
@@ -87,22 +112,33 @@
 
 		unsubAudio = audioUnlocked.subscribe(() => maybeBegin());
 
-		videoElm.addEventListener("error", () => {
+		videoElm.addEventListener("error", (event) => {
 			if (animation && !animation.includes("/animations/default/")) {
+				console.log("Victory animation failed to load; falling back to default animation:", event);
 				const winner = $state.results?.score.winner;
 				if (winner === "Red") animation = "/animations/default/redwins.mp4";
 				else if (winner === "Blue") animation = "/animations/default/bluewins.mp4";
 				else if (winner === "Tie") animation = "/animations/default/tie.mp4";
 				videoElm.load();
+			} else {
+				// The default animation itself failed; a reveal without video beats
+				// a frozen cover, so clear the cover and open the shutter now.
+				console.log("Default victory animation failed; revealing scores without video:", event);
+				cancelRevealTimer();
+				dispatcher("loaded");
+				videoReady = true;
 			}
 		});
 	});
 
 	onDestroy(() => {
 		unsubAudio?.();
+		cancelRevealTimer();
 	});
 
 	$: if (exit) {
+		// A stale reveal timer must not flip videoReady while this instance exits.
+		cancelRevealTimer();
 		videoElm.style.display = "none";
 		videoReady = false;
 		ready = false;
@@ -229,7 +265,7 @@
 			</div>
 		</div>
 
-		<!-- Cell 3: right column — always show Pit Podcast -->
+		<!-- Cell 3: right column, always show Pit Podcast -->
 		<div>
 			<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Livestream Partner</h2>
 			<img src="/pitpodcast.png" class="h-60 mx-auto self-center object-contain" alt="Pit Podcast" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }} />

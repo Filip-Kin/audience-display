@@ -4,31 +4,81 @@ import {
   type ScoringElementChangedData,
   type GameSpecificMessage,
   type PlcMatchStatusData,
+  type Screen,
 } from "lib";
+import { LevelParam, type VideoSwitchOption } from "lib/types/FMS_API_audience";
 
-type Events =
-  | "videoSwitch"
-  | "timer"
-  | "blueScoreChanged"
-  | "redScoreChanged"
-  | "matchCommit"
-  | "showResults"
-  | "endgameWarning"
-  | "matchReady"
-  | "matchStart"
-  | "matchEnd"
-  | "matchAbort"
-  | "teleopStart"
-  | "autoEnd"
-  | "allianceSelectionChanged"
-  | "allianceTimer"
-  | "connected"
-  | "disconnected"
-  | "timeout"
-  | "fieldMonitorTeamsChanged"
-  | "tournamentLevelChanged"
-  | "gameSpecificMessage"
-  | "plcMatchStatus";
+/**
+ * Screens the videoSwitch event can request. "match-reveal" is not a UI screen;
+ * it is the internal request to run the scores-ready -> score-reveal flow with
+ * whatever results are currently loaded (FMS option MatchResult).
+ */
+export type VideoSwitchScreen = Screen | "match-reveal";
+
+export type ShowResultsData = {
+  matchNumber: number;
+  level: keyof typeof LevelParam;
+};
+
+export type AllianceTimerData = { Round: string; TimerType: string };
+
+export type MatchStatusInfoData = { MatchState: string; MatchNumber: number };
+
+type EventMap = {
+  videoSwitch: VideoSwitchScreen;
+  timer: number;
+  blueScoreChanged: ScoreChangedData;
+  redScoreChanged: ScoreChangedData;
+  matchCommit: null;
+  showResults: ShowResultsData;
+  endgameWarning: null;
+  matchReady: null;
+  matchStart: null;
+  matchEnd: null;
+  matchAbort: null;
+  teleopStart: null;
+  autoEnd: null;
+  allianceSelectionChanged: unknown;
+  allianceTimer: AllianceTimerData;
+  connected: null;
+  disconnected: null;
+  timeout: MatchStatusInfoData;
+  fieldMonitorTeamsChanged: { red: number[]; blue: number[] };
+  tournamentLevelChanged: unknown;
+  gameSpecificMessage: GameSpecificMessage;
+  plcMatchStatus: PlcMatchStatusData;
+};
+
+type EventCallbacks = { [K in keyof EventMap]: Array<(data: EventMap[K]) => void> };
+
+/** Where every real FMS video switch option lands. Options without a dedicated screen idle on "none". */
+const VIDEO_SWITCH_SCREENS: Record<VideoSwitchOption, VideoSwitchScreen> = {
+  Background: "none",
+  MatchPreview: "match-preview",
+  VideoOnly: "none",
+  VideoAndScore: "match-ready",
+  MatchResult: "match-reveal",
+  Rankings: "rankings",
+  Schedule: "none",
+  Alliance: "alliance-selection",
+  // Only one alliance-selection layout exists; mapping all three options to the same
+  // screen also makes hybrid<->fullscreen switches no-ops instead of transitions.
+  AllianceHybrid: "alliance-selection",
+  AllianceFullscreen: "alliance-selection",
+  Bracket: "playoff-bracket",
+  Timeout: "timeout",
+  Award: "none",
+  AwardAssignment: "none",
+  WifiReminder: "none",
+  Message: "none",
+  TimerBug: "none",
+  RegionalPreviouslyQualified: "none",
+  RegionalAdvancers: "none",
+};
+
+function isVideoSwitchOption(option: string): option is VideoSwitchOption {
+  return option in VIDEO_SWITCH_SCREENS;
+}
 
 export class FMSSignalRConnection {
   private fmsUrl: string;
@@ -40,7 +90,7 @@ export class FMSSignalRConnection {
     blue: number[];
   } = { red: [], blue: [] };
 
-  private eventCallbacks: { [key in Events]: Function[] } = {
+  private eventCallbacks: EventCallbacks = {
     videoSwitch: [],
     timer: [],
     blueScoreChanged: [],
@@ -103,29 +153,53 @@ export class FMSSignalRConnection {
       })
       .build();
 
-    this.infrastructureConnection.start().then(async () => {
-      console.log("Connected to FMS infrastructure hub");
-      this.emit("connected", null);
-
-      const videoSwitchOption = await fetch(
-        `http://${this.fmsUrl}/api/v1.0/settings/get/get_VideoswitchOption`,
-      );
-      const option = (await videoSwitchOption.text()).replace(/"/g, "");
-      console.log("Switching to", option);
-      this.videoSwitch(option);
-    });
-
-    this.gameSpecificConnection.start().then(() => {
-      console.log("Connected to FMS game specific hub");
-    });
-
-    this.fieldMonitorConnection.start().then(() => {
-      console.log("Connected to FMS field monitor hub");
-    });
-
+    // Register handlers before starting so no early message hits an unknown method.
     this.handleInfrastructureConnection();
     this.handleGameSpecificConnection();
     this.handleFieldMonitorConnection();
+
+    // Each hub retries independently until its first successful start;
+    // withAutomaticReconnect only covers drops after that.
+    this.startHubWithRetry(this.infrastructureConnection, "infrastructure", () => {
+      this.emit("connected", null);
+      this.refreshVideoSwitchOption();
+    });
+    this.startHubWithRetry(this.gameSpecificConnection, "game specific");
+    this.startHubWithRetry(this.fieldMonitorConnection, "field monitor");
+  }
+
+  private startHubWithRetry(connection: HubConnection, name: string, onConnected?: () => void) {
+    const attempt = () => {
+      connection
+        .start()
+        .then(() => {
+          console.log(`Connected to FMS ${name} hub`);
+          onConnected?.();
+        })
+        .catch((err) => {
+          console.log(`Failed to connect to FMS ${name} hub, retrying in 5s:`, err);
+          setTimeout(attempt, 5_000);
+        });
+    };
+    attempt();
+  }
+
+  /** Fetch the current video switch option and emit the matching screen. Used on connect and reconnect. */
+  private async refreshVideoSwitchOption() {
+    try {
+      const res = await fetch(
+        `http://${this.fmsUrl}/api/v1.0/settings/get/get_VideoswitchOption`,
+      );
+      if (!res.ok) {
+        console.log(`get_VideoswitchOption returned ${res.status}; keeping current screen`);
+        return;
+      }
+      const option = (await res.text()).replace(/"/g, "");
+      console.log("Switching to", option);
+      this.videoSwitch(option);
+    } catch (err) {
+      console.log("Failed to fetch video switch option:", err);
+    }
   }
 
   private handleInfrastructureConnection() {
@@ -139,27 +213,22 @@ export class FMSSignalRConnection {
      */
     this.infrastructureConnection.on(
       "systemconfigvaluechanged",
-      async (data) => {
+      async (data: string) => {
         console.log("systemconfigvaluechanged: ", data);
         if (data === "VideoSwitchOption") {
-          const videoSwitchOption = await fetch(
-            `http://${this.fmsUrl}/api/v1.0/settings/get/get_VideoswitchOption`,
-          );
-          const option = (await videoSwitchOption.text()).replace(/"/g, "");
-          console.log("Switching to", option);
-          this.videoSwitch(option);
+          await this.refreshVideoSwitchOption();
         }
       },
     );
 
     // Constant countdown timer 14-0 for auto then 135-0 for teleop
     // Also countdown for breaks during playoffs in seconds
-    this.infrastructureConnection.on("matchtimerchanged", (data) => {
+    this.infrastructureConnection.on("matchtimerchanged", (data: number) => {
       console.log("matchtimerchanged: ", data);
       this.emit("timer", data);
     });
 
-    // 20 seconds left
+    // 30 seconds left (endgame, per GetGameConfig endgameLengthSeconds)
     this.infrastructureConnection.on("matchtimerwarning1", (data) => {
       console.log("matchtimerwarning1: ", data);
       this.emit("endgameWarning", null);
@@ -212,7 +281,7 @@ export class FMSSignalRConnection {
       this.emit("plcMatchStatus", data);
     });
 
-    this.infrastructureConnection.on("matchstatusinfochanged", (data) => {
+    this.infrastructureConnection.on("matchstatusinfochanged", (data: MatchStatusInfoData) => {
       console.log("matchstatusinfochanged: ", data);
 
       if (data.MatchState.endsWith("TO")) {
@@ -260,19 +329,18 @@ export class FMSSignalRConnection {
       console.log("backupprogress: ", data);
     });
 
-    this.infrastructureConnection.on("audienceshowmatchresult", (data) => {
-      console.log("audienceshowmatchresult: ", data);
-      this.emit("showResults", {
-        matchNumber: data.MatchNumber,
-        level: data.TournamentLevel
-      });
-    });
+    this.infrastructureConnection.on(
+      "audienceshowmatchresult",
+      (data: { MatchNumber: number; TournamentLevel: keyof typeof LevelParam }) => {
+        console.log("audienceshowmatchresult: ", data);
+        this.emit("showResults", {
+          matchNumber: data.MatchNumber,
+          level: data.TournamentLevel,
+        });
+      },
+    );
 
-    this.infrastructureConnection.on("matchstatuschanged", (data) => {
-      console.log("matchstatuschanged: ", data);
-    });
-
-    this.infrastructureConnection.on("pingaudiencescreen", (data) => {
+    this.infrastructureConnection.on("pingaudiencescreen", (data: boolean) => {
       console.log("pingaudiencescreen: ", data);
       this.pingResponse(data);
     });
@@ -282,7 +350,7 @@ export class FMSSignalRConnection {
       this.emit("allianceSelectionChanged", data);
     });
 
-    this.infrastructureConnection.on("audiencealliancetimer", (data) => {
+    this.infrastructureConnection.on("audiencealliancetimer", (data: AllianceTimerData) => {
       console.log("audiencealliancetimer: ", data);
       this.emit("allianceTimer", data);
     });
@@ -292,6 +360,26 @@ export class FMSSignalRConnection {
       this.emit("tournamentLevelChanged", data);
     });
 
+    // Known-noisy / unused hub methods: intentional no-ops so the signalr client
+    // doesn't warn about missing handlers for them (GlobalTimerChanged fires 1/s;
+    // VideoSwitchOptionChanged duplicates systemconfigvaluechanged "VideoSwitchOption").
+    const infrastructureNoOps = [
+      "globaltimerchanged",
+      "videoswitchoptionchanged",
+      "matchposted",
+      "matchcommitted",
+      "currentlyactiveeventchanged",
+      "currentlyactiveeventdbcreated",
+      "scheduleaheadbehindchanged",
+      "schedulechanged",
+      "allianceselectiondecline",
+      "audienceshowmessage",
+      "lastcycletimecalculated",
+    ];
+    for (const method of infrastructureNoOps) {
+      this.infrastructureConnection.on(method, () => {});
+    }
+
     this.infrastructureConnection.onreconnecting(() => {
       this.emit("disconnected", null);
       console.log("Reconnecting to FMS SignalR");
@@ -300,6 +388,8 @@ export class FMSSignalRConnection {
     this.infrastructureConnection.onreconnected(() => {
       this.emit("connected", null);
       console.log("Reconnected to FMS SignalR");
+      // Resync the screen; the FMS may have switched views while we were gone.
+      this.refreshVideoSwitchOption();
     });
 
     this.infrastructureConnection.onclose(() => {
@@ -341,78 +431,82 @@ export class FMSSignalRConnection {
         this.emit("gameSpecificMessage", data);
       },
     );
+    // Known-noisy no-op (see infrastructure list above).
+    this.gameSpecificConnection.on("hardwareerrors_requestupdate", () => {});
   }
 
   private handleFieldMonitorConnection() {
-    this.fieldMonitorConnection.on("fieldMonitorDataChanged", (data) => {
-      const teams: { red: number[]; blue: number[] } = {
-        red: [],
-        blue: [],
-      };
+    this.fieldMonitorConnection.on(
+      "fieldMonitorDataChanged",
+      (data: Array<{ Alliance: string; TeamNumber: number }>) => {
+        const teams: { red: number[]; blue: number[] } = {
+          red: [],
+          blue: [],
+        };
 
-      for (const team of data) {
-        if (team.Alliance === "Red") {
-          teams.red.push(team.TeamNumber);
-        } else if (team.Alliance === "Blue") {
-          teams.blue.push(team.TeamNumber);
+        for (const team of data) {
+          if (team.Alliance === "Red") {
+            teams.red.push(team.TeamNumber);
+          } else if (team.Alliance === "Blue") {
+            teams.blue.push(team.TeamNumber);
+          }
         }
-      }
 
-      this.currentTeams = teams;
-      this.emit("fieldMonitorTeamsChanged", {
-        red: teams.red,
-        blue: teams.blue,
-      });
-    });
+        this.currentTeams = teams;
+        this.emit("fieldMonitorTeamsChanged", {
+          red: teams.red,
+          blue: teams.blue,
+        });
+      },
+    );
+
+    // Known-noisy no-ops (this hub also mirrors match status; the display uses
+    // the infrastructure hub's copy).
+    const fieldMonitorNoOps = [
+      "matchstatusinfochanged",
+      "fieldmonitorpreviousmacaddresseschanged",
+      "scheduleaheadbehindchanged",
+    ];
+    for (const method of fieldMonitorNoOps) {
+      this.fieldMonitorConnection.on(method, () => {});
+    }
   }
 
-  on(event: Events, callback: (data: any) => void) {
-    if (!this.eventCallbacks[event]) {
-      this.eventCallbacks[event] = [];
-    }
+  on<K extends keyof EventMap>(event: K, callback: (data: EventMap[K]) => void) {
     this.eventCallbacks[event].push(callback);
   }
 
-  private emit(event: Events, data: any) {
-    if (this.eventCallbacks[event]) {
-      this.eventCallbacks[event].forEach((callback) => {
-        callback(data);
-      });
+  private emit<K extends keyof EventMap>(event: K, data: EventMap[K]) {
+    for (const callback of this.eventCallbacks[event]) {
+      callback(data);
     }
   }
 
-  private async pingResponse(playSound: boolean) {
-    this.infrastructureConnection.invoke("AudienceScreenPingResponse", {
-      UtcNow: new Date().toISOString(),
-      MachineName: "RR-AD",
-      Version: "25.0.0",
-      IsMuted: false,
-      Volume: 100,
-      IsUsingWifi: false,
-    });
+  private pingResponse(playSound: boolean) {
+    this.infrastructureConnection
+      .invoke("AudienceScreenPingResponse", {
+        UtcNow: new Date().toISOString(),
+        MachineName: "RR-AD",
+        Version: "25.0.0",
+        IsMuted: false,
+        Volume: 100,
+        IsUsingWifi: false,
+      })
+      .catch((err) => {
+        console.log("AudienceScreenPingResponse failed:", err);
+      });
   }
 
   private videoSwitch(option: string) {
-    if (option === "VideoOnly") {
+    if (!isVideoSwitchOption(option)) {
+      console.log(`Unknown video switch option "${option}"; showing idle screen`);
       this.emit("videoSwitch", "none");
-    } else if (option === "VideoAndScore") {
-      this.emit("videoSwitch", "match-ready");
-    } else if (option === "MatchPreview") {
-      this.emit("videoSwitch", "match-preview");
-    } else if (option === "MatchResults") {
-      this.emit("videoSwitch", "score-reveal");
-    } else if (option === "AllianceHybrid") {
-      this.emit("videoSwitch", "alliance-selection");
-    } else if (option === "AllianceFullscreen") {
-      // Only one alliance-selection layout exists; mapping both options to the same
-      // screen also makes hybrid<->fullscreen switches no-ops instead of transitions.
-      this.emit("videoSwitch", "alliance-selection");
-    } else if (option === "Bracket") {
-      this.emit("videoSwitch", "playoff-bracket");
-    } else if (option === "Rankings") {
-      this.emit("videoSwitch", "rankings");
-    } else if (option === "Timeout") {
-      this.emit("videoSwitch", "timeout");
+      return;
     }
+    const screen = VIDEO_SWITCH_SCREENS[option];
+    if (screen === "none" && option !== "Background" && option !== "VideoOnly") {
+      console.log(`No dedicated screen for video switch option "${option}"; showing idle screen`);
+    }
+    this.emit("videoSwitch", screen);
   }
 }

@@ -35,18 +35,24 @@ export type ScoreChangedData = {
   TraversalThreshold: number;
 };
 
+/**
+ * Match phases as they appear on the wire (verified against fms-capture/signalr.jsonl):
+ * FMS sends "Coop" for the transition shift, never "TransitionShift", and never
+ * sends "PreMatch"/"PostMatch" (idle is "None"). The display normalizes "Coop"
+ * to its internal MatchPhase "TransitionShift".
+ */
+export type FMSWireMatchPhase =
+  | "None"
+  | "Auto"
+  | "Coop"
+  | "Shift1"
+  | "Shift2"
+  | "Shift3"
+  | "Shift4"
+  | "Endgame";
+
 export type GameSpecificMessage = {
-  MatchPhase:
-    | "None"
-    | "PreMatch"
-    | "Auto"
-    | "TransitionShift"
-    | "Shift1"
-    | "Shift2"
-    | "Shift3"
-    | "Shift4"
-    | "Endgame"
-    | "PostMatch";
+  MatchPhase: FMSWireMatchPhase;
   BlueAllianceGoalActive: boolean;
   RedAllianceGoalActive: boolean;
   CurrentPhaseTimeSeconds: number;

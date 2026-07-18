@@ -49,14 +49,16 @@ export type AudienceBracketAlliance = {
 
 export type AudienceDoubleElimMatch = {
   matchNumber: number;
-  shortName: string;
-  longName: string;
+  /** Null on the wire for the finals entry. */
+  shortName: string | null;
+  longName: string | null;
   isComplete: boolean;
   winningAllianceType: "None" | "Red" | "Blue";
   winningAllianceNumber: number;
-  redAllianceNumber: number;
+  /** Null until the feeding matches decide the alliance. */
+  redAllianceNumber: number | null;
   redAllianceScore: number;
-  blueAllianceNumber: number;
+  blueAllianceNumber: number | null;
   blueAllianceScore: number;
   isNextMatch: boolean;
 };

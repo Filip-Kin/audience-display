@@ -42,8 +42,9 @@ export const matchName = (
     }
   }
   if (level === "f") {
-    // FMS numbers finals 14-16 (17-19 overtime) continuing the double-elim
-    // sequence, but falls back for events that number finals from 1.
+    // The wire numbers finals 1-3 (4-6 overtime); the server converts them to
+    // the internal 14-16 (17-19) continuing the double-elim sequence. Fall back
+    // for any number outside that range.
     if (matchNumber in bracket) {
       return bracket[matchNumber as keyof typeof bracket];
     }

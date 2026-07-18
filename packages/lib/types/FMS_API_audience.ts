@@ -1,49 +1,215 @@
 import type { Bracket, PlayoffLevel, PlayoffSizeTypes, PlayoffTiebreakType } from "./bracket";
 
+/** Real FMS tournament levels (web bundle enum TournamentLevel). */
 export enum LevelParam {
   None,
   Practice,
   Qualification,
-  Playoff,
-  DoubleElimPlayoff,
-  DoubleElimFinal
+  Playoff
 }
 
-export interface FMSMatchPreview {
-  matchNumber: number,
-  matchDescription: string,
-  numberOfPracticeMatches?: number;
-  numberOfQualMatches?: number;
-  numberOfPlayoffMatches?: number;
-  eventName: string,
-  tournamentType: string,
-  redAlliance: FMSMatchPreviewAlliance,
-  blueAlliance: FMSMatchPreviewAlliance;
-}
+export type CardStatus = "None" | "Yellow" | "Red";
 
-export interface FMSMatchPreviewAlliance {
-  allianceName?: string; // These are only for playoff matches
-  allianceNumber?: number;
-  carryingCard?: boolean;
-  team1: FMSMatchPreviewTeam,
-  team2: FMSMatchPreviewTeam,
-  team3: FMSMatchPreviewTeam;
-  team4?: FMSMatchPreviewTeam; // Only for playoff matches
-}
+/**
+ * Video switch options the real FMS can broadcast
+ * (web bundle enum VideoSwitchOption, 19 values).
+ */
+export type VideoSwitchOption =
+  | "Background"
+  | "MatchPreview"
+  | "VideoOnly"
+  | "VideoAndScore"
+  | "MatchResult"
+  | "Rankings"
+  | "Schedule"
+  | "Alliance"
+  | "AllianceHybrid"
+  | "AllianceFullscreen"
+  | "Bracket"
+  | "Timeout"
+  | "Award"
+  | "AwardAssignment"
+  | "WifiReminder"
+  | "Message"
+  | "TimerBug"
+  | "RegionalPreviouslyQualified"
+  | "RegionalAdvancers";
 
-export interface FMSMatchPreviewTeam {
+// #region Match previews
+
+/** Team entry for test/practice/qual previews (QualMatchTeamData). */
+export interface FMSQualPreviewTeam {
   teamNumber: number;
-  teamName: string;
+  teamName: string | null;
   teamRank: number;
   avatar: string;
   carryingCard: boolean;
+}
+
+export interface FMSQualPreviewAlliance {
+  team1: FMSQualPreviewTeam;
+  team2: FMSQualPreviewTeam;
+  team3: FMSQualPreviewTeam;
+}
+
+/** GetTestMatchPreviewData / GetPracticeMatchPreviewData / GetQualMatchPreviewData. */
+export interface FMSQualMatchPreview {
+  matchNumber: number;
+  numberOfPracticeMatches?: number;
+  numberOfQualMatches?: number;
+  matchDescription: string;
+  eventName: string;
+  eventCode?: string;
+  tournamentType: string;
+  redAlliance: FMSQualPreviewAlliance;
+  blueAlliance: FMSQualPreviewAlliance;
+}
+
+/** Playoff/finals preview team (AudienceMatchPreviewPlayoffTeamData): 3 fields only, no rank or cards. */
+export interface FMSPlayoffPreviewTeam {
+  teamNumber: number;
+  teamName: string | null;
+  avatar: string;
+}
+
+/** Playoff/finals preview alliance (AudienceMatchPreviewPlayoffAllianceData); card is alliance-level. */
+export interface FMSPlayoffPreviewAlliance {
+  allianceName: string | null;
+  allianceNumber: number;
+  carryingCard: boolean;
+  team1: FMSPlayoffPreviewTeam;
+  team2: FMSPlayoffPreviewTeam;
+  team3: FMSPlayoffPreviewTeam;
+  /** Backup slot; may be null or a zeroed team when unfilled. */
+  team4?: FMSPlayoffPreviewTeam | null;
+}
+
+export interface FMSPlayoffAdvancement {
+  matchNumber: number;
+  matchLevel: PlayoffLevel;
+  matchBracket: Bracket;
+  matchDescription: string;
+  isEliminated: boolean;
+}
+
+/** GetDoubleElimPlayoffMatchPreviewData. */
+export interface FMSPlayoffMatchPreview {
+  matchNumber: number;
+  matchDescription: string;
+  eventName: string;
+  tournamentType: string;
+  playoffLevel: PlayoffLevel;
+  playoffBracket: Bracket;
+  allianceCount: PlayoffSizeTypes;
+  winnerPlayoffAdvancementData: FMSPlayoffAdvancement;
+  loserPlayoffAdvancementData: FMSPlayoffAdvancement;
+  redAlliance: FMSPlayoffPreviewAlliance;
+  blueAlliance: FMSPlayoffPreviewAlliance;
+}
+
+/** GetDoubleElimFinalMatchPreviewData: playoff preview shape plus the best-of-3 series wins. */
+export interface FMSFinalMatchPreview extends FMSPlayoffMatchPreview {
+  redWins: number;
+  blueWins: number;
+}
+
+// #endregion
+
+// #region Match results
+
+/** Test/practice/qual results team (MatchResultsQualTeamData). */
+export interface FMSMatchResultsTeam {
+  teamNumber: number;
+  teamName: string | null;
+  teamRank: number;
+  /** RankingChangeType; null observed pre-event on zeroed team slots. */
+  teamRankChange: "Up" | "Down" | "NoChange" | null;
+  avatar: string;
+  cardCarryStatus: CardStatus;
+  cardEffectiveStatus: CardStatus;
+}
+
+export interface FMSQualResultsAlliance {
+  scoreDetails: AllianceScoreDetails;
+  team1: FMSMatchResultsTeam;
+  team2: FMSMatchResultsTeam;
+  team3: FMSMatchResultsTeam;
+}
+
+/** GetMatchResultsTestMatchData / GetMatchResultsPracticeData / GetMatchResultsQualData. */
+export type FMSQualMatchScore = {
+  matchNumber: number;
+  numberOfQualMatches?: number;
+  matchDescription: string;
+  eventName: string;
+  eventCode: string;
+  season: number;
+  tournamentType: string;
+  redAllianceData: FMSQualResultsAlliance;
+  blueAllianceData: FMSQualResultsAlliance;
+  matchWinner: "Red" | "Blue" | null;
 };
 
-export interface FMSMatchResultsTeam extends FMSMatchPreviewTeam {
-  teamRankChange: "Up" | "Down" | null;
-  cardCarryStatus: "None" | "Yellow" | "Red";
-  cardEffectiveStatus: "None" | "Yellow" | "Red";
+/** Playoff/finals results team: 3 fields only (cards live at alliance level). */
+export interface FMSPlayoffResultsTeam {
+  teamNumber: number;
+  teamName: string | null;
+  avatar: string;
 }
+
+export interface FMSPlayoffResultsAlliance {
+  allianceName: string | null;
+  allianceNumber: number;
+  scoreDetails: AllianceScoreDetails;
+  cardCarryStatus: CardStatus;
+  cardEffectiveStatus: CardStatus;
+  playoffAdvancementStatus: FMSPlayoffAdvancement;
+  team1: FMSPlayoffResultsTeam;
+  team2: FMSPlayoffResultsTeam;
+  team3: FMSPlayoffResultsTeam;
+  /** Backup slot; may be null or a zeroed team when unfilled. */
+  team4?: FMSPlayoffResultsTeam | null;
+}
+
+/** Finals alliance swaps playoffAdvancementStatus for seriesWins. */
+export interface FMSFinalResultsAlliance {
+  allianceName: string | null;
+  allianceNumber: number;
+  seriesWins: number;
+  scoreDetails: AllianceScoreDetails;
+  cardCarryStatus: CardStatus;
+  cardEffectiveStatus: CardStatus;
+  team1: FMSPlayoffResultsTeam;
+  team2: FMSPlayoffResultsTeam;
+  team3: FMSPlayoffResultsTeam;
+  /** Backup slot; may be null or a zeroed team when unfilled. */
+  team4?: FMSPlayoffResultsTeam | null;
+}
+
+/** GetMatchResultsDoubleElimPlayoffData. */
+export type FMSPlayoffMatchScore = {
+  matchNumber: number;
+  matchDescription: string;
+  eventName: string;
+  eventCode: string;
+  season: number;
+  tournamentType: string;
+  playoffBracket: Bracket;
+  allianceCount: PlayoffSizeTypes;
+  playoffLevel: PlayoffLevel;
+  redAllianceData: FMSPlayoffResultsAlliance;
+  blueAllianceData: FMSPlayoffResultsAlliance;
+  matchWinner: "Red" | "Blue" | null;
+  tiebreaker: PlayoffTiebreakType | null;
+};
+
+/** GetMatchResultsDoubleElimFinalData. */
+export type FMSFinalMatchScore = Omit<FMSPlayoffMatchScore, "redAllianceData" | "blueAllianceData"> & {
+  redAllianceData: FMSFinalResultsAlliance;
+  blueAllianceData: FMSFinalResultsAlliance;
+};
+
+// #endregion
 
 export interface FMSMatchSchedule {
   scheduleDetailId: string,
@@ -67,54 +233,17 @@ export interface FMSMatchSchedule {
   blueAllianceNumber: number | null;
 }
 
-export type FMSMatchScore = {
-  matchNumber: number;
-  numberOfQualMatches?: number;
-  matchDescription: string;
-  eventName: string;
-  eventCode: string;
-  season: number;
-  tournamentType: string;
-  redAllianceData: FMSAllianceData;
-  blueAllianceData: FMSAllianceData;
-  matchWinner: "Red" | "Blue" | null;
-  playoffLevel?: PlayoffLevel;
-  playoffBracket?: Bracket;
-  allianceCount?: PlayoffSizeTypes;
-  tiebreaker?: PlayoffTiebreakType;
-};
-
 export type FMSBracketDataMatchScore = {
   matchNumber: number;
-  shortName: string;
-  longName: string;
+  shortName: string | null;
+  longName: string | null;
   isComplete: boolean;
-  winningAllianceType: "Red" | "Blue" | "Tie";
+  winningAllianceType: "Red" | "Blue" | "None";
   winningAllianceNumber: number | null;
-  redAllianceNumber: number;
-  blueAllianceNumber: number;
+  redAllianceNumber: number | null;
+  blueAllianceNumber: number | null;
   redAlliance: FMSAllianceSelection;
   blueAlliance: FMSAllianceSelection;
-};
-
-export type FMSAllianceData = {
-  scoreDetails: AllianceScoreDetails;
-  allianceName?: string;
-  allianceNumber?: number;
-  seriesWins?: number;            // present on DoubleElimFinal results
-  cardCarryStatus?: "None" | "Yellow" | "Red";
-  cardEffectiveStatus?: "None" | "Yellow" | "Red";
-  playoffAdvancementStatus?: {
-    matchNumber: number;
-    matchLevel: PlayoffLevel;
-    matchBracket: Bracket;
-    matchDescription: string;
-    isEliminated: boolean;
-  };
-  team1: FMSMatchResultsTeam;
-  team2: FMSMatchResultsTeam;
-  team3: FMSMatchResultsTeam;
-  team4?: FMSMatchResultsTeam; // Only for playoff matches
 };
 
 export type AllianceScoreDetails = {
@@ -155,7 +284,7 @@ export type FMSAllianceSelection = {
   alternateTeamNameShort: string;
   alternateAvatar: string;
 
-  cardEffectiveStatus: "None" | "Yellow" | "Red";
+  cardEffectiveStatus: CardStatus;
 };
 
 export type FMSRankingTeam = {
@@ -190,5 +319,5 @@ export type FMSQualRankData = {
   eventCode: string;
   seasonYear: number;
   tournamentType: string;
-  teamRanks: FMSQualRankTeam[];
+  teamRanks: FMSQualRankTeam[] | null;
 };

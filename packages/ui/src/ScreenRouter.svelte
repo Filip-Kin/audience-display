@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, onDestroy } from "svelte";
 	import { state, activeProfile } from "./lib/state";
 	import type { Screen } from "lib";
 	import SettingsIcon from "./assets/settings.svg";
@@ -18,7 +18,27 @@
 	// the exited instance (ready=false, video hidden) is reused and stays blank forever.
 	let instanceKey = 0;
 
+	// The screen a scheduled transition is heading to. The store broadcasts on every
+	// state change, so the reactive block below re-fires constantly; this guard makes
+	// each target screen schedule its timers exactly once.
+	let pendingScreen: Screen | null = null;
+	let delayTimer: ReturnType<typeof setTimeout> | null = null;
+	let completionTimer: ReturnType<typeof setTimeout> | null = null;
+
+	function clearTransitionTimers() {
+		if (delayTimer) {
+			clearTimeout(delayTimer);
+			delayTimer = null;
+		}
+		if (completionTimer) {
+			clearTimeout(completionTimer);
+			completionTimer = null;
+		}
+	}
+
 	function completeTransition() {
+		clearTransitionTimers();
+		pendingScreen = null;
 		transitioning = false;
 		activeScreen = $state.screen;
 		instanceKey++;
@@ -27,54 +47,42 @@
 		if (activeScreen === "score-reveal") preScoreReveal = true;
 	}
 
-	// When the screen changes, set transitioning to true,
-	// then wait for the transition to finish before setting
-	// transitioning to false and updating the active screen.
-	$: if ($state.screen !== activeScreen) {
+	function beginExit() {
+		transitioning = true;
+		// Completion fallback: if the exiting screen never dispatches "transitioned",
+		// finish the swap anyway so the display can't wedge mid-transition.
+		completionTimer = setTimeout(() => {
+			if (transitioning) completeTransition();
+		}, 1000);
+	}
+
+	// When the screen changes, start the exit transition (possibly after a configured
+	// delay), then wait for the old screen's "transitioned" event or the fallback
+	// timer before swapping in the new screen.
+	$: if ($state.screen !== activeScreen && $state.screen !== pendingScreen) {
 		console.log("Screen changed to", $state.screen);
+		clearTransitionTimers();
+		pendingScreen = $state.screen;
 		// If we're loading the score-reveal screen set this to true to hide the flicker when loading the animation
-		if ($state.screen === "score-reveal") {
-			preScoreReveal = true;
-		} else {
-			preScoreReveal = false;
-		}
+		preScoreReveal = $state.screen === "score-reveal";
 
 		if ($state.screen === "scores-ready" && $settings.transitionAfterMatchEnd > -1) {
 			// Don't transition to scores-ready if the active screen is match-end
 			console.log("scores-ready");
 			if (activeScreen !== "match-end") {
 				console.log("Transitioning to scores-ready");
-				setTimeout(() => {
-					transitioning = true;
-				}, $settings.transitionAfterMatchEnd * 1000);
+				delayTimer = setTimeout(beginExit, $settings.transitionAfterMatchEnd * 1000);
 			}
+		} else if ($state.screen === "match-end") {
+			if ($settings.transitionAfterMatchEnd > -1) {
+				console.log("Transitioning to match-end");
+				delayTimer = setTimeout(beginExit, $settings.transitionAfterMatchEnd * 1000);
+			}
+			// Don't transition if the setting is -1
 		} else {
-			// If the screen is match-end, wait 8 seconds before transitioning
-			if ($state.screen === "match-end") {
-				if ($settings.transitionAfterMatchEnd > -1) {
-					console.log("Transitioning to match-end");
-					setTimeout(() => {
-						transitioning = true;
-						activeScreen = $state.screen;
-					}, $settings.transitionAfterMatchEnd * 1000);
-					setTimeout(() => {
-						if (transitioning) {
-							transitioning = false;
-							activeScreen = $state.screen;
-						}
-					}, 1000);
-				} else {
-					// Don't transition if the setting is -1
-				}
-			} else {
-				// Standard transition
-				transitioning = true;
-				console.log("Standard transition");
-				console.log("Transitioning to ", $state.screen);
-				setTimeout(() => {
-					if (transitioning) completeTransition();
-				}, 1000);
-			}
+			// Standard transition
+			console.log("Transitioning to", $state.screen);
+			beginExit();
 		}
 	}
 
@@ -83,7 +91,7 @@
 	let settingsOpen = false;
 
 	let showUnlockPopup = false;
-	let audioContext: AudioContext;
+	let audioContext: AudioContext | undefined;
 
 	async function tryPlaySilentAudio(): Promise<boolean> {
 		try {
@@ -119,8 +127,18 @@
 		}
 	});
 
+	onDestroy(() => {
+		clearTransitionTimers();
+	});
+
 	function unlockManually() {
-		audioContext.resume();
+		// audioContext is undefined if construction failed; still mark audio as
+		// unlocked so score-reveal isn't permanently gated behind the popup.
+		try {
+			audioContext?.resume();
+		} catch (err) {
+			console.error("Failed to resume AudioContext:", err);
+		}
 		audioUnlocked.set(true);
 		showUnlockPopup = false;
 	}

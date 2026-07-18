@@ -39,7 +39,7 @@
 	}
 	// Every ranked team stays on the board (picked ones get struck through) so the
 	// grid, and everything below it, never changes size during the ceremony.
-	$: rankedTeams = [...$state.ranking].sort((a, b) => a.rank - b.rank);
+	$: rankedTeams = [...$state.ranking].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
 	$: slotsPerAlliance = Math.max(2, Math.min(4, $state.allianceSize ?? 3));
 
 	// Once all 8 alliances have at least one team (captain slot filled), stop

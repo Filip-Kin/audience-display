@@ -57,7 +57,8 @@ function updateQueryParams(settings: Settings) {
     params.delete("matchReadySound");
   }
 
-  if (settings.transitionAfterMatchEnd) {
+  // 0 is a legal value (transition immediately); only the default -1 is omitted.
+  if (settings.transitionAfterMatchEnd !== -1) {
     params.set(
       "transitionAfterMatchEnd",
       settings.transitionAfterMatchEnd.toString()
