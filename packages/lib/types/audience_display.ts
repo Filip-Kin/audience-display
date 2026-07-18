@@ -120,6 +120,10 @@ export type AudienceDisplayState = {
   eventDetails: EventDetails | null;
   alliances: AllianceSelection[];
   ranking: Omit<Team, "name" | "card">[];
+  /** Teams per alliance for the selection ceremony (2/3/4, from FMS allianceSelectionType). */
+  allianceSize: number;
+  /** Whether the selection clock counting down is a pick clock or a between-rounds break. */
+  pickTimerType: "pick" | "break";
   bracket: BracketData | null;
   gameConfig: GameConfig | null;
   activeProfileId: string | null;

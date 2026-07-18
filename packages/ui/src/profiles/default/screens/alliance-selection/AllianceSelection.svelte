@@ -24,7 +24,10 @@
 
 	$: pickSeconds = $state.match?.timer ?? 0;
 	$: pickWarning = pickSeconds > 0 && pickSeconds <= 10;
-	$: availableTeams = $state.ranking.filter((t) => !t.unavailableForSelection);
+	// Every ranked team stays on the board (picked ones get struck through) so the
+	// grid, and everything below it, never changes size during the ceremony.
+	$: rankedTeams = [...$state.ranking].sort((a, b) => a.rank - b.rank);
+	$: slotsPerAlliance = Math.max(2, Math.min(4, $state.allianceSize ?? 3));
 
 	// Once all 8 alliances have at least one team (captain slot filled), stop
 	// highlighting potential captains.
@@ -45,13 +48,22 @@
 		);
 	});
 
+	// Who's on the clock. Captains are revealed progressively during round 1 (an alliance
+	// gets its captain the moment its turn starts), so while captains are still appearing
+	// the picking alliance is simply the latest one revealed. Once all captains exist,
+	// follow the serpentine order: round 1 goes 1..N, round 2 goes N..1, round 3 1..N.
 	$: currentPickAllianceNum = (() => {
-		const seeded = $state.alliances;
-		if (!seeded.length) return null;
-		const lengths = seeded.map((a) => a.teams.length);
-		const max = Math.max(...lengths);
-		const next = seeded.find((a) => a.teams.length < max);
-		return next?.allianceNumber ?? null;
+		const seeded = paddedAlliances;
+		const n = seeded.length;
+		const captains = seeded.filter((a) => a.teams.length > 0).length;
+		if (!captains) return null;
+		const picksMade = seeded.reduce((sum, a) => sum + Math.max(0, a.teams.length - 1), 0);
+		if (captains < n) return picksMade < captains ? captains : null;
+		const rounds = slotsPerAlliance - 1;
+		if (picksMade >= rounds * n) return null;
+		const round = Math.floor(picksMade / n) + 1;
+		const pos = picksMade % n;
+		return round % 2 === 1 ? pos + 1 : n - pos;
 	})();
 </script>
 
@@ -74,7 +86,7 @@
 			<!-- Pick timer pill: stacked layout -->
 			<div class="flex flex-col items-center px-7 py-2.5 min-w-[160px] {pickWarning ? 'bg-accentWarn text-[oklch(0.18_0.04_60)]' : 'bg-[oklch(0_0_0/0.6)] text-white border-2 border-white'}">
 				<div class="uppercase text-xs font-black tracking-[0.2em]">
-					Pick Timer
+					{$state.pickTimerType === "break" ? "Break Timer" : "Pick Timer"}
 				</div>
 				<div class="display tabular-nums text-[82px] leading-[0.9]">
 					{mmss(pickSeconds)}
@@ -84,8 +96,8 @@
 
 		<!-- Body: left (available teams + camera) | right (alliances + sponsor) -->
 		<div class="grid grid-cols-[1.85fr_1fr] gap-6 px-14 pt-5 pb-14 h-[calc(100vh-142px)]">
-			<!-- LEFT: available teams grid + fixed camera area -->
-			<div class="grid grid-rows-[auto_1fr_auto] gap-3.5 min-h-0">
+			<!-- LEFT: full team grid on top, camera fills the rest -->
+			<div class="grid grid-rows-[auto_auto_minmax(0,1fr)] gap-3.5 min-h-0">
 				<!-- Section label -->
 				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
 					<span class="bg-accentWarn size-2"></span>
@@ -93,13 +105,17 @@
 					<div class="flex-1 h-0.5 bg-[var(--rule)]"></div>
 				</div>
 
-				<!-- Rank grid: 7 cols, clips if too many teams -->
-				<div class="grid grid-cols-7 gap-1.5 content-start overflow-hidden">
-					{#each availableTeams as team (team.number)}
+				<!-- Rank grid: 7 cols filled top-to-bottom (rank 1,2,3... down each column),
+				     always shows every team so its height never changes -->
+				<div
+					class="grid grid-cols-7 gap-1.5 content-start"
+					style="grid-auto-flow: column; grid-template-rows: repeat({Math.max(1, Math.ceil(rankedTeams.length / 7))}, auto);"
+				>
+					{#each rankedTeams as team (team.number)}
 						{@const taken = team.unavailableForSelection}
 						{@const captain = team.potentialCaptain && !taken && !allCaptainsFilled}
 						<div
-							class="grid items-stretch overflow-hidden grid-cols-[44px_1fr]"
+							class="grid items-stretch overflow-hidden grid-cols-[44px_1fr] relative {taken ? 'struck' : ''}"
 							style="
 								background: {taken
 									? 'oklch(0.18 0.012 250)'
@@ -107,7 +123,6 @@
 										? 'var(--accentWarn)'
 										: 'white'};
 								color: {taken ? 'var(--text-faint)' : 'oklch(0.14 0 0)'};
-								text-decoration: {taken ? 'line-through' : 'none'};
 							"
 						>
 							<div
@@ -134,8 +149,11 @@
 					{/each}
 				</div>
 
-				<!-- Camera area: fixed 220px height, 16:9 width, never shifts -->
-				<div class="h-[220px] w-[calc(220px*16/9)] bg-transparent border-2 border-dashed border-[oklch(1_0_0/0.4)]"></div>
+				<!-- Camera area: takes all space left under the (constant-height) team grid,
+				     so it stays the same size and position for the whole ceremony -->
+				<div class="min-h-0 flex items-start justify-center">
+					<div class="h-full aspect-video max-w-full bg-transparent border-2 border-dashed border-[oklch(1_0_0/0.4)]"></div>
+				</div>
 			</div>
 
 			<!-- RIGHT: alliances + sponsor -->
@@ -168,42 +186,57 @@
 								{alliance.allianceNumber}
 							</div>
 
-							<!-- Team slots: flex-fill, always 4 slots -->
+							<!-- Team slots: one per alliance member (2/3/4-team); unfilled slots stay
+							     invisible but keep their width so filled ones never move -->
 							<div class="flex items-center gap-1.5 px-2.5 py-1.5">
-								{#each [0, 1, 2, 3] as i}
+								{#each Array(slotsPerAlliance).fill(0) as _, i}
 									{@const team = alliance.teams[i]}
 									{@const empty = !team}
 									<div
-										class="display tabular-nums flex items-center justify-center flex-1 min-w-0 py-[7px] text-[34px] leading-none"
+										class="display tabular-nums flex items-center justify-center flex-1 min-w-0 h-12 text-[34px] leading-none"
 										style="
-											background: {empty ? 'oklch(0 0 0 / 0.08)' : 'oklch(0.16 0 0)'};
-											color: {empty ? 'oklch(0.45 0 0)' : 'var(--accentWarn)'};
-											border: {empty ? '1px dashed oklch(0 0 0 / 0.25)' : 'none'};
+											background: oklch(0.16 0 0);
+											color: var(--accentWarn);
+											visibility: {empty ? 'hidden' : 'visible'};
 										"
 									>
 										{empty ? "" : team.number}
 									</div>
 								{/each}
-
-								{#if isCurrent}
-									<div class="uppercase ml-2 text-[11px] font-black tracking-[0.2em] text-[oklch(0.18_0.04_60)] whitespace-nowrap">
-										On the Clock
-									</div>
-								{/if}
 							</div>
 						</div>
 					{/each}
 				</div>
 
-				<!-- Sponsor logo: constrained -->
-				<div class="flex items-center justify-center flex-1 mt-1 p-4">
+				<!-- Sponsor logos: Pit Podcast + FAMNM side by side -->
+				<div class="flex items-center justify-center gap-10 flex-1 mt-1 p-4">
 					<img
 						src="/pitpodcast.png"
 						alt="Pit Podcast"
-						class="object-contain max-h-[120px] max-w-[80%] w-auto"
+						class="object-contain max-h-[180px] max-w-[45%] w-auto"
+					/>
+					<img
+						src="/sponsor2.png"
+						alt="FAMNM"
+						class="object-contain max-h-[180px] max-w-[45%] w-auto"
 					/>
 				</div>
 			</div>
 		</div>
 	</div>
 {/if}
+
+<style>
+	/* The display font's line-through sits too low; draw a vertically centered strike instead. */
+	.struck::after {
+		content: "";
+		position: absolute;
+		left: 4px;
+		right: 4px;
+		top: 50%;
+		height: 3px;
+		transform: translateY(-50%);
+		background: var(--text-faint, oklch(0.55 0 0));
+		opacity: 0.85;
+	}
+</style>

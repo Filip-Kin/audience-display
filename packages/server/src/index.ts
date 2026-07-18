@@ -8,6 +8,12 @@ import { $, file } from "bun";
 const FMS_URL = process.env.FMS_URL;
 const FAKE_FMS = process.env.FAKE_FMS;
 
+// A failed FMS fetch inside an event handler (e.g. FMS restarting) must not kill the
+// display server; log it and keep serving. SignalR reconnects on its own.
+process.on("unhandledRejection", (err) => {
+  console.log("Unhandled rejection (continuing):", err);
+});
+
 if (process.execPath.endsWith(".exe") && !process.execPath.endsWith("bun.exe")) {
   await Bun.write("./.temp/public.zip", file(zipFile));
   await $`unzip -o ./.temp/public.zip -d ./.temp`;

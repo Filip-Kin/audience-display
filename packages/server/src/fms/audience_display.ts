@@ -285,6 +285,8 @@ export class AudienceDisplayManager {
   private currentLevel: LevelParam = LevelParam.None;
   private alliances: AllianceSelection[] = demoAlliances();
   private ranking: Omit<Team, "name" | "card">[] = demoRanking();
+  private allianceSize = 3;
+  private pickTimerType: "pick" | "break" = "pick";
   private connected = false;
   private bracket: BracketData | null = demoBracket();
   private gameConfig: GameConfig = defaultGameConfig();
@@ -338,6 +340,7 @@ export class AudienceDisplayManager {
     promises.push(
       this.getAlliances().then(async (alliances) => {
         this.ranking = await this.getRankings();
+        await this.updateAllianceSize();
         this.updateAllianceData(alliances);
       })
     );
@@ -414,6 +417,7 @@ export class AudienceDisplayManager {
       } else if (next === "alliance-selection" || next === "alliance-selection-fullscreen") {
         const alliances = await this.getAlliances();
         this.ranking = await this.getRankings();
+        await this.updateAllianceSize();
         this.updateAllianceData(alliances);
       } else if (next === "playoff-bracket") {
         await this.refreshBracket();
@@ -550,10 +554,16 @@ export class AudienceDisplayManager {
       this.broadcastState();
     });
 
+    this.fmsConnection.on("allianceTimer", (data: { Round: string; TimerType: string }) => {
+      this.pickTimerType = data.TimerType.endsWith("Break") ? "break" : "pick";
+      this.broadcastState();
+    });
+
     this.fmsConnection.on("allianceSelectionChanged", async () => {
       await new Promise((resolve) => setTimeout(resolve, 500));
       const alliances = await this.getAlliances();
       this.ranking = await this.getRankings();
+      await this.updateAllianceSize();
       this.updateAllianceData(alliances);
       this.broadcastState();
     });
@@ -600,6 +610,8 @@ export class AudienceDisplayManager {
           eventDetails: this.eventDetails,
           alliances: this.alliances,
           ranking: this.ranking,
+          allianceSize: this.allianceSize,
+          pickTimerType: this.pickTimerType,
           bracket: this.bracket,
           gameConfig: this.gameConfig,
           activeProfileId: this.profileSelector?.get() ?? null,
@@ -818,6 +830,19 @@ export class AudienceDisplayManager {
   private async getAlliances() {
     const res = await fetch(`http://${this.fmsUrl}/api/v1.0/audience/get/GetAlliances`);
     return (await res.json()) as FMSAllianceSelection[];
+  }
+
+  /** Teams per alliance (2/3/4) from FMS's allianceSelectionType; keeps the last value on error. */
+  private async updateAllianceSize() {
+    try {
+      const res = await fetch(`http://${this.fmsUrl}/api/v1.0/audience/get/GetAllianceSelectionData`);
+      const data = (await res.json()) as { allianceSelectionType?: string };
+      if (data.allianceSelectionType === "TwoTeam") this.allianceSize = 2;
+      else if (data.allianceSelectionType === "FourTeam") this.allianceSize = 4;
+      else if (data.allianceSelectionType === "ThreeTeam") this.allianceSize = 3;
+    } catch (e) {
+      console.log("Failed to fetch alliance selection type:", e);
+    }
   }
 
   private updateAllianceData(alliances: FMSAllianceSelection[]) {

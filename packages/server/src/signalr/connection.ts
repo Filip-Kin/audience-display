@@ -21,6 +21,7 @@ type Events =
   | "teleopStart"
   | "autoEnd"
   | "allianceSelectionChanged"
+  | "allianceTimer"
   | "connected"
   | "disconnected"
   | "timeout"
@@ -54,6 +55,7 @@ export class FMSSignalRConnection {
     teleopStart: [],
     autoEnd: [],
     allianceSelectionChanged: [],
+    allianceTimer: [],
     connected: [],
     disconnected: [],
     timeout: [],
@@ -280,6 +282,11 @@ export class FMSSignalRConnection {
       this.emit("allianceSelectionChanged", data);
     });
 
+    this.infrastructureConnection.on("audiencealliancetimer", (data) => {
+      console.log("audiencealliancetimer: ", data);
+      this.emit("allianceTimer", data);
+    });
+
     this.infrastructureConnection.on("activetournamentlevelchanged", (data) => {
       console.log("activetournamentlevelchanged: ", data);
       this.emit("tournamentLevelChanged", data);
@@ -397,7 +404,9 @@ export class FMSSignalRConnection {
     } else if (option === "AllianceHybrid") {
       this.emit("videoSwitch", "alliance-selection");
     } else if (option === "AllianceFullscreen") {
-      this.emit("videoSwitch", "alliance-selection-fullscreen");
+      // Only one alliance-selection layout exists; mapping both options to the same
+      // screen also makes hybrid<->fullscreen switches no-ops instead of transitions.
+      this.emit("videoSwitch", "alliance-selection");
     } else if (option === "Bracket") {
       this.emit("videoSwitch", "playoff-bracket");
     } else if (option === "Rankings") {
