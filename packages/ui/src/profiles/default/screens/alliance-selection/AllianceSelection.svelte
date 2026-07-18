@@ -24,6 +24,19 @@
 
 	$: pickSeconds = $state.match?.timer ?? 0;
 	$: pickWarning = pickSeconds > 0 && pickSeconds <= 10;
+
+	// Flash the timer pill yellow three times the moment the clock reaches zero.
+	let timerFlash = false;
+	let prevSeconds = 0;
+	let flashTimeout: ReturnType<typeof setTimeout> | null = null;
+	$: {
+		if (prevSeconds > 0 && pickSeconds === 0) {
+			timerFlash = true;
+			if (flashTimeout) clearTimeout(flashTimeout);
+			flashTimeout = setTimeout(() => (timerFlash = false), 1400);
+		}
+		prevSeconds = pickSeconds;
+	}
 	// Every ranked team stays on the board (picked ones get struck through) so the
 	// grid, and everything below it, never changes size during the ceremony.
 	$: rankedTeams = [...$state.ranking].sort((a, b) => a.rank - b.rank);
@@ -90,7 +103,7 @@
 			</div>
 
 			<!-- Pick timer pill: stacked layout -->
-			<div class="flex flex-col items-center px-7 py-2.5 min-w-[160px] {pickWarning ? 'bg-accentWarn text-[oklch(0.18_0.04_60)]' : 'bg-[oklch(0_0_0/0.6)] text-white border-2 border-white'}">
+			<div class="flex flex-col items-center px-7 py-2.5 min-w-[160px] {pickWarning ? 'bg-accentWarn text-[oklch(0.18_0.04_60)]' : 'bg-[oklch(0_0_0/0.6)] text-white border-2 border-white'} {timerFlash ? 'timer-flash' : ''}">
 				<div class="uppercase text-xs font-black tracking-[0.2em]">
 					{$state.pickTimerType === "break" ? "Break Timer" : "Pick Timer"}
 				</div>
@@ -233,6 +246,20 @@
 {/if}
 
 <style>
+	/* Three yellow blinks when the pick/break clock hits zero. */
+	.timer-flash {
+		animation: timer-zero-flash 0.45s linear 3;
+	}
+	@keyframes timer-zero-flash {
+		0%,
+		100% {
+			background: oklch(0 0 0 / 0.6);
+		}
+		50% {
+			background: var(--accentWarn);
+		}
+	}
+
 	/* The display font's line-through sits too low; draw a vertically centered strike instead. */
 	.struck::after {
 		content: "";
