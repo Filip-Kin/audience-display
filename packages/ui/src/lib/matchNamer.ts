@@ -41,6 +41,14 @@ export const matchName = (
       return bracket[matchNumber as keyof typeof bracket];
     }
   }
+  if (level === "f") {
+    // FMS numbers finals 14-16 (17-19 overtime) continuing the double-elim
+    // sequence, but falls back for events that number finals from 1.
+    if (matchNumber in bracket) {
+      return bracket[matchNumber as keyof typeof bracket];
+    }
+    return `Final ${matchNumber}`;
+  }
 };
 
 export function displayEventName(name?: string): string {

@@ -1,37 +1,17 @@
 <script lang="ts">
-	import { state, activeProfile, eventDisplayName } from "@lib/state";
+	import { state, eventDisplayName } from "@lib/state";
 	import { matchName } from "@lib/matchNamer";
-	import { createEventDispatcher, onMount, onDestroy } from "svelte";
+	import { fitTwoLines } from "@lib/fitText";
+	import { createEventDispatcher, onMount } from "svelte";
 	import Logo from "@lib/components/Logo.svelte";
+	import SponsorSlideshow from "../../components/SponsorSlideshow.svelte";
 
 	const dispatcher = createEventDispatcher();
 	export let exit = false;
 	let ready = false;
-	let slideIdx = 0;
-	let rotationTimer: ReturnType<typeof setInterval> | null = null;
-
-	$: sponsors = $activeProfile.assets.sponsors;
-
-	// Slide deck: up to 4 sponsor slots interleaved with two BRACKET pages.
-	// Match the spec's 6-slot rotation order.
-	$: slides = [
-		{ kind: "sponsor", src: sponsors[0], label: "Sponsor One" },
-		{ kind: "sponsor", src: sponsors[1], label: "Sponsor Two" },
-		{ kind: "bracket" },
-		{ kind: "sponsor", src: sponsors[2], label: "Sponsor Three" },
-		{ kind: "sponsor", src: sponsors[3], label: "Sponsor Four" },
-		{ kind: "bracket" },
-	] as Array<{ kind: "sponsor"; src?: string; label: string } | { kind: "bracket" }>;
 
 	onMount(() => {
 		ready = true;
-		rotationTimer = setInterval(() => {
-			slideIdx = (slideIdx + 1) % slides.length;
-		}, 5000);
-	});
-
-	onDestroy(() => {
-		if (rotationTimer) clearInterval(rotationTimer);
 	});
 
 	$: if (exit) {
@@ -54,6 +34,8 @@
 				nextMatch.details.matchType
 			) ?? ""
 		: "";
+	// "Upper Bracket - Round 2 - Match 8" reads better stacked than wrapped.
+	$: labelLines = nextMatchLabel.includes(" - ") ? nextMatchLabel.split(" - ") : null;
 	$: nextRedTeams = nextMatch?.teams.red ?? [];
 	$: nextBlueTeams = nextMatch?.teams.blue ?? [];
 	$: nextRedAlliance = nextMatch?.details.redAlliance;
@@ -65,7 +47,7 @@
 		<!-- Header -->
 		<header class="flex items-center justify-between border-b-4 border-accentWarn px-14 pt-7 pb-[18px]">
 			<div class="flex items-center gap-[22px]">
-				<Logo class="object-contain size-[70px]" />
+				<Logo class="object-contain size-[150px]" />
 				<div>
 					<div class="display uppercase text-[26px] tracking-[0.18em] text-dim">
 						{$eventDisplayName}
@@ -88,68 +70,16 @@
 		</header>
 
 		<!-- Body -->
-		<div class="grid grid-cols-[1.55fr_1fr] gap-6 px-14 py-6 h-[calc(100vh-138px)]">
+		<div class="grid grid-cols-[1.55fr_1fr] gap-6 px-14 py-6 h-[calc(100vh-200px)]">
 			<!-- Left: slideshow -->
-			<div class="flex flex-col gap-3.5">
+			<div class="flex flex-col min-h-0 gap-3.5">
 				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
 					<span class="bg-accentWarn size-2"></span>
 					Featured
 					<div class="flex-1 h-0.5 bg-[var(--rule)]"></div>
 				</div>
 
-				<div class="relative overflow-hidden flex-1 bg-[oklch(0_0_0/0.6)] border-2 border-white">
-					{#each slides as slide, i}
-						<div
-							class="absolute inset-0 transition-opacity duration-500"
-							style="
-								opacity: {i === slideIdx ? 1 : 0};
-								pointer-events: {i === slideIdx ? 'auto' : 'none'};
-							"
-						>
-							{#if slide.kind === "sponsor"}
-								<div class="w-full h-full flex items-center justify-center p-8">
-									{#if slide.src}
-										<img
-											src={slide.src}
-											alt={slide.label}
-											class="object-contain w-[92%] h-[92%]"
-										/>
-									{:else}
-										<div
-											class="flex items-center justify-center uppercase w-[92%] h-[92%] bg-[oklch(0.94_0.005_250)] text-[oklch(0.30_0_0)] text-[32px] font-extrabold tracking-[0.08em] border border-dashed border-[oklch(0_0_0/0.25)]"
-											style="font-family: var(--font-mono);"
-										>
-											{slide.label}
-										</div>
-									{/if}
-								</div>
-							{:else}
-								<!-- Bracket slide — placeholder; full mini-bracket TBD when bracket data is wired up -->
-								<div class="w-full h-full flex flex-col items-center justify-center text-center uppercase p-6 gap-3">
-									<div class="display text-accentWarn text-[32px] tracking-[0.16em]">
-										Playoff Bracket
-									</div>
-									<div class="text-sm tracking-[0.2em] text-dim font-black">
-										See main bracket between matches
-									</div>
-								</div>
-							{/if}
-						</div>
-					{/each}
-				</div>
-
-				<!-- Slide dots -->
-				<div class="flex justify-center gap-2">
-					{#each slides as _, i}
-						<div
-							class="h-2 transition-all duration-300"
-							style="
-								width: {i === slideIdx ? '32px' : '8px'};
-								background: {i === slideIdx ? 'var(--accentWarn)' : 'oklch(1 0 0 / 0.25)'};
-							"
-						></div>
-					{/each}
-				</div>
+				<SponsorSlideshow />
 			</div>
 
 			<!-- Right: Up Next card -->
@@ -161,11 +91,23 @@
 				</div>
 
 				<div class="flex flex-col flex-1 bg-[oklch(0_0_0/0.55)] border-2 border-white p-6 gap-[18px]">
-					<!-- Match label -->
-					<div class="text-center">
-						<div class="display text-accentWarn text-[80px] leading-[0.95]">
-							{nextMatchLabel}
-						</div>
+					<!-- Match label: playoff names stack one segment per line ("Upper Bracket /
+					     Round 2 / Match 8"); single-segment names shrink-to-fit instead -->
+					<div class="h-[190px] flex flex-col items-center justify-center">
+						{#if labelLines}
+							<div class="display text-accentWarn text-center text-[54px] leading-[1.1]">
+								{#each labelLines as line}
+									<div>{line}</div>
+								{/each}
+							</div>
+						{:else}
+							<div
+								class="display text-accentWarn text-center w-full"
+								use:fitTwoLines={{ max: 80, min: 34, maxHeight: 190, text: nextMatchLabel }}
+							>
+								{nextMatchLabel}
+							</div>
+						{/if}
 					</div>
 
 					<!-- Alliances stacked with VS divider -->
@@ -182,7 +124,7 @@
 								{/if}
 							</div>
 							<div class="flex justify-between gap-2">
-								{#each nextRedTeams.slice(0, 3) as team (team.number)}
+								{#each nextRedTeams as team (team.number)}
 									<div class="display tabular-nums text-white text-center flex-1 text-[56px] leading-[0.95] bg-[oklch(0_0_0/0.32)] px-3 py-1">
 										{team.number}
 									</div>
@@ -206,7 +148,7 @@
 								{/if}
 							</div>
 							<div class="flex justify-between gap-2">
-								{#each nextBlueTeams.slice(0, 3) as team (team.number)}
+								{#each nextBlueTeams as team (team.number)}
 									<div class="display tabular-nums text-white text-center flex-1 text-[56px] leading-[0.95] bg-[oklch(0_0_0/0.32)] px-3 py-1">
 										{team.number}
 									</div>

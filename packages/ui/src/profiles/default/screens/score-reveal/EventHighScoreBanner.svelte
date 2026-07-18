@@ -11,8 +11,8 @@
 		in:fade={{ duration: 250 }}
 		out:fade={{ duration: 150 }}
 	>
-		<span class="star-cw inline-flex"><Star size={28} /></span>
+		<span class="star-cw inline-flex"><Star size={36} /></span>
 		<span>High Score</span>
-		<span class="star-ccw inline-flex"><Star size={28} /></span>
+		<span class="star-ccw inline-flex"><Star size={36} /></span>
 	</div>
 {/if}

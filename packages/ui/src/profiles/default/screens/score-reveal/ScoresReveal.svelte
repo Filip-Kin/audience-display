@@ -7,6 +7,7 @@
 	import Alliance from "./Alliance.svelte";
 	import ScoreBreakdown from "@lib/components/ScoreBreakdown.svelte";
 	import EventHighScoreBanner from "./EventHighScoreBanner.svelte";
+	import Confetti from "./Confetti.svelte";
 	import MatchUnderReviewOverlay from "./MatchUnderReviewOverlay.svelte";
 	import Logo from "@lib/components/Logo.svelte";
 	import Shutter from "@lib/components/Shutter.svelte";
@@ -119,9 +120,39 @@
 	$: rightBreakdownScore = $state.results?.score[$settings.invert ? "blue" : "red"];
 	$: tiebreaker = $state.results?.tiebreaker;
 	$: sponsors = $activeProfile.assets.sponsors;
+
+	// Event champion: a finals alliance just clinched the best-of-3 (seriesWins only
+	// exists on finals results). Confetti falls on that alliance's side of the screen.
+	// If the data ever claims BOTH clinched (stale/staged series state), trust the
+	// winner of the match being shown.
+	$: redClinched = ($state.results?.details.redSeriesWins ?? 0) >= 2;
+	$: blueClinched = ($state.results?.details.blueSeriesWins ?? 0) >= 2;
+	$: championColor =
+		redClinched && blueClinched
+			? $state.results?.score.winner === "Blue"
+				? ("blue" as const)
+				: ("red" as const)
+			: redClinched
+				? ("red" as const)
+				: blueClinched
+					? ("blue" as const)
+					: null;
+	// Blue renders on the left, red on the right (flipped when $settings.invert).
+	$: championSide =
+		championColor === "red"
+			? $settings.invert
+				? ("left" as const)
+				: ("right" as const)
+			: $settings.invert
+				? ("right" as const)
+				: ("left" as const);
 </script>
 
 <MatchUnderReviewOverlay visible={!!$state.results?.underReview} />
+
+{#if ready && championColor}
+	<Confetti side={championSide} color={championColor} />
+{/if}
 
 <div class="fixed w-full h-full">
 	<video class="w-full h-full object-contain" bind:this={videoElm}>
@@ -173,16 +204,10 @@
 						<div class="bg-blueAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
 							<span class="text-white font-bold">Blue</span>
 							<span class="text-8xl font-bold pt-2">{$state.results?.score.blue.score}</span>
-							{#if $state.results.details.blueSeriesWins !== undefined}
-								<span class="text-lg opacity-80">Series: {$state.results.details.blueSeriesWins}</span>
-							{/if}
 						</div>
 						<div class="bg-redAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
 							<span class="text-white font-bold">Red</span>
 							<span class="text-8xl font-bold pt-2">{$state.results?.score.red.score}</span>
-							{#if $state.results.details.redSeriesWins !== undefined}
-								<span class="text-lg opacity-80">Series: {$state.results.details.redSeriesWins}</span>
-							{/if}
 						</div>
 					</div>
 				</div>

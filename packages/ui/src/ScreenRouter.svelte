@@ -13,6 +13,19 @@
 	let transitioning = false;
 	let activeScreen: Screen = "none";
 	let preScoreReveal = false;
+	// Bumped after every exit transition so re-entering the SAME screen id (e.g. a new
+	// score-reveal while already on score-reveal) mounts a fresh instance. Without this
+	// the exited instance (ready=false, video hidden) is reused and stays blank forever.
+	let instanceKey = 0;
+
+	function completeTransition() {
+		transitioning = false;
+		activeScreen = $state.screen;
+		instanceKey++;
+		// A remounted reveal buffers its victory video from scratch; show the cover
+		// like a normal entry into score-reveal (cleared by its "loaded" event).
+		if (activeScreen === "score-reveal") preScoreReveal = true;
+	}
 
 	// When the screen changes, set transitioning to true,
 	// then wait for the transition to finish before setting
@@ -59,10 +72,7 @@
 				console.log("Standard transition");
 				console.log("Transitioning to ", $state.screen);
 				setTimeout(() => {
-					if (transitioning) {
-						transitioning = false;
-						activeScreen = $state.screen;
-					}
+					if (transitioning) completeTransition();
 				}, 1000);
 			}
 		}
@@ -123,28 +133,24 @@
 {/if}
 
 {#if ScreenComponent}
-	{#if activeScreen === "score-reveal"}
-		<svelte:component
-			this={ScreenComponent}
-			exit={transitioning}
-			on:transitioned={() => {
-				transitioning = false;
-				activeScreen = $state.screen;
-			}}
-			on:loaded={() => {
-				preScoreReveal = false;
-			}}
-		/>
-	{:else}
-		<svelte:component
-			this={ScreenComponent}
-			exit={transitioning}
-			on:transitioned={() => {
-				transitioning = false;
-				activeScreen = $state.screen;
-			}}
-		/>
-	{/if}
+	{#key instanceKey}
+		{#if activeScreen === "score-reveal"}
+			<svelte:component
+				this={ScreenComponent}
+				exit={transitioning}
+				on:transitioned={completeTransition}
+				on:loaded={() => {
+					preScoreReveal = false;
+				}}
+			/>
+		{:else}
+			<svelte:component
+				this={ScreenComponent}
+				exit={transitioning}
+				on:transitioned={completeTransition}
+			/>
+		{/if}
+	{/key}
 {/if}
 
 {#if showUnlockPopup}
