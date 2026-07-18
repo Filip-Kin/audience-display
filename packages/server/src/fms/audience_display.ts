@@ -444,7 +444,10 @@ export class AudienceDisplayManager {
 
     this.fmsConnection.on("gameSpecificMessage", (data: GameSpecificMessage) => {
       if (data.MessageType === "MatchPhaseChanged" || data.MatchPhase !== "None") {
-        const phase = data.MatchPhase === "None" ? "PreMatch" : (data.MatchPhase as MatchPhase);
+        // FMS uses its "Coop" naming for the transition shift (cf. CoopFuelPoints);
+        // normalize it to our TransitionShift phase so the label reads correctly.
+        const raw = data.MatchPhase === "Coop" ? "TransitionShift" : data.MatchPhase;
+        const phase = raw === "None" ? "PreMatch" : (raw as MatchPhase);
         this.match.phase = phase;
         this.match.phaseTimer = data.CurrentPhaseTimeSeconds;
       }

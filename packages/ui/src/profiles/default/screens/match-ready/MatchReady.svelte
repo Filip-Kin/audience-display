@@ -13,7 +13,9 @@
 	export let exit = false;
 	let ready = false;
 
-	const barSpring = spring(-220, { stiffness: 0.08, damping: 0.35 });
+	// Offset from the resting position; negative = pushed down below the screen,
+	// so the bar slides UP into place from the bottom.
+	const barSpring = spring(-320, { stiffness: 0.08, damping: 0.35 });
 	const topSpring = spring(-80, { stiffness: 0.08, damping: 0.35 });
 
 	onMount(() => {
@@ -24,7 +26,7 @@
 
 	$: if (exit) {
 		ready = false;
-		barSpring.set(-220);
+		barSpring.set(-320);
 		topSpring.set(-80);
 		setTimeout(() => dispatcher("transitioned"), 500);
 	}
@@ -46,6 +48,38 @@
 		return ((hub === "Red") === leftIsRed) ? "left" : "right";
 	})() as "left" | "right" | "both" | "none";
 
+	// #region ending-pulse
+	// A side's goal glows while active and pulses in the last 5s of the phase
+	// when it's about to close. The alliance holding the auto/FMS "advantage" is
+	// active in the even shifts (2 & 4) and inactive in the odd shifts (1 & 3),
+	// so it's the side that closes when the transition (Coop) shift ends. The
+	// other transitions are read straight off the live hub-active state.
+	$: phase = ($state.match?.phase ?? "PreMatch") as string;
+	$: phaseTimer = $state.match?.phaseTimer ?? 999;
+	$: advantageColor = ($state.match?.score.red.advantageAchieved
+		? "red"
+		: $state.match?.score.blue.advantageAchieved
+			? "blue"
+			: null) as "red" | "blue" | null;
+	$: inClosingWindow = phaseTimer > 0 && phaseTimer <= 5;
+
+	const goesInactiveNext = (
+		p: string,
+		color: "red" | "blue",
+		active: boolean,
+		advantage: "red" | "blue" | null
+	): boolean => {
+		if (p === "Coop" || p === "TransitionShift") return advantage !== null && color === advantage;
+		if (p === "Shift1" || p === "Shift2" || p === "Shift3") return active;
+		if (p === "Endgame") return active;
+		return false; // Auto -> Coop and Shift4 -> Endgame keep the active side lit
+	};
+
+	$: leftEnding = leftHubActive && inClosingWindow && goesInactiveNext(phase, leftColor, leftHubActive, advantageColor);
+	$: rightEnding = rightHubActive && inClosingWindow && goesInactiveNext(phase, rightColor, rightHubActive, advantageColor);
+	$: matchOver = $state.screen === "match-end";
+	// #endregion
+
 	$: top = $settings.top;
 </script>
 
@@ -62,36 +96,42 @@
 		</div>
 	{/if}
 
-	<!-- Top bar — slides down from top -->
+	<!-- Top bar — slides in from the anchored edge. Needs an explicit height:
+	     TopBar's header is absolute, so without it this wrapper collapses to 0
+	     and the header renders off-screen in `top` (bottom-anchored) mode. -->
 	<div
-		class="fixed left-0 right-0"
+		class="fixed left-0 right-0 h-[70px]"
 		style="{top ? `bottom: ${$topSpring}px;` : `top: ${$topSpring}px;`}"
 	>
-		<TopBar />
+		<TopBar atBottom={top} />
 	</div>
 
 	{#if ready && leftScore && rightScore}
 		<!-- Score bar — slides up from bottom -->
 		<div
 			class="fixed left-1/2 -translate-x-1/2 w-[min(1440px,calc(100vw-80px))]"
-			style="{top ? `top: 150px;` : `bottom: calc(72px - ${$barSpring}px);`}"
+			style="{top ? `top: 60px;` : `bottom: calc(60px + ${$barSpring}px);`}"
 			in:fade={{ duration: 150 }}
 			out:fade={{ duration: 150 }}
 		>
-			<div class="grid overflow-hidden grid-cols-realtimeScores shadow-[0_12px_40px_oklch(0_0_0/0.55)]">
+			<!-- No overflow-hidden here: the active-side box-shadow glow must bleed
+			     outside the bar (it was being clipped away entirely). -->
+			<div class="grid grid-cols-realtimeScores shadow-[0_12px_40px_oklch(0_0_0/0.55)]">
 				<ScoreBarHalf
 					side="left"
 					color={leftColor}
 					score={leftScore}
 					teams={leftTeams}
 					hubActive={leftHubActive}
-					timer={$state.match.timer}
-					phase={$state.match.phase}
+					endingPulse={leftEnding}
 				/>
 				<BugCenter
 					phase={$state.match.phase}
 					timer={$state.match.timer}
 					{arrowSide}
+					pulseLeft={leftEnding}
+					pulseRight={rightEnding}
+					{matchOver}
 				/>
 				<ScoreBarHalf
 					side="right"
@@ -99,10 +139,10 @@
 					score={rightScore}
 					teams={rightTeams}
 					hubActive={rightHubActive}
-					timer={$state.match.timer}
-					phase={$state.match.phase}
+					endingPulse={rightEnding}
 				/>
-				<div class="bg-rainbow col-span-full h-2"></div>
+				<!-- Accent strip: bottom of the bar normally, top of it in top-mode. -->
+				<div class="bg-accentWarn col-span-full h-2 relative z-10" style="order: {top ? -1 : 1};"></div>
 			</div>
 		</div>
 	{/if}

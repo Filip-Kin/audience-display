@@ -17,7 +17,9 @@ const bracket = {
   14: "Final 1",
   15: "Final 2",
   16: "Final Tiebreaker",
-  17: "Final Tiebreaker Part 2",
+  17: "Overtime 1",
+  18: "Overtime 2",
+  19: "Overtime 3",
 };
 
 export const matchName = (

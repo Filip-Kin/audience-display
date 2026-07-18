@@ -5,14 +5,15 @@ import { writable } from "svelte/store";
  * team (plus an optional shared default); the display uses them in place of the
  * blurry 40px FMS avatar.
  *
- * Opt-in via VITE_AVATAR_STORE_URL (build time). When unset, no requests are
- * made and avatars render the raw FMS image / built-in placeholder (pixelated).
+ * Defaults to the public, permanently-hosted store; override at build time with
+ * VITE_AVATAR_STORE_URL (set it to "" to disable and render the raw FMS image /
+ * built-in placeholder, pixelated).
  *
  * We poll /avatars for the set of teams that have an upload plus each one's
  * version (file mtime); Avatar.svelte builds versioned URLs so a re-upload is a
  * fresh URL (instant update) while responses stay long-cached.
  */
-const STORE = (import.meta.env.VITE_AVATAR_STORE_URL ?? "").replace(/\/$/, "");
+const STORE = (import.meta.env.VITE_AVATAR_STORE_URL ?? "https://avatars.filipkin.com").replace(/\/$/, "");
 const REFRESH_MS = 120_000;
 
 export const avatarStoreUrl = STORE;

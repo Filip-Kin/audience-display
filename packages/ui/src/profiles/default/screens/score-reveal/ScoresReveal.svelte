@@ -60,11 +60,14 @@
 				});
 			}
 			dispatcher("loaded");
+			// Open the shutter onto the results this many ms before the video ends
+			// (per-profile; WRC reveals 1s early, everything else 500ms).
+			const revealLeadMs = get(activeProfile).options?.victoryRevealLeadMs ?? 500;
 			setTimeout(
 				() => {
 					videoReady = true;
 				},
-				videoElm.duration * 1000 - 500
+				videoElm.duration * 1000 - revealLeadMs
 			);
 		}
 

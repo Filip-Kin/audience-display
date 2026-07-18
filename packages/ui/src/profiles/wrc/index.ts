@@ -46,6 +46,8 @@ const profile: ProfileDefinition = {
     // navy shutter theme makes plain names ambiguous, so the colored bars call
     // out which side is which. Default profile keeps plain white names.
     allianceNameBackground: true,
+    // WRC-only: start the reveal 1.5s before the victory video ends (default 500ms).
+    victoryRevealLeadMs: 1500,
   },
   // Override-only: omitted screens fall back to the default profile.
   screens: {},

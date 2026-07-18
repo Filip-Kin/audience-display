@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { AllianceScore, Team } from "lib";
-	import type { MatchPhase } from "lib";
 	import { tweened } from "svelte/motion";
 	import { cubicOut } from "svelte/easing";
 	import FuelGauge from "./FuelGauge.svelte";
@@ -10,13 +9,12 @@
 	export let score: AllianceScore;
 	export let teams: Team[];
 	export let hubActive: boolean = false;
-	export let timer: number = 999;
-	export let phase: MatchPhase = "PreMatch";
+	/** True in the last 5s of a phase when this side's goal is about to close. */
+	export let endingPulse: boolean = false;
 
 	$: bgVar = color === "red" ? "var(--redAlliance)" : "var(--blueAlliance)";
 	$: isLeft = side === "left";
-	$: isShift = ["Shift1", "Shift2", "Shift3", "Shift4"].includes(phase);
-	$: isEndingPulse = hubActive && isShift && timer > 0 && timer <= 5;
+	$: isEndingPulse = hubActive && endingPulse;
 
 	const displayScore = tweened(0, { duration: 600, easing: cubicOut });
 	$: displayScore.set(score.score);
@@ -26,6 +24,8 @@
 	class="grid items-center px-5 py-4 grid-cols-[auto_1fr_auto] gap-4"
 	style="
 		background: {bgVar};
+		position: relative;
+		z-index: {hubActive ? 1 : 0};
 		transition: box-shadow 0.4s ease;
 		box-shadow: {!hubActive ? 'none' : isEndingPulse ? 'none' : `0 0 80px 18px ${bgVar}`};
 		{isEndingPulse ? `animation: glow-pulse-${color} 0.8s ease-in-out infinite;` : ''}

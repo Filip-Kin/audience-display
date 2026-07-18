@@ -267,3 +267,7 @@ body { font-family: var(--font-body); }
     0%, 100% { box-shadow: 0 0 80px 18px var(--blueAlliance); }
     50%       { box-shadow: 0 0 20px 3px var(--blueAlliance); }
 }
+@keyframes arrow-blink {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.15; transform: scale(0.78); }
+}

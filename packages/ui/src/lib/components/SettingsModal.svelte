@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { playSound } from "../audio";
 	import { settings } from "../settings"; // adjust if path is different
-	import { setScreen, state, sendSelectProfile } from "../state";
+	import { state, sendSelectProfile } from "../state";
 	import { listProfiles, DEFAULT_PROFILE_ID } from "../../profiles";
 
 	export let settingsOpen: boolean;
@@ -88,21 +88,6 @@
 							<option value="matchReady">Match Ready</option>
 						</select>
 						<button class="bg-blue-500 text-white rounded px-2 py-1 ml-2" on:click={() => playSound(testSound)}>Play</button>
-					</div>
-				</div>
-
-				<div class="flex flex-col gap-2 p-4 bg-gray-100 rounded">
-					<span class="font-semibold">Jump to Screen (for screenshots / demo)</span>
-					<div class="grid grid-cols-3 gap-2 text-sm">
-						<button class="bg-blue-500 text-white rounded px-2 py-1" on:click={() => setScreen("match-preview")}>Match Preview</button>
-						<button class="bg-blue-500 text-white rounded px-2 py-1" on:click={() => setScreen("match-auton")}>In-Match (Auto)</button>
-						<button class="bg-blue-500 text-white rounded px-2 py-1" on:click={() => setScreen("match-shift-2")}>In-Match (Shift 2)</button>
-						<button class="bg-blue-500 text-white rounded px-2 py-1" on:click={() => setScreen("match-endgame")}>In-Match (Endgame)</button>
-						<button class="bg-blue-500 text-white rounded px-2 py-1" on:click={() => setScreen("scores-ready")}>Scores Ready</button>
-						<button class="bg-blue-500 text-white rounded px-2 py-1" on:click={() => setScreen("score-reveal")}>Score Reveal</button>
-						<button class="bg-blue-500 text-white rounded px-2 py-1" on:click={() => setScreen("alliance-selection")}>Alliance Selection</button>
-						<button class="bg-blue-500 text-white rounded px-2 py-1" on:click={() => setScreen("playoff-bracket")}>Playoff Bracket</button>
-						<button class="bg-blue-500 text-white rounded px-2 py-1" on:click={() => setScreen("timeout")}>Timeout</button>
 					</div>
 				</div>
 			</div>

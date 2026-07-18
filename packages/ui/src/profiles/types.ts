@@ -31,5 +31,10 @@ export type ProfileDefinition = {
      * red/blue alliance obvious at a glance. Off by default.
      */
     allianceNameBackground?: boolean;
+    /**
+     * Score-reveal: how many milliseconds before the victory video ends to start
+     * opening the shutter onto the results screen. Defaults to 500ms.
+     */
+    victoryRevealLeadMs?: number;
   };
 };
