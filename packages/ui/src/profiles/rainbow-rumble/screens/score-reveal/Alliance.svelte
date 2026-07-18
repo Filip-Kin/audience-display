@@ -66,7 +66,8 @@
 					style="background: var(--rr-rainbow);"
 				>
 					<img src={Trophy} alt="Trophy" class="size-11" />
-					<span>Winner</span>
+					<!-- Black chip keeps the label legible on the rainbow bar -->
+					<span class="bg-[oklch(0_0_0/0.7)] rounded-lg px-4 leading-tight">Winner</span>
 					<img src={Trophy} alt="Trophy" class="size-11" />
 				</div>
 			{:else}

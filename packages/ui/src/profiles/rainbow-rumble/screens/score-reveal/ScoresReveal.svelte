@@ -210,7 +210,7 @@
 {#if $state.results && ready}
 	<div class="fixed z-10 flex w-full justify-center">
 		<div
-			class="mt-8"
+			class="rr rr-header mt-8"
 			in:fly={{ y: -50, duration: 200 }}
 			out:fade={{ duration: 100 }}
 		>
@@ -297,5 +297,11 @@
 		border-radius: var(--rr-r);
 		overflow: hidden;
 		font-size: 32px;
+	}
+
+	/* MatchEventHeader is shared; recolor its gold match name to the RR accent
+	   like the match-preview header does. */
+	.rr-header :global(.text-accentWarn) {
+		color: var(--rr-accent);
 	}
 </style>
