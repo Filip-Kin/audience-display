@@ -48,22 +48,28 @@
 		);
 	});
 
-	// Who's on the clock. Captains are revealed progressively during round 1 (an alliance
-	// gets its captain the moment its turn starts), so while captains are still appearing
-	// the picking alliance is simply the latest one revealed. Once all captains exist,
-	// follow the serpentine order: round 1 goes 1..N, round 2 goes N..1, round 3 1..N.
+	/** Team number in positional slot i (0=captain, 1=round 1, ...), or null when unfilled. */
+	const slotOf = (a: (typeof paddedAlliances)[number], i: number): number | null =>
+		a.slots?.[i] ?? a.teams[i]?.number ?? null;
+
+	// Who's on the clock, derived from which slots are still open (FMS doesn't broadcast it).
+	// Round-1 gaps first: with progressive captain reveal the newest-revealed alliance is
+	// picking, and a skipped alliance keeps its gap so the highlight returns to it after the
+	// next alliance picks. Later rounds walk the serpentine direction to the first open slot.
 	$: currentPickAllianceNum = (() => {
 		const seeded = paddedAlliances;
-		const n = seeded.length;
-		const captains = seeded.filter((a) => a.teams.length > 0).length;
-		if (!captains) return null;
-		const picksMade = seeded.reduce((sum, a) => sum + Math.max(0, a.teams.length - 1), 0);
-		if (captains < n) return picksMade < captains ? captains : null;
 		const rounds = slotsPerAlliance - 1;
-		if (picksMade >= rounds * n) return null;
-		const round = Math.floor(picksMade / n) + 1;
-		const pos = picksMade % n;
-		return round % 2 === 1 ? pos + 1 : n - pos;
+		const captains = seeded.filter((a) => slotOf(a, 0) !== null).length;
+		if (!captains) return null;
+		const r1gaps = seeded.filter((a) => slotOf(a, 0) !== null && slotOf(a, 1) === null);
+		if (r1gaps.length) return Math.max(...r1gaps.map((a) => a.allianceNumber));
+		if (captains < seeded.length) return null;
+		for (let r = 2; r <= rounds; r++) {
+			const inOrder = r % 2 === 1 ? seeded : [...seeded].reverse();
+			const gap = inOrder.find((a) => slotOf(a, r) === null);
+			if (gap) return gap.allianceNumber;
+		}
+		return null;
 	})();
 </script>
 
@@ -190,8 +196,8 @@
 							     invisible but keep their width so filled ones never move -->
 							<div class="flex items-center gap-1.5 px-2.5 py-1.5">
 								{#each Array(slotsPerAlliance).fill(0) as _, i}
-									{@const team = alliance.teams[i]}
-									{@const empty = !team}
+									{@const teamNumber = slotOf(alliance, i)}
+									{@const empty = teamNumber === null}
 									<div
 										class="display tabular-nums flex items-center justify-center flex-1 min-w-0 h-12 text-[34px] leading-none"
 										style="
@@ -200,7 +206,7 @@
 											visibility: {empty ? 'hidden' : 'visible'};
 										"
 									>
-										{empty ? "" : team.number}
+										{teamNumber ?? ""}
 									</div>
 								{/each}
 							</div>

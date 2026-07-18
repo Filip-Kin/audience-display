@@ -886,6 +886,12 @@ export class AudienceDisplayManager {
         allianceName: alliance.allianceName,
         teams,
         card: alliance.cardEffectiveStatus,
+        slots: [
+          alliance.captainTeamNumber,
+          alliance.firstRoundTeamNumber,
+          alliance.secondRoundTeamNumber,
+          alliance.alternateTeamNumber,
+        ],
       });
     }
   }

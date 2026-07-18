@@ -134,4 +134,7 @@ export type AllianceSelection = {
   allianceName: string;
   teams: Team[];
   card: FMSMatchResultsTeam["cardCarryStatus"];
+  /** Positional roster [captain, round1, round2, backup]; null = slot not filled yet.
+   *  Unlike `teams`, holes are preserved (a skipped alliance can have round 2 before round 1). */
+  slots?: (number | null)[];
 };
