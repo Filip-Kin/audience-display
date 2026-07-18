@@ -1,7 +1,7 @@
 {
   "name": "@rainbow-rumble/audience-display",
   "private": true,
-  "version": "0.0.0",
+  "version": "26.1.0",
   "workspaces": [
     "packages/*"
   ],
@@ -12,7 +12,7 @@
     "ui:dev": "cd packages/ui && bun dev",
     "ui:build": "cd packages/ui && bun run build && zip -r ../../ui-dist.zip dist",
     "ui:start": "cd packages/ui && bun start",
-"exe:build": "npm run ui:build && bun build --compile ./packages/server/src/index.ts --outfile audience-display.exe"
+    "exe:build": "bun run ui:build && bun build --compile --target=bun-windows-x64 ./packages/server/src/index.ts --outfile audience-display.exe"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.19",

@@ -3,10 +3,12 @@ import type { Screen } from "lib";
 import type { ProfileDefinition } from "./types";
 import defaultProfile from "./default";
 import wrcProfile from "./wrc";
+import rainbowRumbleProfile from "./rainbow-rumble";
 
 const registry: Record<string, ProfileDefinition> = {
   [defaultProfile.id]: defaultProfile,
   [wrcProfile.id]: wrcProfile,
+  [rainbowRumbleProfile.id]: rainbowRumbleProfile,
 };
 
 export const DEFAULT_PROFILE_ID = defaultProfile.id;

@@ -1,0 +1,93 @@
+/* Rainbow Rumble profile — shared tokens + keyframes.
+   Scoped under .rr so nothing leaks into other profiles' screens. */
+.rr {
+	--rr-accent: oklch(0.72 0.2 330);
+	--rr-gold: oklch(0.83 0.19 85.6);
+	--rr-dim: oklch(0.72 0.012 250);
+	--rr-faint: oklch(0.48 0.012 250);
+	--rr-rule: oklch(1 0 0 / 0.1);
+	--rr-rainbow: linear-gradient(90deg, #ff2d55 0%, #ff9500 16%, #ffcc00 32%, #34c759 50%, #00c7ff 66%, #5e5ce6 82%, #af52de 100%);
+	--rr-rainbow-loop: linear-gradient(90deg, #ff2d55, #ff9500, #ffcc00, #34c759, #00c7ff, #5e5ce6, #af52de, #ff2d55);
+	--rr-r: 18px;
+	--rr-r-sm: 12px;
+	--rr-r-chip: 9px;
+}
+
+.rr-display {
+	font-family: var(--font-display);
+	font-weight: 900;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: -0.005em;
+}
+
+.rr-mono {
+	font-family: var(--font-mono);
+}
+
+@keyframes rr-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+@keyframes rr-hue {
+	from {
+		filter: blur(10px) hue-rotate(0deg);
+	}
+	to {
+		filter: blur(10px) hue-rotate(360deg);
+	}
+}
+@keyframes rr-glint {
+	0% {
+		background-position: 100% 0;
+	}
+	100% {
+		background-position: -100% 0;
+	}
+}
+@keyframes rr-arrow {
+	0%,
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 0.15;
+		transform: scale(0.78);
+	}
+}
+@keyframes rr-wiggle-cw {
+	0%,
+	50%,
+	100% {
+		transform: rotate(0);
+	}
+	25% {
+		transform: rotate(-15deg);
+	}
+	75% {
+		transform: rotate(15deg);
+	}
+}
+@keyframes rr-wiggle-ccw {
+	0%,
+	50%,
+	100% {
+		transform: rotate(0);
+	}
+	25% {
+		transform: rotate(15deg);
+	}
+	75% {
+		transform: rotate(-15deg);
+	}
+}
+@keyframes rr-pulse {
+	0%,
+	100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.04);
+	}
+}
