@@ -115,7 +115,7 @@
 
 					<AllianceSection teams={rightTeams} alliance={leftIsRed ? "blue" : "red"} {ready} {compact} gap={cardGap}>
 						<svelte:fragment slot="card" let:team let:index>
-							<MatchPreviewTeamCard {team} alliance={leftIsRed ? "blue" : "red"} {compact} {index} showRank={!isPlayoff} />
+							<MatchPreviewTeamCard {team} alliance={leftIsRed ? "blue" : "red"} invert={true} {compact} {index} showRank={!isPlayoff} />
 						</svelte:fragment>
 					</AllianceSection>
 				</div>
