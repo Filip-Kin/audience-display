@@ -60,6 +60,10 @@
 	$: rankedTeams = [...$state.ranking]
 		.filter((t) => !t.unavailableForSelection)
 		.sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
+	// Row count is fixed for the whole ceremony from the FULL event roster (like
+	// the official display): teams fill column-first, so picks empty the tail
+	// columns while the grid - and the camera box below it - never moves.
+	$: rankRows = Math.max(1, Math.ceil($state.ranking.length / 7));
 	$: slotsPerAlliance = Math.max(2, Math.min(4, $state.allianceSize ?? 3));
 
 	// Once all 8 alliances have at least one team (captain slot filled), stop
@@ -160,10 +164,12 @@
 				</div>
 
 				<!-- Rank grid: 7 cols filled top-to-bottom (rank 1,2,3... down each column),
-				     always shows every team so its height never changes -->
+				     the row count is fixed from the full roster so the height never changes -->
+				<!-- minmax keeps empty rows at chip height (38px) late in the ceremony
+				     so the grid never collapses under the last few teams. -->
 				<div
 					class="grid grid-cols-7 gap-1.5 content-start"
-					style="grid-auto-flow: column; grid-template-rows: repeat({Math.max(1, Math.ceil(rankedTeams.length / 7))}, auto);"
+					style="grid-auto-flow: column; grid-template-rows: repeat({rankRows}, minmax(38px, auto));"
 				>
 					{#each rankedTeams as team (team.number)}
 						{@const declined = !!team.declined}
