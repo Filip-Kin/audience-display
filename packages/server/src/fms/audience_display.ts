@@ -326,6 +326,10 @@ export class AudienceDisplayManager {
   // Live from GetAllianceSelectionData.availableTeams (see updateAllianceSize).
   private potentialCaptains: Set<number> = new Set();
   private declinedTeams: Set<number> = new Set();
+  // FMS suppresses isDeclined in availableTeams while a team is in potential-
+  // captain position, so declines seen on the wire are tracked here and merged
+  // with the REST flags (event wins where present).
+  private eventDeclines: Map<number, boolean> = new Map();
   private rankData: QualRanking[] = [];
   private connected = false;
   private bracket: BracketData | null = demoBracket();
@@ -657,6 +661,10 @@ export class AudienceDisplayManager {
         // FMS wizard timing: round 1 picks 45s, later rounds 90s.
         this.startPickClock(data.Round === "Round1" ? 45 : 90);
       }
+    });
+
+    this.fmsConnection.on("allianceDecline", (data) => {
+      this.eventDeclines.set(data.teamNumber, data.isDeclined);
     });
 
     this.fmsConnection.on("allianceSelectionChanged", async () => {
@@ -1233,7 +1241,7 @@ export class AudienceDisplayManager {
     // freshly-assigned ranking list.
     for (const t of this.ranking) {
       t.potentialCaptain = this.potentialCaptains.has(t.number);
-      t.declined = this.declinedTeams.has(t.number);
+      t.declined = this.eventDeclines.get(t.number) ?? this.declinedTeams.has(t.number);
     }
 
     this.alliances = [];

@@ -53,6 +53,7 @@ type EventMap = {
   teleopStart: null;
   autoEnd: null;
   allianceSelectionChanged: unknown;
+  allianceDecline: { teamNumber: number; isDeclined: boolean };
   allianceTimer: AllianceTimerData;
   connected: null;
   disconnected: null;
@@ -124,6 +125,7 @@ export class FMSSignalRConnection {
     teleopStart: [],
     autoEnd: [],
     allianceSelectionChanged: [],
+    allianceDecline: [],
     allianceTimer: [],
     connected: [],
     disconnected: [],
@@ -404,12 +406,20 @@ export class FMSSignalRConnection {
       this.emit("allianceSelectionChanged", data);
     });
 
-    // A decline changes availableTeams (isDeclined flips) without an
-    // AllianceSelectionChanged, so route it through the same refetch.
-    this.infrastructureConnection.on("allianceselectiondecline", (...args: unknown[]) => {
-      console.log("allianceselectiondecline: ", args);
-      this.emit("allianceSelectionChanged", args);
-    });
+    // A decline never fires AllianceSelectionChanged, and FMS SUPPRESSES the
+    // isDeclined flag in availableTeams while the team is in potential-captain
+    // position (verified 2026-07-19: decline event for 5152 fired while REST
+    // kept isDeclined false; the official display has the same guard in code).
+    // So the raw event is the only source of truth for a declined potential
+    // captain - emit it as its own event AND trigger the usual refetch.
+    this.infrastructureConnection.on(
+      "allianceselectiondecline",
+      (teamNumber: number, isDeclined: boolean) => {
+        console.log("allianceselectiondecline: ", teamNumber, isDeclined);
+        this.emit("allianceDecline", { teamNumber, isDeclined });
+        this.emit("allianceSelectionChanged", { teamNumber, isDeclined });
+      }
+    );
 
     this.infrastructureConnection.on("audiencealliancetimer", (data: AllianceTimerData) => {
       console.log("audiencealliancetimer: ", data);
