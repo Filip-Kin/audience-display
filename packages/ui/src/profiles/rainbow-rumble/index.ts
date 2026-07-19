@@ -33,7 +33,7 @@ const profile: ProfileDefinition = {
 	assets: {
 		event: "/rainbow-rumble/logo.png",
 		sponsors: [
-			"/rainbow-rumble/rev-dark.webp",
+			"/rainbow-rumble/rev.png",
 			"/rainbow-rumble/techsmith-dark.webp",
 			"/rainbow-rumble/thrifty-dark.webp",
 			"/rainbow-rumble/mcr.webp",

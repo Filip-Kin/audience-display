@@ -10,7 +10,7 @@ export type RrSponsor = {
 };
 
 export const RR_SPONSORS: RrSponsor[] = [
-	{ src: "/rainbow-rumble/rev-dark.webp" },
+	{ src: "/rainbow-rumble/rev.png" },
 	{ src: "/rainbow-rumble/techsmith-dark.webp" },
 	{ src: "/rainbow-rumble/thrifty-dark.webp" },
 	{ src: "/rainbow-rumble/mcr.webp" },

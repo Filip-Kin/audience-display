@@ -30,16 +30,43 @@
 	$: hasFms = !!avatar;
 	$: hasDefault = storeOk && $avatarState.default != null;
 
-	// Priority: team upload (crisp) > FMS avatar (40px, pixelated) > store default
-	// (crisp) > built-in placeholder (pixelated).
-	$: usingStore = hasTeamUpload || (!hasFms && hasDefault);
-	$: src = hasTeamUpload
+	// The store image is fetched over the network, so pointing the visible <img>
+	// at it directly would flash the alt text while it loads. Preload it
+	// off-screen instead and only swap once it's actually ready; until then the
+	// instant data-URI sources (FMS avatar / built-in placeholder) stay up.
+	let storeSrc: string | null = null;
+	let storeLoaded = false;
+
+	function preload(url: string): void {
+		const img = new Image();
+		img.onload = () => {
+			if (url === storeSrc) storeLoaded = true;
+		};
+		img.onerror = () => {
+			if (url === storeSrc) failed = true;
+		};
+		img.src = url;
+	}
+
+	$: desiredStoreSrc = hasTeamUpload
 		? avatarUrl(team as number, teamVersion as number)
+		: !hasFms && hasDefault
+			? defaultAvatarUrl($avatarState.default as number)
+			: null;
+	$: if (desiredStoreSrc !== storeSrc) {
+		storeSrc = desiredStoreSrc;
+		storeLoaded = false;
+		if (storeSrc) preload(storeSrc);
+	}
+
+	// Priority: team upload (crisp) > FMS avatar (40px, pixelated) > store default
+	// (crisp) > built-in placeholder (pixelated). Store sources only once loaded.
+	$: usingStore = storeSrc !== null && storeLoaded;
+	$: src = usingStore
+		? (storeSrc as string)
 		: hasFms
 			? `data:image/png;base64,${avatar}`
-			: hasDefault
-				? defaultAvatarUrl($avatarState.default as number)
-				: `data:image/png;base64,${defaultAvatar}`;
+			: `data:image/png;base64,${defaultAvatar}`;
 </script>
 
 <img
