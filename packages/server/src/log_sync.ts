@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "fs";
 import { dirname, join } from "path";
 import { hostname } from "os";
 import { appDataDir, fmsLogActive, getSyncCursor, readLogRowsAfter, readRuns, setSyncCursor } from "./fms_logger";
+import { BAKED_LOG_SYNC } from "./baked_config";
 
 /**
  * Incremental FMS-log sync to the NAS (Nextcloud WebDAV): every sync exports
@@ -59,6 +60,17 @@ function loadConfig(): SyncConfig | null {
         console.log(`Ignoring malformed ${p}:`, err);
       }
     }
+  }
+
+  // Nothing configured on this machine: fall back to the credentials baked
+  // into the binary at release-build time (empty in dev builds).
+  if ((!user || !pass) && BAKED_LOG_SYNC) {
+    return {
+      user: BAKED_LOG_SYNC.user,
+      pass: BAKED_LOG_SYNC.pass,
+      url: BAKED_LOG_SYNC.url,
+      intervalMin: intervalMin || DEFAULT_INTERVAL_MIN,
+    };
   }
 
   if (!user || !pass) return null;
