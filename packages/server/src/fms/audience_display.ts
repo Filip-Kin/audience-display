@@ -323,6 +323,8 @@ export class AudienceDisplayManager {
   // FMS never ticks the pick clock over the wire; AudienceAllianceTimer is a
   // start trigger and the display runs the countdown itself.
   private pickClockTimer: ReturnType<typeof setInterval> | null = null;
+  // Live from GetAllianceSelectionData.availableTeams (see updateAllianceSize).
+  private potentialCaptains: Set<number> = new Set();
   private rankData: QualRanking[] = [];
   private connected = false;
   private bracket: BracketData | null = demoBracket();
@@ -532,6 +534,13 @@ export class AudienceDisplayManager {
         // normalize it to our TransitionShift phase so the label reads correctly.
         const raw = data.MatchPhase === "Coop" ? "TransitionShift" : data.MatchPhase;
         const phase: MatchPhase = raw === "None" ? "PreMatch" : raw;
+        // Ported from the real FMS audience display: entering shifts 1-4 plays
+        // the "Powerup" sound. Coop entry (teleop start) and Endgame have their
+        // own sounds, so they are excluded.
+        const SHIFTS: MatchPhase[] = ["Shift1", "Shift2", "Shift3", "Shift4"];
+        if (phase !== this.match.phase && SHIFTS.includes(phase)) {
+          this.playSound("shiftChange");
+        }
         this.match.phase = phase;
         this.match.phaseTimer = data.CurrentPhaseTimeSeconds;
       }
@@ -694,6 +703,24 @@ export class AudienceDisplayManager {
     this.fmsConnection.on("timeout", async (data) => {
       this.match.details.matchNumber = data.MatchNumber;
       this.match.score.winner = undefined;
+      this.broadcastState();
+    });
+
+    // FMS emits this whenever a match is loaded (auto-advance after results,
+    // manual load, test matches), so the current-match details - which feed the
+    // timeout screen's Up Next card among others - always follow FMS without
+    // needing a video switch.
+    this.fmsConnection.on("matchLoaded", async (data) => {
+      const level = LevelParam[data.level];
+      if (level === this.currentLevel && data.matchNumber === this.match.details.matchNumber) {
+        return;
+      }
+      this.currentLevel = level;
+      this.match.details.matchNumber = data.matchNumber;
+      this.match.details.matchType = this.getMatchTypeFromLevel(level);
+      this.match.score.winner = undefined;
+      const preview = await this.getMatchPreview(level, data.matchNumber);
+      if (preview !== null) this.applyMatchPreview(preview);
       this.broadcastState();
     });
   }
@@ -1168,7 +1195,10 @@ export class AudienceDisplayManager {
   private async updateAllianceSize() {
     // fetchJson handles the no-event states real FMS serves (204 / empty body)
     // instead of exploding on a null parse.
-    const data = await this.fetchJson<{ allianceSelectionType?: string }>(
+    const data = await this.fetchJson<{
+      allianceSelectionType?: string;
+      availableTeams?: { teamNumber: number; inPotentialCaptainPosition: boolean }[];
+    }>(
       "/api/v1.0/audience/get/GetAllianceSelectionData",
       "GetAllianceSelectionData"
     );
@@ -1176,9 +1206,27 @@ export class AudienceDisplayManager {
     if (data.allianceSelectionType === "TwoTeam") this.allianceSize = 2;
     else if (data.allianceSelectionType === "FourTeam") this.allianceSize = 4;
     else if (data.allianceSelectionType === "ThreeTeam") this.allianceSize = 3;
+    // availableTeams is the LIVE list: picked/captain teams drop out and
+    // inPotentialCaptainPosition is maintained here. GetQualRankings is a
+    // static wizard list whose flags never change mid-ceremony (real-FMS log),
+    // so the potential-captain highlight must come from this endpoint.
+    if (data.availableTeams) {
+      this.potentialCaptains = new Set(
+        data.availableTeams
+          .filter((t) => t.inPotentialCaptainPosition)
+          .map((t) => t.teamNumber)
+      );
+    }
   }
 
   private updateAllianceData(alliances: FMSAllianceSelection[]) {
+    // Runs after getRankings/updateAllianceSize in every call path, so it is
+    // the one place that can stamp the live potential-captain flags onto the
+    // freshly-assigned ranking list.
+    for (const t of this.ranking) {
+      t.potentialCaptain = this.potentialCaptains.has(t.number);
+    }
+
     this.alliances = [];
 
     for (const alliance of alliances) {

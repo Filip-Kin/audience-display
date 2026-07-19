@@ -29,7 +29,13 @@ export type ShowResultsData = {
 
 export type AllianceTimerData = { Round: string; TimerType: string };
 
-export type MatchStatusInfoData = { MatchState: string; MatchNumber: number };
+export type MatchStatusInfoData = {
+  MatchState: string;
+  MatchNumber: number;
+  Level?: keyof typeof LevelParam;
+};
+
+export type MatchLoadedData = { matchNumber: number; level: keyof typeof LevelParam };
 
 type EventMap = {
   videoSwitch: VideoSwitchScreen;
@@ -51,6 +57,7 @@ type EventMap = {
   connected: null;
   disconnected: null;
   timeout: MatchStatusInfoData;
+  matchLoaded: MatchLoadedData;
   fieldMonitorTeamsChanged: { red: number[]; blue: number[] };
   tournamentLevelChanged: unknown;
   gameSpecificMessage: GameSpecificMessage;
@@ -121,6 +128,7 @@ export class FMSSignalRConnection {
     connected: [],
     disconnected: [],
     timeout: [],
+    matchLoaded: [],
     fieldMonitorTeamsChanged: [],
     tournamentLevelChanged: [],
     gameSpecificMessage: [],
@@ -321,6 +329,17 @@ export class FMSSignalRConnection {
 
       if (data.MatchState.endsWith("TO")) {
         this.emit("timeout", data);
+      }
+
+      // FMS announces every match load via the prestart states - including the
+      // auto-advance right after results post and test matches - so screens
+      // like the timeout "Up Next" card can follow the loaded match without
+      // waiting for a video switch.
+      if (
+        (data.MatchState === "WaitingForPrestart" || data.MatchState === "Prestarting") &&
+        data.Level !== undefined
+      ) {
+        this.emit("matchLoaded", { matchNumber: data.MatchNumber, level: data.Level });
       }
 
       // Match Ready

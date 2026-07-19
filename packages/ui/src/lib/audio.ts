@@ -17,6 +17,8 @@ import teleopStart_wav from "../assets/audio/resume.wav";
 import ready_wav from "../assets/audio/ready.wav";
 import pickClock_wav from "../assets/audio/pick_clock.wav";
 import pickClockExpired_wav from "../assets/audio/pick_clock_expired.wav";
+// Real FMS "Powerup" sound (PowerUp_LinearPop.wav), played entering shifts 1-4.
+import shiftChange_wav from "../assets/audio/shift_change.wav";
 
 const matchStartSound = new Sound(matchStart_wav);
 const endgameWarningSound = new Sound(endgameWarning_wav);
@@ -26,6 +28,7 @@ const abortSound = new Sound(abort_wav, { volume: 0.5 });
 const matchReadySound = new Sound(ready_wav);
 const pickClockSound = new Sound(pickClock_wav);
 const pickClockExpiredSound = new Sound(pickClockExpired_wav);
+const shiftChangeSound = new Sound(shiftChange_wav);
 
 export const playMatchStartSound = () => {
   matchStartSound.play();
@@ -78,5 +81,7 @@ export const playSound = (sound: string) => {
     pickClockSound.play();
   } else if (sound === "pickClockExpired") {
     pickClockExpiredSound.play();
+  } else if (sound === "shiftChange") {
+    shiftChangeSound.play();
   }
 };

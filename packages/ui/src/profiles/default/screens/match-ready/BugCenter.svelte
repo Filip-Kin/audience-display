@@ -78,16 +78,16 @@
 
 	<!-- Shift counter row: sits between the hub arrows; fixed height so entering
 	     teleop or ending the match never shifts the layout. -->
-	<div class="h-[22px] flex items-center justify-center gap-3 whitespace-nowrap tabular-nums text-[21px] font-black leading-none text-dim">
+	<div class="h-8 flex items-baseline justify-center gap-3 whitespace-nowrap tabular-nums font-black leading-none text-dim">
 		{#if shiftIndex !== null}
-			<span>{shiftIndex}/6</span>
-			<span>:{Math.max(0, Math.min(99, phaseTimer)).toString().padStart(2, "0")}</span>
+			<span class="text-[32px]">{shiftIndex}/6</span>
+			<span class="text-[32px]">:{Math.max(0, Math.min(99, phaseTimer)).toString().padStart(2, "0")}</span>
 		{/if}
 	</div>
 
 	<!-- Phase label: fixed height so the timer never shifts up/down when the
 	     label is empty (PreMatch) or changes between phases. -->
-	<div class="h-7 flex items-center justify-center whitespace-nowrap uppercase text-[19px] font-black tracking-[0.1em] leading-none {highlightLabel ? 'text-accentWarn' : 'text-white'}">
+	<div class="h-7 flex items-center justify-center whitespace-nowrap uppercase font-black tracking-[0.1em] leading-none {phaseLabel === 'TRANSITION SHIFT' ? 'text-[19px]' : 'text-[23px]'} {highlightLabel ? 'text-accentWarn' : 'text-white'}">
 		{phaseLabel}
 	</div>
 

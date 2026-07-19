@@ -82,7 +82,7 @@
 
 					<AllianceSection teams={leftTeams} alliance={leftIsRed ? "red" : "blue"} {ready} {compact} gap={cardGap}>
 						<svelte:fragment slot="card" let:team let:index>
-							<MatchPreviewTeamCard {team} alliance={leftIsRed ? "red" : "blue"} {compact} {index} showRank={!isPlayoff && team.rank != null} />
+							<MatchPreviewTeamCard {team} alliance={leftIsRed ? "red" : "blue"} {compact} {index} showRank={!isPlayoff && !!team.rank} />
 						</svelte:fragment>
 					</AllianceSection>
 				</div>
@@ -111,7 +111,7 @@
 
 					<AllianceSection teams={rightTeams} alliance={leftIsRed ? "blue" : "red"} {ready} {compact} gap={cardGap}>
 						<svelte:fragment slot="card" let:team let:index>
-							<MatchPreviewTeamCard {team} alliance={leftIsRed ? "blue" : "red"} invert={true} {compact} {index} showRank={!isPlayoff && team.rank != null} />
+							<MatchPreviewTeamCard {team} alliance={leftIsRed ? "blue" : "red"} invert={true} {compact} {index} showRank={!isPlayoff && !!team.rank} />
 						</svelte:fragment>
 					</AllianceSection>
 				</div>
