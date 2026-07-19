@@ -107,21 +107,21 @@
 						<span class="rr-display text-[40px] leading-[0.9]">{team.number}</span>
 					</div>
 					<div class="flex items-center gap-2 bg-white text-[oklch(0.16_0_0)] px-3.5 py-[5px]">
-						<span class="min-w-0 flex-1 text-[28px] font-bold whitespace-nowrap overflow-hidden text-ellipsis">
+						<span class="min-w-0 flex-1 text-[36px] font-bold whitespace-nowrap overflow-hidden text-ellipsis">
 							{team.name}
 						</span>
 						{#if team.card && team.card !== "None"}
 							<span class="flex-none w-9 h-6 rounded border {team.card === 'Red' ? 'bg-red-600 border-red-900' : 'bg-yellow-400 border-yellow-800'}"></span>
 						{/if}
 						{#if !isPlayoff && team.rank}
-							<span class="flex-none flex items-center gap-1 text-[28px] font-bold tabular-nums">
+							<span class="flex-none flex items-center gap-1 text-[36px] font-bold tabular-nums">
 								{team.rank}
 								{#if team.rankChange === "Up"}
-									<img src="/rainbow-rumble/arrow-up.svg" alt="up" class="size-7" />
+									<img src="/rainbow-rumble/arrow-up.svg" alt="up" class="size-9" />
 								{:else if team.rankChange === "Down"}
-									<img src="/rainbow-rumble/arrow-down.svg" alt="down" class="size-7" />
+									<img src="/rainbow-rumble/arrow-down.svg" alt="down" class="size-9" />
 								{:else if team.rankChange === "NoChange"}
-									<img src="/rainbow-rumble/no-change.svg" alt="no change" class="size-7" />
+									<img src="/rainbow-rumble/no-change.svg" alt="no change" class="size-9" />
 								{/if}
 							</span>
 						{/if}
