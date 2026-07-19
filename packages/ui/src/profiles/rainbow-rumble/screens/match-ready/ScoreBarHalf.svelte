@@ -65,7 +65,7 @@
 				<!-- A carded team's whole chip takes the card color; size never changes. -->
 				<div class="overflow-hidden rounded-[var(--rr-r-chip)]">
 					<div
-						class="rr-display team-num text-center text-[42px] leading-none px-3.5 py-[5px] min-w-[5.6ch] {team.card === 'Yellow'
+						class="rr-display team-num w-full text-center text-[42px] leading-none px-3.5 py-[5px] min-w-[5.6ch] {team.card === 'Yellow'
 							? 'bg-accentWarn text-black'
 							: team.card === 'Red'
 								? 'bg-[oklch(0.5_0.21_29)] text-white'
