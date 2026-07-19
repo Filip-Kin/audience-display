@@ -21,7 +21,7 @@
 	// side's hub is active and pulses in the closing window, standing in for the
 	// alliance-color box-shadow the default/WRC scorebar uses.
 	$: glowFrom = isLeft ? "0deg" : "180deg";
-	$: glowSpeed = isLeft ? "4s" : "5s";
+	$: glowSpeed = isLeft ? "2s" : "2.5s";
 
 	// Rounded outer corner: top by default, flipped to bottom in top-mode via the
 	// --rr-bar-rt/--rr-bar-rb vars set on the scorebar grid in MatchReady.
@@ -35,13 +35,12 @@
 
 <div class="relative" style="z-index: {hubActive ? 1 : 0};">
 	<!-- Animated rainbow underglow behind the half -->
-	<!-- Extends past the accent strip vertically and rounds only the outer
-	     corners, so the blurred glow follows the bar's rounded silhouette
-	     instead of showing square corners behind the strip. -->
+	<!-- Rounds only the outer corners so the blurred glow follows the bar's
+	     rounded silhouette. -->
 	<div
 		class="absolute z-0"
 		style="
-			inset: -17px -7px;
+			inset: -7px;
 			border-radius: {isLeft
 				? 'calc(var(--rr-r) + 7px) 0 0 calc(var(--rr-r) + 7px)'
 				: '0 calc(var(--rr-r) + 7px) calc(var(--rr-r) + 7px) 0'};

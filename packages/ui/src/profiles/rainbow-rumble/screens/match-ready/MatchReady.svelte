@@ -122,7 +122,7 @@
 			     the halves' rounded outer corners in top-mode. -->
 			<div
 				class="grid grid-cols-realtimeScores shadow-[0_12px_40px_oklch(0_0_0/0.55)]"
-				style="--rr-bar-rt: {top ? '0px' : 'var(--rr-r)'}; --rr-bar-rb: {top ? 'var(--rr-r)' : '0px'};"
+				style="--rr-bar-rt: var(--rr-r); --rr-bar-rb: var(--rr-r);"
 			>
 				<ScoreBarHalf
 					side="left"
@@ -148,11 +148,6 @@
 					hubActive={rightHubActive}
 					endingPulse={rightEnding}
 				/>
-				<!-- Rainbow strip: bottom of the bar normally, top of it in top-mode. -->
-				<div
-					class="col-span-full h-2.5 relative z-[2]"
-					style="order: {top ? -1 : 1}; background: var(--rr-rainbow); border-radius: {top ? 'var(--rr-r) var(--rr-r) 0 0' : '0 0 var(--rr-r) var(--rr-r)'};"
-				></div>
 			</div>
 		</div>
 	{/if}
