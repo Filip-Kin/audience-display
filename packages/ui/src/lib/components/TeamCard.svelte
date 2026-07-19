@@ -40,7 +40,11 @@
 			>
 				<span>{team.name}</span>
 				{#if team.card && team.card !== "None"}
-					<span class="w-full h-8 text-2xl text-center text-black rounded border border-gray-800 {team.card === 'Red' ? 'bg-red-600' : 'bg-yellow-400'}"></span>
+					<span
+						class="w-full h-8 rounded border border-gray-800 flex items-center justify-center uppercase text-[15px] font-black tracking-[0.06em] {team.card === 'Red'
+							? 'bg-red-600 text-white'
+							: 'bg-yellow-400 text-black'}">CARD</span
+					>
 				{:else}
 					<span></span>
 				{/if}
