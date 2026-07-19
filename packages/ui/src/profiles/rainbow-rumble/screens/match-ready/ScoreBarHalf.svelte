@@ -62,12 +62,14 @@
 		<!-- Team numbers, inboard (next to the center bug) -->
 		<div class="flex flex-col gap-[7px]" style="order: {isLeft ? 3 : 1};">
 			{#each teams.slice(0, 3) as team (team.number)}
-				<div class="flex flex-col overflow-hidden rounded-[var(--rr-r-chip)]">
+				<!-- Card stripe overlays the chip's bottom edge (absolute) so a
+				     yellow/red card never changes the chip height. -->
+				<div class="relative overflow-hidden rounded-[var(--rr-r-chip)]">
 					<div class="rr-display team-num text-white text-center text-[42px] leading-none bg-[oklch(0_0_0/0.36)] px-3.5 py-[5px] min-w-[5.6ch]">
 						{team.number}
 					</div>
 					{#if team.card === "Yellow" || team.card === "Red"}
-						<div class="h-2.5 {team.card === 'Yellow' ? 'bg-accentWarn' : 'bg-white'}"></div>
+						<div class="absolute inset-x-0 bottom-0 h-2 {team.card === 'Yellow' ? 'bg-accentWarn' : 'bg-white'}"></div>
 					{/if}
 				</div>
 			{/each}
