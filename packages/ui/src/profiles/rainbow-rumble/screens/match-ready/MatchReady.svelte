@@ -117,9 +117,9 @@
 			in:fade={{ duration: 150 }}
 			out:fade={{ duration: 150 }}
 		>
-			<!-- No overflow-hidden here: the rainbow underglow and active-side
-			     box-shadow glow must bleed outside the bar. The corner vars flip
-			     the halves' rounded outer corners in top-mode. -->
+			<!-- No overflow-hidden here: the rainbow underglow must bleed outside
+			     the bar. All four outer corners are rounded since the accent strip
+			     was removed, so top-mode needs no corner flipping. -->
 			<div
 				class="grid grid-cols-realtimeScores shadow-[0_12px_40px_oklch(0_0_0/0.55)]"
 				style="--rr-bar-rt: var(--rr-r); --rr-bar-rb: var(--rr-r);"

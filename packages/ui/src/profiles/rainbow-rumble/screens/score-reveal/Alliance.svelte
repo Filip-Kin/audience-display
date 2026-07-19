@@ -107,7 +107,12 @@
 						<span class="rr-display text-[40px] leading-[0.9]">{team.number}</span>
 					</div>
 					<div class="flex items-center gap-2 bg-white text-[oklch(0.16_0_0)] px-3.5 py-[5px]">
-						<span class="min-w-0 flex-1 text-[36px] font-bold whitespace-nowrap overflow-hidden text-ellipsis">
+						<!-- Long names drop a size instead of truncating, like the shared TeamCard -->
+						<span
+							class="min-w-0 flex-1 font-bold whitespace-nowrap overflow-hidden text-ellipsis {team.name.length > 22
+								? 'text-[26px]'
+								: 'text-[36px]'}"
+						>
 							{team.name}
 						</span>
 						{#if team.card && team.card !== "None"}

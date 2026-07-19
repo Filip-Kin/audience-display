@@ -33,6 +33,7 @@ import {
 } from "lib/types/FMS_API_audience";
 import type { AllianceSelection, QualRanking, Team } from "lib/types/audience_display";
 import { getTeamName } from "../team_name";
+import { logRest } from "../fms_logger";
 import { emptyAllianceScore, mapLiveScore, mapResultScore, defaultGameConfig } from "./score_mappers";
 import { fetchGameConfig } from "./game_config";
 import { fetchBracket } from "./bracket";
@@ -731,14 +732,17 @@ export class AudienceDisplayManager {
     try {
       const res = await fetch(`http://${this.fmsUrl}${path}`);
       if (res.status === 204) {
+        logRest(path, 204, "");
         console.log(`${label} returned 204 (no content)`);
         return null;
       }
       if (!res.ok) {
+        logRest(path, res.status, "");
         console.log(`${label} returned HTTP ${res.status}`);
         return null;
       }
       const text = (await res.text()).trim();
+      logRest(path, res.status, text);
       if (!text) {
         console.log(`${label} returned an empty body`);
         return null;

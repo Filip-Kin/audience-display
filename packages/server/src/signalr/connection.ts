@@ -1,4 +1,11 @@
-import { HubConnectionBuilder, type HubConnection } from "@microsoft/signalr";
+import { HubConnectionBuilder, type HubConnection, type IHttpConnectionOptions } from "@microsoft/signalr";
+import { FmsLoggingWebSocket } from "../fms_logger";
+
+// The SignalR runtime honors options.WebSocket (see HttpConnection.js) but the
+// public typings omit it; extend locally so the frame-logging socket can be
+// injected instead of the `ws` package it would otherwise pick in this runtime.
+type HubOptions = IHttpConnectionOptions & { WebSocket?: typeof WebSocket };
+const HUB_OPTIONS: HubOptions = { WebSocket: FmsLoggingWebSocket };
 import {
   type ScoreChangedData,
   type ScoringElementChangedData,
@@ -118,7 +125,7 @@ export class FMSSignalRConnection {
   constructor(fmsUrl: string) {
     this.fmsUrl = fmsUrl;
     this.infrastructureConnection = new HubConnectionBuilder()
-      .withUrl(`http://${fmsUrl}/infrastructureHub`)
+      .withUrl(`http://${fmsUrl}/infrastructureHub`, HUB_OPTIONS)
       .withServerTimeout(30000) // 30 seconds, per FMS Audience Display
       .withKeepAliveInterval(15000) // 15 seconds per FMS Audience Display
       .withAutomaticReconnect({
@@ -130,7 +137,7 @@ export class FMSSignalRConnection {
       .build();
 
     this.gameSpecificConnection = new HubConnectionBuilder()
-      .withUrl(`http://${fmsUrl}/gameSpecificHub`)
+      .withUrl(`http://${fmsUrl}/gameSpecificHub`, HUB_OPTIONS)
       .withServerTimeout(30000) // 30 seconds, per FMS Audience Display
       .withKeepAliveInterval(15000) // 15 seconds per FMS Audience Display
       .withAutomaticReconnect({
@@ -142,7 +149,7 @@ export class FMSSignalRConnection {
       .build();
 
     this.fieldMonitorConnection = new HubConnectionBuilder()
-      .withUrl(`http://${fmsUrl}/fieldMonitorHub`)
+      .withUrl(`http://${fmsUrl}/fieldMonitorHub`, HUB_OPTIONS)
       .withServerTimeout(30000) // 30 seconds, per FMS Audience Display
       .withKeepAliveInterval(15000) // 15 seconds per FMS Audience Display
       .withAutomaticReconnect({

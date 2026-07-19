@@ -1,5 +1,7 @@
 import { AudienceDisplayManager } from "./fms/audience_display";
 import { ProfileSelector } from "./profile_selector";
+import { checkForUpdate } from "./auto_update";
+import { initFmsLogger } from "./fms_logger";
 import { existsSync } from "fs";
 import { join } from "path";
 import zipFile from "../../../ui-dist.zip" with { type: "file" };
@@ -7,12 +9,20 @@ import { $, file } from "bun";
 
 const FMS_URL = process.env.FMS_URL;
 const FAKE_FMS = process.env.FAKE_FMS;
+const RESOLVED_FMS_URL = FAKE_FMS ? "127.0.0.1:8080" : FMS_URL || "10.0.100.5";
 
 // A failed FMS fetch inside an event handler (e.g. FMS restarting) must not kill the
 // display server; log it and keep serving. SignalR reconnects on its own.
 process.on("unhandledRejection", (err) => {
   console.log("Unhandled rejection (continuing):", err);
 });
+
+// May exit the process to apply a downloaded update (compiled exe only).
+await checkForUpdate();
+
+// Must run before the SignalR connections are created so the websocket wrapper
+// captures every frame from the first handshake on.
+initFmsLogger(RESOLVED_FMS_URL);
 
 if (process.execPath.endsWith(".exe") && !process.execPath.endsWith("bun.exe")) {
   await Bun.write("./.temp/public.zip", file(zipFile));
@@ -72,7 +82,7 @@ console.log("Fake FMS:", FAKE_FMS);
 
 const audienceDisplay = new AudienceDisplayManager(
   server,
-  FAKE_FMS ? "127.0.0.1:8080" : FMS_URL || "10.0.100.5",
+  RESOLVED_FMS_URL,
   profileSelector
 );
 
