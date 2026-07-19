@@ -6,7 +6,8 @@ import { initLogSync } from "./log_sync";
 import { existsSync } from "fs";
 import { join } from "path";
 import zipFile from "../../../ui-dist.zip" with { type: "file" };
-import { $, file } from "bun";
+import { file } from "bun";
+import { unzipSync } from "fflate";
 
 const FMS_URL = process.env.FMS_URL;
 const FAKE_FMS = process.env.FAKE_FMS;
@@ -27,8 +28,13 @@ initFmsLogger(RESOLVED_FMS_URL);
 initLogSync();
 
 if (process.execPath.endsWith(".exe") && !process.execPath.endsWith("bun.exe")) {
-  await Bun.write("./.temp/public.zip", file(zipFile));
-  await $`unzip -o ./.temp/public.zip -d ./.temp`;
+  // Extract the embedded UI in-process (fflate) instead of shelling out to
+  // `unzip`, which Windows does not ship.
+  const entries = unzipSync(new Uint8Array(await file(zipFile).arrayBuffer()));
+  for (const [name, data] of Object.entries(entries)) {
+    if (name.endsWith("/")) continue;
+    await Bun.write(join("./.temp", name), data);
+  }
 }
 
 const profileSelector = new ProfileSelector();
