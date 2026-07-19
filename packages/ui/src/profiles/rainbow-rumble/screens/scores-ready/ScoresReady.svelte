@@ -68,8 +68,11 @@
 		if (settleTimer) clearTimeout(settleTimer);
 	});
 
-	// Scores retracted (scores-ready -> match-end): resume the spin.
-	$: if (!committed && frozen && logoEl && glintEl) {
+	// Scores retracted (scores-ready -> match-end): resume the spin. ONLY on a
+	// real retraction: leaving for the score reveal also flips `committed`
+	// false, and the gear must stay static as it slides off, not start
+	// spinning again.
+	$: if ($state.screen === "match-end" && frozen && logoEl && glintEl) {
 		frozen = false;
 		if (settleTimer) {
 			clearTimeout(settleTimer);
