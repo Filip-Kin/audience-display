@@ -3,6 +3,7 @@
 	import Energized from "../../../../assets/rp-icons/energized.svg";
 	import Supercharged from "../../../../assets/rp-icons/supercharged.svg";
 	import Traversal from "../../../../assets/rp-icons/traversal.svg";
+	import Trophy from "../../../../assets/trophy.svg";
 	import { fade, fly } from "svelte/transition";
 
 	export let ready = false;
@@ -14,12 +15,20 @@
 	let earned: Badge[] = [];
 	let unearned: Badge[] = [];
 
-	// Same earned/unearned computation as the shared RankingPoints component; the
-	// winner-trophy tiles are intentionally omitted (the Winner banner covers that).
+	// Same computation as the shared RankingPoints component, win/tie trophies
+	// included: one trophy tile per RP (3 for a win, 1 each on a tie), earned
+	// only, never grayed out.
 	$: if ($state.results) {
 		earned = [];
 		unearned = [];
 		const score = $state.results.score[alliance];
+		const winner = $state.results.score.winner;
+
+		if (winner?.toLowerCase() === alliance) {
+			earned.push({ src: Trophy, alt: "Win" }, { src: Trophy, alt: "Win" }, { src: Trophy, alt: "Win" });
+		} else if (winner === "Tie") {
+			earned.push({ src: Trophy, alt: "Tie" });
+		}
 
 		if (score.energizedAchieved) earned.push({ src: Energized, alt: "Energized" });
 		else unearned.push({ src: Energized, alt: "Energized" });
