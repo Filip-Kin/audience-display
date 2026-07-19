@@ -82,6 +82,15 @@
 		transform: rotate(-15deg);
 	}
 }
+@keyframes rr-underglow-pulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.15;
+	}
+}
 @keyframes rr-pulse {
 	0%,
 	100% {

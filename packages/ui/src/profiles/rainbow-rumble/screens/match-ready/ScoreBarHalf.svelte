@@ -17,7 +17,9 @@
 	$: isEndingPulse = hubActive && endingPulse;
 
 	// Each half gets its own conic rainbow underglow, phase-offset 180deg and at
-	// different speeds per the design so the two sides never sync up.
+	// different speeds so the two sides never sync up. It shows only while this
+	// side's hub is active and pulses in the closing window, standing in for the
+	// alliance-color box-shadow the default/WRC scorebar uses.
 	$: glowFrom = isLeft ? "0deg" : "180deg";
 	$: glowSpeed = isLeft ? "4s" : "5s";
 
@@ -45,7 +47,9 @@
 				: '0 calc(var(--rr-r) + 7px) calc(var(--rr-r) + 7px) 0'};
 			background: conic-gradient(from {glowFrom}, #ff2d55, #ffcc00, #34c759, #00c7ff, #af52de, #ff2d55, #ffcc00, #34c759, #00c7ff, #af52de, #ff2d55);
 			filter: blur(10px);
-			animation: rr-hue {glowSpeed} linear infinite;
+			opacity: {hubActive ? 1 : 0};
+			transition: opacity 0.4s ease;
+			animation: rr-hue {glowSpeed} linear infinite{isEndingPulse ? ', rr-underglow-pulse 0.8s ease-in-out infinite' : ''};
 		"
 	></div>
 
@@ -54,9 +58,6 @@
 		style="
 			background: {bgVar};
 			border-radius: {halfRadius};
-			transition: box-shadow 0.4s ease;
-			box-shadow: {!hubActive ? 'none' : isEndingPulse ? 'none' : `0 0 80px 18px ${bgVar}`};
-			{isEndingPulse ? `animation: glow-pulse-${color} 0.8s ease-in-out infinite;` : ''}
 		"
 	>
 		<!-- Team numbers, inboard (next to the center bug) -->

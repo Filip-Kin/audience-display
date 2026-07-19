@@ -70,7 +70,9 @@
 				<!-- Left alliance -->
 				<div class="flex flex-col items-stretch" style="gap: {cardGap}px;">
 					<div
-						class="rr-display text-white text-[52px] leading-none tracking-[0.04em]"
+						class="rr-display text-white text-[52px] leading-none tracking-[0.04em] {allianceNameBg
+							? 'rounded-[24px] shadow-[0_6px_20px_oklch(0_0_0/0.5)]'
+							: ''}"
 						class:w-full={allianceNameBg}
 						class:py-3={allianceNameBg}
 						class:text-center={allianceNameBg}
@@ -99,7 +101,9 @@
 				<!-- Right alliance (mirrored) -->
 				<div class="flex flex-col items-stretch" style="gap: {cardGap}px;">
 					<div
-						class="rr-display text-white text-[52px] leading-none tracking-[0.04em] text-right"
+						class="rr-display text-white text-[52px] leading-none tracking-[0.04em] text-right {allianceNameBg
+							? 'rounded-[24px] shadow-[0_6px_20px_oklch(0_0_0/0.5)]'
+							: ''}"
 						class:w-full={allianceNameBg}
 						class:py-3={allianceNameBg}
 						class:!text-center={allianceNameBg}

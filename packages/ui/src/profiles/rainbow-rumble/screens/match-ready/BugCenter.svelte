@@ -41,7 +41,7 @@
 <!-- z-10 keeps the side glows from bleeding over the center. Fixed width (sized
      for the long "TRANSITION SHIFT" label) so the bar never reflows. The 6px
      rainbow frame comes from the padded gradient wrapper. -->
-<div class="relative z-10 w-72" style="padding: 6px; background: var(--rr-rainbow);">
+<div class="relative z-10 w-72" style="padding: 6px 6px 0; background: var(--rr-rainbow);">
 	<div class="relative h-full w-full flex flex-col items-center justify-center bg-[oklch(0_0_0/0.9)] px-5 py-3">
 		<!-- Hub active corner indicators (absolute, never shift content) -->
 		{#if arrowSide === "left" || arrowSide === "both"}
