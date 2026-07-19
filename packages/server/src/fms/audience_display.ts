@@ -1108,15 +1108,16 @@ export class AudienceDisplayManager {
 
   /** Teams per alliance (2/3/4) from FMS's allianceSelectionType; keeps the last value on error. */
   private async updateAllianceSize() {
-    try {
-      const res = await fetch(`http://${this.fmsUrl}/api/v1.0/audience/get/GetAllianceSelectionData`);
-      const data = (await res.json()) as { allianceSelectionType?: string };
-      if (data.allianceSelectionType === "TwoTeam") this.allianceSize = 2;
-      else if (data.allianceSelectionType === "FourTeam") this.allianceSize = 4;
-      else if (data.allianceSelectionType === "ThreeTeam") this.allianceSize = 3;
-    } catch (e) {
-      console.log("Failed to fetch alliance selection type:", e);
-    }
+    // fetchJson handles the no-event states real FMS serves (204 / empty body)
+    // instead of exploding on a null parse.
+    const data = await this.fetchJson<{ allianceSelectionType?: string }>(
+      "/api/v1.0/audience/get/GetAllianceSelectionData",
+      "GetAllianceSelectionData"
+    );
+    if (data === null) return;
+    if (data.allianceSelectionType === "TwoTeam") this.allianceSize = 2;
+    else if (data.allianceSelectionType === "FourTeam") this.allianceSize = 4;
+    else if (data.allianceSelectionType === "ThreeTeam") this.allianceSize = 3;
   }
 
   private updateAllianceData(alliances: FMSAllianceSelection[]) {
