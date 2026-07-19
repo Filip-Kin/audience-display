@@ -80,6 +80,8 @@ export type Team = {
   isCaptain?: boolean;
   potentialCaptain?: boolean;
   unavailableForSelection?: boolean;
+  /** Declined a pick during alliance selection (still captain-eligible). */
+  declined?: boolean;
 };
 
 export type MatchType = "q" | "p" | "t" | "sf" | "f";

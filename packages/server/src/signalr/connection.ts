@@ -404,6 +404,13 @@ export class FMSSignalRConnection {
       this.emit("allianceSelectionChanged", data);
     });
 
+    // A decline changes availableTeams (isDeclined flips) without an
+    // AllianceSelectionChanged, so route it through the same refetch.
+    this.infrastructureConnection.on("allianceselectiondecline", (...args: unknown[]) => {
+      console.log("allianceselectiondecline: ", args);
+      this.emit("allianceSelectionChanged", args);
+    });
+
     this.infrastructureConnection.on("audiencealliancetimer", (data: AllianceTimerData) => {
       console.log("audiencealliancetimer: ", data);
       this.emit("allianceTimer", data);
@@ -426,7 +433,6 @@ export class FMSSignalRConnection {
       "currentlyactiveeventdbcreated",
       "scheduleaheadbehindchanged",
       "schedulechanged",
-      "allianceselectiondecline",
       "audienceshowmessage",
       "lastcycletimecalculated",
     ];

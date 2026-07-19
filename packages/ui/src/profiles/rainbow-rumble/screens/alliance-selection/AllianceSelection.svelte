@@ -39,7 +39,8 @@
 	let camH = 0;
 
 	$: pickSeconds = $state.match?.timer ?? 0;
-	$: pickWarning = pickSeconds > 0 && pickSeconds <= 10;
+	// Yellow only once the Pick_Clock sound plays (last 5 seconds).
+	$: pickWarning = pickSeconds > 0 && pickSeconds <= 5;
 
 	// Flash the timer card gold three times the moment the clock reaches zero.
 	let timerFlash = false;
@@ -53,9 +54,12 @@
 		}
 		prevSeconds = pickSeconds;
 	}
-	// Every ranked team stays on the board (picked ones get struck through) so the
-	// grid, and everything below it, never changes size during the ceremony.
-	$: rankedTeams = [...$state.ranking].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
+	// Teams assigned to an alliance drop off the board; declined teams stay,
+	// struck through (still captain-eligible, so a declined potential captain
+	// keeps the accent highlight).
+	$: rankedTeams = [...$state.ranking]
+		.filter((t) => !t.unavailableForSelection)
+		.sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
 	$: slotsPerAlliance = Math.max(2, Math.min(4, $state.allianceSize ?? 3));
 
 	// Once all 8 alliances have at least one team (captain slot filled), stop
@@ -162,25 +166,25 @@
 					style="grid-auto-flow: column; grid-template-rows: repeat({Math.max(1, Math.ceil(rankedTeams.length / 7))}, auto);"
 				>
 					{#each rankedTeams as team (team.number)}
-						{@const taken = team.unavailableForSelection}
-						{@const captain = team.potentialCaptain && !taken && !allCaptainsFilled}
+						{@const declined = !!team.declined}
+						{@const captain = team.potentialCaptain && !allCaptainsFilled}
 						<div
-							class="relative grid items-stretch overflow-hidden grid-cols-[44px_1fr] rounded-md {taken ? 'struck' : ''}"
+							class="relative grid items-stretch overflow-hidden grid-cols-[44px_1fr] rounded-md {declined ? 'struck' : ''} {declined && captain ? 'struck-light' : ''}"
 							style="
-								background: {taken
-									? 'oklch(0.18 0.012 250)'
-									: captain
-										? 'var(--rr-accent)'
+								background: {captain
+									? 'var(--rr-accent)'
+									: declined
+										? 'oklch(0.18 0.012 250)'
 										: 'white'};
 							"
 						>
 							<div
 								class="rr-mono flex items-center justify-center font-black text-[20px] text-white"
 								style="
-									background: {taken
-										? 'oklch(0.26 0.012 250)'
-										: captain
-											? 'oklch(0.30 0.14 330)'
+									background: {captain
+										? 'oklch(0.30 0.14 330)'
+										: declined
+											? 'oklch(0.26 0.012 250)'
 											: 'oklch(0.16 0 0)'};
 								"
 							>
@@ -189,8 +193,8 @@
 							<div
 								class="rr-display text-right px-2 py-[5px] text-[28px] leading-none"
 								style="
-									color: {taken ? 'var(--rr-faint)' : captain ? 'white' : 'oklch(0.14 0 0)'};
-									opacity: {taken ? 0.55 : 1};
+									color: {captain ? 'white' : declined ? 'var(--rr-faint)' : 'oklch(0.14 0 0)'};
+									opacity: {declined && !captain ? 0.55 : 1};
 								"
 							>
 								{team.number}
@@ -311,5 +315,11 @@
 		transform: translateY(-50%);
 		background: var(--rr-faint);
 		opacity: 0.85;
+	}
+
+	/* Declined potential captain: white strike reads on the accent chip. */
+	.struck-light::after {
+		background: white;
+		opacity: 0.9;
 	}
 </style>

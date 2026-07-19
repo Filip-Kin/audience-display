@@ -242,6 +242,11 @@
 		animation-name: rank-scroll-loop;
 		animation-timing-function: linear;
 		animation-iteration-count: infinite;
+		/* Composite the whole strip on its own GPU layer: without this the rows
+		   re-rasterize every frame at fractional pixel offsets and their
+		   top/bottom edges shimmer while scrolling. */
+		will-change: transform;
+		backface-visibility: hidden;
 	}
 	@keyframes rank-scroll-loop {
 		from {

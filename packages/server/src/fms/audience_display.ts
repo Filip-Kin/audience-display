@@ -325,6 +325,7 @@ export class AudienceDisplayManager {
   private pickClockTimer: ReturnType<typeof setInterval> | null = null;
   // Live from GetAllianceSelectionData.availableTeams (see updateAllianceSize).
   private potentialCaptains: Set<number> = new Set();
+  private declinedTeams: Set<number> = new Set();
   private rankData: QualRanking[] = [];
   private connected = false;
   private bracket: BracketData | null = demoBracket();
@@ -1197,7 +1198,11 @@ export class AudienceDisplayManager {
     // instead of exploding on a null parse.
     const data = await this.fetchJson<{
       allianceSelectionType?: string;
-      availableTeams?: { teamNumber: number; inPotentialCaptainPosition: boolean }[];
+      availableTeams?: {
+        teamNumber: number;
+        inPotentialCaptainPosition: boolean;
+        isDeclined: boolean;
+      }[];
     }>(
       "/api/v1.0/audience/get/GetAllianceSelectionData",
       "GetAllianceSelectionData"
@@ -1216,6 +1221,9 @@ export class AudienceDisplayManager {
           .filter((t) => t.inPotentialCaptainPosition)
           .map((t) => t.teamNumber)
       );
+      this.declinedTeams = new Set(
+        data.availableTeams.filter((t) => t.isDeclined).map((t) => t.teamNumber)
+      );
     }
   }
 
@@ -1225,6 +1233,7 @@ export class AudienceDisplayManager {
     // freshly-assigned ranking list.
     for (const t of this.ranking) {
       t.potentialCaptain = this.potentialCaptains.has(t.number);
+      t.declined = this.declinedTeams.has(t.number);
     }
 
     this.alliances = [];
