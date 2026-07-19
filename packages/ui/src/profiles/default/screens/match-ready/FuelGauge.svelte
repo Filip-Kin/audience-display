@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Supercharged from "../../../../assets/rp-icons/supercharged.svg";
+
 	export let fuelCount: number;
 	export let energizedThreshold: number;
 	export let superchargedThreshold: number;
@@ -49,9 +51,14 @@
 			/>
 		</svg>
 		<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-			<div class="display tabular-nums text-white text-[32px] leading-none">
-				{fuelCount}
-			</div>
+			{#if superchargedAchieved}
+				<!-- Both fuel goals done: the count gives way to the Supercharged mark -->
+				<img src={Supercharged} alt="Supercharged" class="size-10 brightness-0 invert" />
+			{:else}
+				<div class="display tabular-nums text-white text-[32px] leading-none">
+					{fuelCount}
+				</div>
+			{/if}
 		</div>
 	</div>
 	<div class="uppercase text-white text-sm font-black tracking-[0.22em]">

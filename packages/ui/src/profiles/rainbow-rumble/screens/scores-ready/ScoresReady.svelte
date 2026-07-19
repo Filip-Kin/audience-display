@@ -2,7 +2,7 @@
 	import { fly } from "svelte/transition";
 	import { state, eventDisplayName } from "@lib/state";
 	import { settings } from "@lib/settings";
-	import { createEventDispatcher } from "svelte";
+	import { createEventDispatcher, onDestroy } from "svelte";
 	import { matchName } from "@lib/matchNamer";
 	import Shutter from "@lib/components/Shutter.svelte";
 
@@ -27,24 +27,55 @@
 	let logoEl: HTMLImageElement | null = null;
 	let glintEl: HTMLDivElement | null = null;
 	let frozen = false;
+	let settleTimer: ReturnType<typeof setTimeout> | null = null;
 
-	// Freeze the spin at its current rotation (read the computed matrix, pin it
-	// inline) and play the one-shot glint sweep. Also fires when the component
-	// mounts straight into scores-ready, freezing at the initial rotation.
+	// The spin's angular speed; the settle keeps this speed so the stop reads as
+	// the same motion coming to rest, not a jump.
+	const SPIN_DEG_PER_S = 360 / 3.2;
+
+	// On commit: keep turning forward to the next 45-degree stop (the gear is
+	// 8-fold symmetric, so the cogs land exactly on the unrotated glint mask),
+	// then glint continuously until the screen is dismissed. Also fires when the
+	// component mounts straight into scores-ready.
 	$: if (committed && !frozen && logoEl && glintEl) {
 		frozen = true;
-		const current = getComputedStyle(logoEl).transform;
-		logoEl.style.animation = "none";
-		logoEl.style.transform = current === "none" ? "rotate(0deg)" : current;
-		glintEl.style.opacity = "1";
-		glintEl.style.animation = "none";
-		void glintEl.offsetWidth;
-		glintEl.style.animation = "rr-glint 1.25s ease-out 1";
+		const logo = logoEl;
+		const glint = glintEl;
+		const m = getComputedStyle(logo).transform;
+		let angle = 0;
+		if (m && m !== "none") {
+			const parts = m.match(/matrix\(([^)]+)\)/)?.[1]?.split(",").map(Number);
+			if (parts && parts.length >= 2) angle = (Math.atan2(parts[1]!, parts[0]!) * 180) / Math.PI;
+		}
+		angle = ((angle % 360) + 360) % 360;
+		const target = Math.ceil((angle + 0.001) / 45) * 45;
+		const settleMs = Math.max(50, ((target - angle) / SPIN_DEG_PER_S) * 1000);
+		logo.style.animation = "none";
+		logo.style.transform = `rotate(${angle}deg)`;
+		void logo.offsetWidth;
+		logo.style.transition = `transform ${settleMs}ms linear`;
+		logo.style.transform = `rotate(${target}deg)`;
+		settleTimer = setTimeout(() => {
+			settleTimer = null;
+			glint.style.opacity = "1";
+			glint.style.animation = "none";
+			void glint.offsetWidth;
+			glint.style.animation = "rr-glint 1.25s ease-out infinite";
+		}, settleMs);
 	}
+
+	onDestroy(() => {
+		if (settleTimer) clearTimeout(settleTimer);
+	});
 
 	// Scores retracted (scores-ready -> match-end): resume the spin.
 	$: if (!committed && frozen && logoEl && glintEl) {
 		frozen = false;
+		if (settleTimer) {
+			clearTimeout(settleTimer);
+			settleTimer = null;
+		}
+		logoEl.style.transition = "";
 		logoEl.style.transform = "";
 		logoEl.style.animation = SPIN;
 		glintEl.style.animation = "none";
