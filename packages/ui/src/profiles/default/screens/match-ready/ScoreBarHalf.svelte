@@ -9,7 +9,7 @@
 	export let score: AllianceScore;
 	export let teams: Team[];
 	export let hubActive: boolean = false;
-	/** True in the last 5s of a phase when this side's goal is about to close. */
+	/** True in the last 3s of a phase when this side's goal is about to close. */
 	export let endingPulse: boolean = false;
 
 	$: bgVar = color === "red" ? "var(--redAlliance)" : "var(--blueAlliance)";
@@ -28,7 +28,7 @@
 		z-index: {hubActive ? 1 : 0};
 		transition: box-shadow 0.4s ease;
 		box-shadow: {!hubActive ? 'none' : isEndingPulse ? 'none' : `0 0 80px 18px ${bgVar}`};
-		{isEndingPulse ? `animation: glow-pulse-${color} 0.8s ease-in-out infinite;` : ''}
+		{isEndingPulse ? `animation: glow-pulse-${color} 0.6s ease-in-out infinite;` : ''}
 	"
 >
 	<!-- Team numbers -->

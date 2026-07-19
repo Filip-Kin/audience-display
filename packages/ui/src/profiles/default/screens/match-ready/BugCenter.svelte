@@ -10,7 +10,7 @@
 	/** Show "MATCH OVER" instead of the phase label once the match has ended. */
 	export let matchOver: boolean = false;
 
-	const ARROW_PULSE = "animation: arrow-blink 0.8s ease-in-out infinite; transform-origin: center;";
+	const ARROW_PULSE = "animation: arrow-blink 0.6s ease-in-out infinite; transform-origin: center;";
 
 	const PHASE_LABELS: Record<MatchPhase, string> = {
 		PreMatch: "",

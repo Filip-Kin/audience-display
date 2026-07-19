@@ -49,7 +49,7 @@
 	})() as "left" | "right" | "both" | "none";
 
 	// #region ending-pulse
-	// A side's goal glows while active and pulses in the last 5s of the phase
+	// A side's goal glows while active and pulses in the last 3s of the phase
 	// when it's about to close. The alliance holding the auto/FMS "advantage" is
 	// active in the even shifts (2 & 4) and inactive in the odd shifts (1 & 3),
 	// so it's the side that closes when the transition (Coop) shift ends. The
@@ -61,7 +61,7 @@
 		: $state.match?.score.blue.advantageAchieved
 			? "blue"
 			: null) as "red" | "blue" | null;
-	$: inClosingWindow = phaseTimer > 0 && phaseTimer <= 5;
+	$: inClosingWindow = phaseTimer > 0 && phaseTimer <= 3;
 
 	const goesInactiveNext = (
 		p: string,
