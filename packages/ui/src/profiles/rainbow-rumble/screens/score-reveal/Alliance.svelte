@@ -14,6 +14,7 @@
 	$: allianceName = $state.results?.details[alliance === "red" ? "redAlliance" : "blueAlliance"];
 	$: winner = $state.results?.score.winner;
 	$: isWinner = winner === (alliance === "red" ? "Red" : "Blue");
+	$: isTie = winner === "Tie";
 	$: teams = $state.results?.teams[alliance] ?? [];
 
 	$: allianceBg = alliance === "red" ? "bg-redAlliance" : "bg-blueAlliance";
@@ -57,8 +58,9 @@
 
 {#if $state.results && ready}
 	<div class="flex flex-col gap-3.5 justify-start">
-		<!-- Top status: rainbow Winner banner, or a 60px spacer (also on ties) so both
-		     alliance cards keep the same height. Playoff advancement attaches beneath. -->
+		<!-- Top status: rainbow Winner/Tie banner, or a 60px spacer on the loser so
+		     both alliance cards keep the same height. Playoff advancement attaches
+		     beneath. -->
 		<div class="flex flex-col gap-1">
 			{#if isWinner}
 				<div
@@ -66,9 +68,16 @@
 					style="background: var(--rr-rainbow);"
 				>
 					<img src={Trophy} alt="Trophy" class="size-11" />
-					<!-- Black chip keeps the label legible on the rainbow bar -->
-					<span class="bg-[oklch(0_0_0/0.7)] rounded-lg px-4 leading-tight">Winner</span>
+					<span>Winner</span>
 					<img src={Trophy} alt="Trophy" class="size-11" />
+				</div>
+			{:else if isTie}
+				<!-- Both cards get the banner on a tie so the result reads at a glance -->
+				<div
+					class="h-[60px] flex flex-row items-center justify-center text-white text-[44px] font-bold rounded-[var(--rr-r-sm)]"
+					style="background: var(--rr-rainbow);"
+				>
+					<span>Tie</span>
 				</div>
 			{:else}
 				<div class="h-[60px]"></div>

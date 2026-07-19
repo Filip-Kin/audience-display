@@ -12,8 +12,7 @@
 		out:fade={{ duration: 150 }}
 	>
 		<img src="/rainbow-rumble/star.svg" alt="" class="size-[34px]" style="animation: rr-wiggle-cw 2s infinite;" />
-		<!-- Black chip keeps the label legible on the rainbow bar -->
-		<span class="bg-[oklch(0_0_0/0.7)] rounded-lg px-4 py-0.5">High Score</span>
+		<span>High Score</span>
 		<img src="/rainbow-rumble/star.svg" alt="" class="size-[34px]" style="animation: rr-wiggle-ccw 2s infinite;" />
 	</div>
 {/if}
