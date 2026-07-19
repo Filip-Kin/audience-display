@@ -123,7 +123,7 @@
 					class="block relative z-[1] size-[400px]"
 					style="animation: {SPIN};"
 				/>
-				<!-- One-shot glint sweep, masked by the logo so it only lights the artwork -->
+				<!-- Glint sweep (loops while scores are ready), masked by the logo so it only lights the artwork -->
 				<div
 					bind:this={glintEl}
 					class="absolute inset-0 z-[2] pointer-events-none opacity-0"
@@ -131,6 +131,7 @@
 						background: linear-gradient(120deg, rgba(255,255,255,0) 42%, rgba(255,255,255,0.95) 50%, rgba(255,255,255,0) 58%);
 						background-size: 300% 100%;
 						background-position: 100% 0;
+						background-repeat: no-repeat;
 						-webkit-mask-image: url('{LOGO}');
 						-webkit-mask-repeat: no-repeat;
 						-webkit-mask-size: 100% 100%;
