@@ -39,10 +39,12 @@
 		rotationTimer = setInterval(() => {
 			slideIdx += 1;
 		}, 3200);
+		startTicker();
 	});
 
 	onDestroy(() => {
 		if (rotationTimer) clearInterval(rotationTimer);
+		cancelAnimationFrame(scrollRaf);
 	});
 
 	$: if (exit) {
@@ -59,6 +61,30 @@
 	// Continuously scroll once the list is longer than the box; short lists sit still.
 	$: scrolling = rankings.length > 10;
 	$: scrollSeconds = rankings.length * 2;
+
+	// Integer-pixel ticker: a CSS transform animation lands on fractional pixel
+	// offsets each frame and the row edges shimmer as they re-sample; driving
+	// the offset from rAF and rounding to whole pixels keeps every edge crisp.
+	let scrollWrap: HTMLDivElement | null = null;
+	let scrollY = 0;
+	let scrollRaf = 0;
+
+	function startTicker() {
+		let last = performance.now();
+		const tick = (now: number) => {
+			const dt = (now - last) / 1000;
+			last = now;
+			// The wrap holds two identical copies; half its height is one full list.
+			const half = scrollWrap ? scrollWrap.offsetHeight / 2 : 0;
+			if (scrolling && half > 0) {
+				scrollY = (scrollY + (half / scrollSeconds) * dt) % half;
+			} else {
+				scrollY = 0;
+			}
+			scrollRaf = requestAnimationFrame(tick);
+		};
+		scrollRaf = requestAnimationFrame(tick);
+	}
 
 	function mmss(seconds: number): string {
 		const m = Math.floor(Math.max(0, seconds) / 60);
@@ -179,8 +205,8 @@
 					<div class="relative flex-1 min-h-0 overflow-hidden">
 						{#if rankings.length}
 							<div
-								class={scrolling ? "rank-scroll" : ""}
-								style="animation-duration: {scrollSeconds}s;"
+								bind:this={scrollWrap}
+								style="transform: translate3d(0, {-Math.round(scrollY)}px, 0);"
 							>
 								<!-- Two copies back to back make the -50% loop seamless -->
 								{#each scrolling ? [0, 1] : [0] as copy}
@@ -236,24 +262,3 @@
 	</div>
 {/if}
 
-<style>
-	/* Ticker-style loop: the content is doubled, so -50% is exactly one full list. */
-	.rank-scroll {
-		animation-name: rank-scroll-loop;
-		animation-timing-function: linear;
-		animation-iteration-count: infinite;
-		/* Composite the whole strip on its own GPU layer: without this the rows
-		   re-rasterize every frame at fractional pixel offsets and their
-		   top/bottom edges shimmer while scrolling. */
-		will-change: transform;
-		backface-visibility: hidden;
-	}
-	@keyframes rank-scroll-loop {
-		from {
-			transform: translateY(0);
-		}
-		to {
-			transform: translateY(-50%);
-		}
-	}
-</style>

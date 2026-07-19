@@ -288,9 +288,10 @@
 		opacity: 0.85;
 	}
 
-	/* Declined potential captain: dark strike reads on the accent (yellow) chip. */
+	/* Declined potential captain: thick dark strike reads on the accent (yellow) chip. */
 	.struck-dark::after {
 		background: oklch(0.18 0.04 60);
-		opacity: 0.9;
+		opacity: 1;
+		height: 5px;
 	}
 </style>

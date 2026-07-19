@@ -317,9 +317,11 @@
 		opacity: 0.85;
 	}
 
-	/* Declined potential captain: white strike reads on the accent chip. */
+	/* Declined potential captain: a thin white line vanishes against the light
+	   accent chip + white digits, so use a thick dark strike instead. */
 	.struck-light::after {
-		background: white;
-		opacity: 0.9;
+		background: oklch(0.22 0.12 330);
+		opacity: 1;
+		height: 5px;
 	}
 </style>
