@@ -82,13 +82,25 @@
 		transform: rotate(-15deg);
 	}
 }
-@keyframes rr-underglow-pulse {
+/* One-shot closing-window flash: 5 flashes across the 3s window, with the final
+   fade-out landing exactly at the end so the glow is already dark when the hub
+   goes inactive (no snap). Runs with fill-mode forwards. */
+@keyframes rr-underglow-flashout {
 	0%,
-	100% {
+	20%,
+	40%,
+	60%,
+	80% {
 		opacity: 1;
 	}
-	50% {
+	10%,
+	30%,
+	50%,
+	70% {
 		opacity: 0.15;
+	}
+	100% {
+		opacity: 0;
 	}
 }
 @keyframes rr-pulse {

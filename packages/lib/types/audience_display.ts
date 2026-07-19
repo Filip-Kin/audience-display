@@ -21,6 +21,7 @@ export type Screen =
   | "score-reveal"
   | "alliance-selection"
   | "alliance-selection-fullscreen"
+  | "break-timer"
   | "playoff-bracket"
   | "rankings"
   | "timeout";

@@ -259,13 +259,18 @@ body { font-family: var(--font-body); }
 }
 .ad-halo { animation: ad-halo 2.4s ease-in-out infinite; }
 
-@keyframes glow-pulse-red {
-    0%, 100% { box-shadow: 0 0 80px 18px var(--redAlliance); }
-    50%       { box-shadow: 0 0 20px 3px var(--redAlliance); }
+/* One-shot closing-window flash: 5 flashes across the 3s window, with the final
+   fade-out landing exactly at the end so the glow is already dark when the hub
+   goes inactive (no snap). Runs with fill-mode forwards. */
+@keyframes glow-flashout-red {
+    0%, 20%, 40%, 60%, 80% { box-shadow: 0 0 80px 18px var(--redAlliance); }
+    10%, 30%, 50%, 70%     { box-shadow: 0 0 20px 3px var(--redAlliance); }
+    100%                   { box-shadow: 0 0 0 0 transparent; }
 }
-@keyframes glow-pulse-blue {
-    0%, 100% { box-shadow: 0 0 80px 18px var(--blueAlliance); }
-    50%       { box-shadow: 0 0 20px 3px var(--blueAlliance); }
+@keyframes glow-flashout-blue {
+    0%, 20%, 40%, 60%, 80% { box-shadow: 0 0 80px 18px var(--blueAlliance); }
+    10%, 30%, 50%, 70%     { box-shadow: 0 0 20px 3px var(--blueAlliance); }
+    100%                   { box-shadow: 0 0 0 0 transparent; }
 }
 @keyframes arrow-blink {
     0%, 100% { opacity: 1; transform: scale(1); }

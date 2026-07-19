@@ -68,7 +68,7 @@
 			</div>
 		</div>
 		{#if !showRank && hasCard}
-			<div class="inline-block mt-1 uppercase px-1.5 py-0.5 text-[10px] font-black tracking-[0.08em] {cardClass} w-16 h-8"></div>
+			<div class="inline-block mt-1 uppercase px-1.5 py-0.5 text-[13px] font-black tracking-[0.08em] {cardClass} {team.card === 'Yellow' ? 'text-black' : 'text-white'} w-16 h-8 flex items-center justify-center">CARD</div>
 		{/if}
 	</div>
 
@@ -80,7 +80,7 @@
 				{team.rank}
 			</div>
 			{#if hasCard}
-				<div class="uppercase px-1.5 py-0.5 text-[10px] font-black tracking-[0.08em] {cardClass} w-16 h-8"></div>
+				<div class="uppercase px-1.5 py-0.5 text-[13px] font-black tracking-[0.08em] {cardClass} {team.card === 'Yellow' ? 'text-black' : 'text-white'} w-16 h-8 flex items-center justify-center">CARD</div>
 			{/if}
 		</div>
 	{/if}

@@ -116,7 +116,11 @@
 							{team.name}
 						</span>
 						{#if team.card && team.card !== "None"}
-							<span class="flex-none w-9 h-6 rounded border {team.card === 'Red' ? 'bg-red-600 border-red-900' : 'bg-yellow-400 border-yellow-800'}"></span>
+							<span
+								class="flex-none h-6 px-1.5 rounded border flex items-center justify-center uppercase text-[11px] font-black tracking-[0.06em] {team.card === 'Red'
+									? 'bg-red-600 border-red-900 text-white'
+									: 'bg-yellow-400 border-yellow-800 text-black'}">CARD</span
+							>
 						{/if}
 						{#if !isPlayoff && team.rank}
 							<span class="flex-none flex items-center gap-1 text-[36px] font-bold tabular-nums">

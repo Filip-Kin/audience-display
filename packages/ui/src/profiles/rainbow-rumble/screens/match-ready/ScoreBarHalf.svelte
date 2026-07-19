@@ -48,7 +48,7 @@
 			filter: blur(10px);
 			opacity: {hubActive ? 1 : 0};
 			transition: opacity 0.4s ease;
-			animation: rr-hue {glowSpeed} linear infinite{isEndingPulse ? ', rr-underglow-pulse 0.6s ease-in-out infinite' : ''};
+			animation: rr-hue {glowSpeed} linear infinite{isEndingPulse ? ', rr-underglow-flashout 3s ease-in-out forwards' : ''};
 		"
 	></div>
 

@@ -8,6 +8,9 @@
 
 	const dispatcher = createEventDispatcher();
 	export let exit = false;
+	/** Overrides for the break-timer screen: same rankings body, different chrome. */
+	export let title = "QUALIFICATION RANKINGS";
+	export let showBreakTimer = false;
 	let ready = false;
 
 	// #region Sponsor slideshow
@@ -19,7 +22,7 @@
 	// A live mini bracket only makes sense once the event is in playoffs.
 	$: inPlayoffs =
 		$state.match?.details.matchType === "sf" || $state.match?.details.matchType === "f";
-	$: showBracket = inPlayoffs && !!$state.bracket;
+	$: showBracket = !showBreakTimer && inPlayoffs && !!$state.bracket;
 
 	// Deck built from the profile's sponsor art, plus one bracket page
 	// (mid-deck) during playoffs.
@@ -56,24 +59,48 @@
 	// Continuously scroll once the list is longer than the box; short lists sit still.
 	$: scrolling = rankings.length > 10;
 	$: scrollSeconds = rankings.length * 2;
+
+	function mmss(seconds: number): string {
+		const m = Math.floor(Math.max(0, seconds) / 60);
+		const s = Math.floor(Math.max(0, seconds) % 60);
+		return `${m}:${s.toString().padStart(2, "0")}`;
+	}
+
+	// The break clock ticks over the wire (AllianceSelectionTimer) into match.timer.
+	$: startsIn = $state.match?.timer ?? 0;
 </script>
 
 {#if ready}
 	<div class="rr fixed inset-0 bg-background overflow-hidden">
 		<!-- Header -->
 		<header
-			class="flex items-center border-b-4 border-transparent gap-[22px] px-14 pt-7 pb-[18px]"
+			class="flex items-center justify-between border-b-4 border-transparent px-14 pt-7 pb-[18px]"
 			style="border-image: var(--rr-rainbow) 1;"
 		>
-			<Logo class="object-contain size-[150px]" />
-			<div>
-				<div class="rr-display uppercase text-[26px] tracking-[0.18em] text-[var(--rr-dim)]">
-					{$eventDisplayName}
-				</div>
-				<div class="rr-display text-white text-[56px] leading-none tracking-[0.02em]">
-					QUALIFICATION RANKINGS
+			<div class="flex items-center gap-[22px]">
+				<Logo class="object-contain size-[150px]" />
+				<div>
+					<div class="rr-display uppercase text-[26px] tracking-[0.18em] text-[var(--rr-dim)]">
+						{$eventDisplayName}
+					</div>
+					<div class="rr-display text-white text-[56px] leading-none tracking-[0.02em]">
+						{title}
+					</div>
 				</div>
 			</div>
+
+			{#if showBreakTimer}
+				<div
+					class="flex items-center gap-5 px-9 py-3.5 bg-[oklch(0_0_0/0.6)] border-2 border-[var(--rr-accent)] rounded-[var(--rr-r-sm)]"
+				>
+					<div class="uppercase text-[16px] font-black tracking-[0.2em] text-[var(--rr-dim)]">
+						Starts In
+					</div>
+					<div class="rr-display text-[92px] leading-[0.9] text-white">
+						{mmss(startsIn)}
+					</div>
+				</div>
+			{/if}
 		</header>
 
 		<!-- Body: sponsor slideshow | scrolling standings -->

@@ -4,6 +4,7 @@ import MatchReady from "./screens/match-ready/MatchReady.svelte";
 import ScoresReady from "./screens/scores-ready/ScoresReady.svelte";
 import ScoresReveal from "./screens/score-reveal/ScoresReveal.svelte";
 import AllianceSelection from "./screens/alliance-selection/AllianceSelection.svelte";
+import BreakTimer from "./screens/break-timer/BreakTimer.svelte";
 import Timeout from "./screens/time-out/Timeout.svelte";
 import PlayoffBracket from "./screens/playoff-bracket/PlayoffBracket.svelte";
 import Rankings from "./screens/rankings/Rankings.svelte";
@@ -45,6 +46,7 @@ const profile: ProfileDefinition = {
     "score-reveal": ScoresReveal,
     "alliance-selection": AllianceSelection,
     "alliance-selection-fullscreen": AllianceSelection,
+    "break-timer": BreakTimer,
     "playoff-bracket": PlayoffBracket,
     rankings: Rankings,
     timeout: Timeout,

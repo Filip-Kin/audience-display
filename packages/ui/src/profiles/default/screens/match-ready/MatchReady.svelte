@@ -39,7 +39,10 @@
 	$: leftTeams = leftIsRed ? $state.match?.teams.red ?? [] : $state.match?.teams.blue ?? [];
 	$: rightTeams = leftIsRed ? $state.match?.teams.blue ?? [] : $state.match?.teams.red ?? [];
 
-	$: hub = $state.match?.hubActive ?? "None";
+	// Real FMS keeps the goals active in the post-match None frame (they only
+	// clear at the next prestart), so the display fades the glow itself the
+	// moment the match ends.
+	$: hub = matchOver ? "None" : ($state.match?.hubActive ?? "None");
 	$: leftHubActive = hub === "Both" || (hub !== "None" && (hub === "Red") === leftIsRed);
 	$: rightHubActive = hub === "Both" || (hub !== "None" && (hub === "Red") !== leftIsRed);
 	$: arrowSide = (() => {
@@ -128,6 +131,7 @@
 				<BugCenter
 					phase={$state.match.phase}
 					timer={$state.match.timer}
+					phaseTimer={$state.match.phaseTimer}
 					{arrowSide}
 					pulseLeft={leftEnding}
 					pulseRight={rightEnding}

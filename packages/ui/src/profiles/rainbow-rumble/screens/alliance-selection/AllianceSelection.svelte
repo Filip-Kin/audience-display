@@ -35,6 +35,9 @@
 		return `${m}:${s.toString().padStart(2, "0")}`;
 	}
 
+	let camW = 0;
+	let camH = 0;
+
 	$: pickSeconds = $state.match?.timer ?? 0;
 	$: pickWarning = pickSeconds > 0 && pickSeconds <= 10;
 
@@ -89,7 +92,9 @@
 		if (!captains) return null;
 		const r1gaps = seeded.filter((a) => slotOf(a, 0) !== null && slotOf(a, 1) === null);
 		if (r1gaps.length) return Math.max(...r1gaps.map((a) => a.allianceNumber));
-		if (captains < seeded.length) return null;
+		// Round 1, between picks: the previous alliance is complete but FMS has not
+		// revealed the next captain yet - that next alliance is already on the clock.
+		if (captains < seeded.length) return captains + 1;
 		for (let r = 2; r <= rounds; r++) {
 			const inOrder = r % 2 === 1 ? seeded : [...seeded].reverse();
 			const gap = inOrder.find((a) => slotOf(a, r) === null);
@@ -195,15 +200,14 @@
 				</div>
 
 				<!-- Camera area: takes all space left under the (constant-height) team grid,
-				     so it stays the same size and position for the whole ceremony -->
-				<div class="min-h-0 flex items-stretch justify-center">
+				     so it stays the same size and position for the whole ceremony. The box
+				     is measured-contain sized so it is EXACTLY 16:9 whichever dimension
+				     limits (h-full + aspect-video breaks ratio when max-width clamps). -->
+				<div class="min-h-0 flex items-center justify-center" bind:clientWidth={camW} bind:clientHeight={camH}>
 					<div
-						class="h-full aspect-video max-w-full border-2 border-dashed border-[oklch(1_0_0/0.4)] rounded-[var(--rr-r-sm)] flex items-center justify-center"
-					>
-						<span class="rr-mono uppercase tracking-[0.3em] text-[20px]" style="color: oklch(0.4 0.01 250);">
-							stage camera
-						</span>
-					</div>
+						class="border-2 border-dashed border-[oklch(1_0_0/0.4)] rounded-[var(--rr-r-sm)]"
+						style="width: {Math.min(camW, (camH * 16) / 9)}px; height: {Math.min(camH, (camW * 9) / 16)}px;"
+					></div>
 				</div>
 			</div>
 

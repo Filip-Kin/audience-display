@@ -34,6 +34,7 @@ export type MatchStatusInfoData = { MatchState: string; MatchNumber: number };
 type EventMap = {
   videoSwitch: VideoSwitchScreen;
   timer: number;
+  allianceClockTick: number;
   blueScoreChanged: ScoreChangedData;
   redScoreChanged: ScoreChangedData;
   matchCommit: null;
@@ -78,7 +79,10 @@ const VIDEO_SWITCH_SCREENS: Record<VideoSwitchOption, VideoSwitchScreen> = {
   AwardAssignment: "none",
   WifiReminder: "none",
   Message: "none",
-  TimerBug: "none",
+  // The FMS alliance-selection wizard's "Break Timer" button starts the
+  // EightMinuteBreak clock AND switches the video option to TimerBug
+  // (2026-07-19 ground-truth log), so TimerBug IS the selection-break screen.
+  TimerBug: "break-timer",
   RegionalPreviouslyQualified: "none",
   RegionalAdvancers: "none",
 };
@@ -100,6 +104,7 @@ export class FMSSignalRConnection {
   private eventCallbacks: EventCallbacks = {
     videoSwitch: [],
     timer: [],
+    allianceClockTick: [],
     blueScoreChanged: [],
     redScoreChanged: [],
     matchCommit: [],
@@ -228,11 +233,34 @@ export class FMSSignalRConnection {
       },
     );
 
-    // Constant countdown timer 14-0 for auto then 135-0 for teleop
-    // Also countdown for breaks during playoffs in seconds
-    this.infrastructureConnection.on("matchtimerchanged", (data: number) => {
-      console.log("matchtimerchanged: ", data);
-      this.emit("timer", data);
+    // 2026 FMS folds every countdown into one named-timer event (2025's bare
+    // MatchTimerChanged is gone). MatchTimer is the match clock: auto counts to
+    // 0, the value preloads to the full teleop length and holds while
+    // MatchTransitionTimer ticks the 3s auto->teleop pause, then teleop counts
+    // down. The pick clock is NOT ticked over the wire (AudienceAllianceTimer is
+    // a start trigger; displays run the countdown locally). Timeout/break timer
+    // names are unverified for 2026 - log unknown names so a capture reveals them.
+    this.infrastructureConnection.on("timerchanged", (data: { Timer: string; TimeLeft: number }) => {
+      switch (data.Timer) {
+        case "MatchTimer":
+        // Unverified-for-2026 names kept forwarded just in case:
+        case "TimeoutTimer":
+        case "BreakTimer":
+          this.emit("timer", data.TimeLeft);
+          break;
+        // The alliance-selection BREAK clocks (TwoMinuteBreak/EightMinuteBreak)
+        // tick here at 1 Hz; the pick clock is trigger-only (never ticked).
+        // Kept separate from "timer" so a leftover selection clock can never
+        // clobber the match clock.
+        case "AllianceSelectionTimer":
+          this.emit("allianceClockTick", data.TimeLeft);
+          break;
+        case "MatchTransitionTimer":
+        case "GameSpecificDataTimer":
+          break;
+        default:
+          console.log("timerchanged (unhandled timer): ", data);
+      }
     });
 
     // 30 seconds left (endgame, per GetGameConfig endgameLengthSeconds)

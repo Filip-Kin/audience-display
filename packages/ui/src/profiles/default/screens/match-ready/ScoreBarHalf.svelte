@@ -28,7 +28,7 @@
 		z-index: {hubActive ? 1 : 0};
 		transition: box-shadow 0.4s ease;
 		box-shadow: {!hubActive ? 'none' : isEndingPulse ? 'none' : `0 0 80px 18px ${bgVar}`};
-		{isEndingPulse ? `animation: glow-pulse-${color} 0.6s ease-in-out infinite;` : ''}
+		{isEndingPulse ? `animation: glow-flashout-${color} 3s ease-in-out forwards;` : ''}
 	"
 >
 	<!-- Team numbers -->

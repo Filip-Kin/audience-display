@@ -5,6 +5,8 @@
 
 	/** Slide rotation period. Kept slow so the loop isn't dizzying on a big screen. */
 	export let intervalMs = 8000;
+	/** Set false to keep the playoff mini-bracket slide out of the deck. */
+	export let includeBracket = true;
 
 	let slideIdx = 0;
 	let rotationTimer: ReturnType<typeof setInterval> | null = null;
@@ -14,7 +16,7 @@
 	// A live mini bracket only makes sense once the event is in playoffs.
 	$: inPlayoffs =
 		$state.match?.details.matchType === "sf" || $state.match?.details.matchType === "f";
-	$: showBracket = inPlayoffs && !!$state.bracket;
+	$: showBracket = includeBracket && inPlayoffs && !!$state.bracket;
 
 	type Slide = { kind: "sponsor"; src?: string } | { kind: "bracket" };
 

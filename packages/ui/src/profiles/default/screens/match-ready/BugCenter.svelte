@@ -3,6 +3,8 @@
 
 	export let phase: MatchPhase;
 	export let timer: number;
+	/** Seconds left in the current game phase (drives the shift-time readout). */
+	export let phaseTimer: number = 0;
 	export let arrowSide: "left" | "right" | "both" | "none";
 	/** Pulse the active-hub arrow on a side when its goal is about to close. */
 	export let pulseLeft: boolean = false;
@@ -30,6 +32,19 @@
 		? "MATCH OVER"
 		: PHASE_LABELS[phase] ?? ((phase as string) === "Coop" ? "TRANSITION SHIFT" : phase);
 	$: highlightLabel = matchOver || phase === "Endgame";
+
+	// Teleop shift counter: 6 phases (TransitionShift=1 .. Endgame=6). Blank
+	// (but height-reserving) during auto/prematch and once the match ends.
+	const SHIFT_INDEX: Partial<Record<string, number>> = {
+		TransitionShift: 1,
+		Coop: 1,
+		Shift1: 2,
+		Shift2: 3,
+		Shift3: 4,
+		Shift4: 5,
+		Endgame: 6,
+	};
+	$: shiftIndex = matchOver ? null : (SHIFT_INDEX[phase as string] ?? null);
 
 	function mmss(s: number): string {
 		const m = Math.floor(Math.max(0, s) / 60);
@@ -60,6 +75,15 @@
 			<path d="M 0 0 L 18 11 L 0 22 Z" fill="var(--accentWarn)" />
 		</svg>
 	{/if}
+
+	<!-- Shift counter row: sits between the hub arrows; fixed height so entering
+	     teleop or ending the match never shifts the layout. -->
+	<div class="h-[22px] flex items-center justify-center gap-3 whitespace-nowrap tabular-nums text-[21px] font-black leading-none text-dim">
+		{#if shiftIndex !== null}
+			<span>{shiftIndex}/6</span>
+			<span>:{Math.max(0, Math.min(99, phaseTimer)).toString().padStart(2, "0")}</span>
+		{/if}
+	</div>
 
 	<!-- Phase label: fixed height so the timer never shifts up/down when the
 	     label is empty (PreMatch) or changes between phases. -->

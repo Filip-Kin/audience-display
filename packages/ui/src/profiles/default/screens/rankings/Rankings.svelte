@@ -7,6 +7,9 @@
 
 	const dispatcher = createEventDispatcher();
 	export let exit = false;
+	/** Overrides for the break-timer screen: same rankings body, different chrome. */
+	export let title = "QUALIFICATION RANKINGS";
+	export let showBreakTimer = false;
 	let ready = false;
 
 	onMount(() => {
@@ -27,6 +30,15 @@
 	// Continuously scroll once the list is longer than the box; short lists sit still.
 	$: scrolling = rankings.length > 10;
 	$: scrollSeconds = rankings.length * 2;
+
+	function mmss(seconds: number): string {
+		const m = Math.floor(Math.max(0, seconds) / 60);
+		const s = Math.floor(Math.max(0, seconds) % 60);
+		return `${m}:${s.toString().padStart(2, "0")}`;
+	}
+
+	// The break clock ticks over the wire (AllianceSelectionTimer) into match.timer.
+	$: startsIn = $state.match?.timer ?? 0;
 </script>
 
 {#if ready}
@@ -40,10 +52,21 @@
 						{$eventDisplayName}
 					</div>
 					<div class="display text-white text-[56px] leading-none tracking-[0.02em]">
-						QUALIFICATION RANKINGS
+						{title}
 					</div>
 				</div>
 			</div>
+
+			{#if showBreakTimer}
+				<div class="bg-accentWarn flex items-center gap-5 px-9 py-3.5">
+					<div class="uppercase text-[16px] font-black tracking-[0.2em] text-[oklch(0.18_0.04_60)]">
+						Starts In
+					</div>
+					<div class="display tabular-nums text-[92px] leading-[0.9] text-[oklch(0.14_0.04_60)]">
+						{mmss(startsIn)}
+					</div>
+				</div>
+			{/if}
 		</header>
 
 		<!-- Body: sponsor slideshow | scrolling standings -->
@@ -56,7 +79,7 @@
 					<div class="flex-1 h-0.5 bg-[var(--rule)]"></div>
 				</div>
 
-				<SponsorSlideshow />
+				<SponsorSlideshow includeBracket={!showBreakTimer} />
 			</div>
 
 			<!-- Right: rankings -->
