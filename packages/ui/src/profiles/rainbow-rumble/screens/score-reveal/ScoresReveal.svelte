@@ -12,7 +12,6 @@
 	import MatchUnderReviewOverlay from "./MatchUnderReviewOverlay.svelte";
 	import Logo from "@lib/components/Logo.svelte";
 	import Shutter from "@lib/components/Shutter.svelte";
-	import MatchEventHeader from "@lib/components/MatchEventHeader.svelte";
 	import { packUrl } from "@lib/animation_pack.js";
 	import { get } from "svelte/store";
 	import { audioUnlocked } from "@lib/audio";
@@ -206,19 +205,6 @@
 	on:transitioned={() => dispatcher("transitioned")}
 />
 
-<!-- Top title bar -->
-{#if $state.results && ready}
-	<div class="fixed z-10 flex w-full justify-center">
-		<div
-			class="rr rr-header mt-8"
-			in:fly={{ y: -50, duration: 200 }}
-			out:fade={{ duration: 100 }}
-		>
-			<MatchEventHeader {eventLabel} {matchLabel} />
-		</div>
-	</div>
-{/if}
-
 <div class="rr fixed z-10 grid grid-cols-[.36fr_.28fr_.36fr] w-full h-full p-8 gap-8" class:flex-row-reverse={$settings.invert}>
 	{#if $state.results && ready}
 		<!-- Cell 1: left sponsors column -->
@@ -233,9 +219,16 @@
 		</div>
 
 		<!-- Cell 2: center match results, spans 2 rows -->
-		<div class="flex flex-col row-span-2 pt-[120px]">
+		<div class="flex flex-col row-span-2">
 			<div class="max-w-3xl text-center mx-auto w-full" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>
+				<!-- Event/match header and score totals share one card: the outer
+				     radius rounds the top of the black box and the bottom of the
+				     score halves. -->
 				<div class="overflow-hidden rounded-[var(--rr-r)] shadow-[0_12px_40px_oklch(0_0_0/0.6)]">
+					<div class="bg-black px-6 pt-4 pb-3">
+						<div class="text-white text-[28px] leading-tight">{eventLabel}</div>
+						<div class="rr-display text-[36px] leading-tight" style="color: var(--rr-accent);">{matchLabel}</div>
+					</div>
 					<div class="flex" class:flex-row-reverse={$settings.invert}>
 						<div class="bg-blueAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3">
 							<span class="text-white font-bold text-[30px]">Blue</span>
@@ -253,7 +246,7 @@
 
 			<div class="flex flex-col items-center">
 				{#if leftBreakdownScore && rightBreakdownScore}
-					<div class="rr-breakdown w-full max-w-3xl mt-[22px]">
+					<div class="rr-breakdown w-full max-w-3xl mt-2.5">
 						<ScoreBreakdown leftScore={leftBreakdownScore} rightScore={rightBreakdownScore} {tiebreaker} />
 					</div>
 				{/if}
@@ -299,9 +292,4 @@
 		font-size: 32px;
 	}
 
-	/* MatchEventHeader is shared; recolor its gold match name to the RR accent
-	   like the match-preview header does. */
-	.rr-header :global(.text-accentWarn) {
-		color: var(--rr-accent);
-	}
 </style>

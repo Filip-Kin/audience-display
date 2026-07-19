@@ -18,8 +18,6 @@
 	$: teams = $state.results?.teams[alliance] ?? [];
 
 	$: allianceBg = alliance === "red" ? "bg-redAlliance" : "bg-blueAlliance";
-	// Darker tint of the alliance color behind the avatar (per the RR design).
-	$: avatarTint = alliance === "red" ? "oklch(0.30 0.10 25)" : "oklch(0.30 0.12 262)";
 
 	// Standard 8-alliance double-elim topology (FRC game manual Table 10-2). Where each
 	// alliance goes next is fully determined by the match number + win/loss, so we don't
@@ -103,30 +101,27 @@
 					style="animation-delay: {index * 70}ms;"
 				>
 					<div class="flex items-center gap-3 {allianceBg} text-white px-3.5 py-2">
-						<div
-							class="size-[46px] rounded-[10px] flex items-center justify-center flex-none"
-							style="background: {avatarTint};"
-						>
-							<Avatar avatar={team.avatar} team={team.number} alt="Team {team.number}" class="size-[34px] object-contain" />
+						<div class="size-[46px] flex items-center justify-center flex-none">
+							<Avatar avatar={team.avatar} team={team.number} alt="Team {team.number}" class="size-[42px] object-contain" />
 						</div>
 						<span class="rr-display text-[40px] leading-[0.9]">{team.number}</span>
 					</div>
 					<div class="flex items-center gap-2 bg-white text-[oklch(0.16_0_0)] px-3.5 py-[5px]">
-						<span class="min-w-0 flex-1 text-[22px] font-bold whitespace-nowrap overflow-hidden text-ellipsis">
+						<span class="min-w-0 flex-1 text-[28px] font-bold whitespace-nowrap overflow-hidden text-ellipsis">
 							{team.name}
 						</span>
 						{#if team.card && team.card !== "None"}
 							<span class="flex-none w-9 h-6 rounded border {team.card === 'Red' ? 'bg-red-600 border-red-900' : 'bg-yellow-400 border-yellow-800'}"></span>
 						{/if}
 						{#if !isPlayoff && team.rank}
-							<span class="flex-none flex items-center gap-1 text-[22px] font-bold tabular-nums">
+							<span class="flex-none flex items-center gap-1 text-[28px] font-bold tabular-nums">
 								{team.rank}
 								{#if team.rankChange === "Up"}
-									<img src="/rainbow-rumble/arrow-up.svg" alt="up" class="size-5" />
+									<img src="/rainbow-rumble/arrow-up.svg" alt="up" class="size-7" />
 								{:else if team.rankChange === "Down"}
-									<img src="/rainbow-rumble/arrow-down.svg" alt="down" class="size-5" />
+									<img src="/rainbow-rumble/arrow-down.svg" alt="down" class="size-7" />
 								{:else if team.rankChange === "NoChange"}
-									<img src="/rainbow-rumble/no-change.svg" alt="no change" class="size-5" />
+									<img src="/rainbow-rumble/no-change.svg" alt="no change" class="size-7" />
 								{/if}
 							</span>
 						{/if}
