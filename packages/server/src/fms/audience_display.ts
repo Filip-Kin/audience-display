@@ -436,13 +436,9 @@ export class AudienceDisplayManager {
         return;
       }
 
-      // Playoff break auto-show: when FMS idles the screen (VideoOnly/Background)
-      // during a playoff tournament, show the bracket instead.
-      let next: Screen = screen;
-      if (next === "none" && this.currentLevel === LevelParam.Playoff) {
-        next = "playoff-bracket";
-      }
-
+      // Always respect the video switch: whatever FMS commands is what shows,
+      // including a blank display for VideoOnly/Background during playoffs.
+      const next: Screen = screen;
       this.screen = next;
 
       if (next === "match-preview") {
