@@ -1,11 +1,16 @@
-import { dirname, join } from "path";
+import { basename, dirname, join } from "path";
+import { spawn } from "child_process";
+import { createWriteStream, readdirSync, unlinkSync } from "fs";
+import { finished } from "node:stream/promises";
+import { Readable } from "node:stream";
 import pkg from "../../../package.json";
 
 /**
- * Startup auto-update for the compiled Windows exe: compare the embedded
- * package.json version against the latest GitHub release; when the release is
- * newer, download its exe next to the running one, hand off to a tiny batch
- * script that swaps the files once this process exits, and restart.
+ * Startup auto-update for the compiled Windows exe, using the live-captions
+ * model: release assets are VERSIONED (audience-display-<version>.exe), so an
+ * update is just "download the new exe next to this one, launch it detached,
+ * exit". No renaming or overwriting of a running binary; when a build finds
+ * itself up to date it deletes the older versioned exes sitting next to it.
  *
  * Fails open in every direction (offline event wifi, GitHub down, no asset):
  * any problem just logs and the display starts normally. Set AUTO_UPDATE=0 to
@@ -31,66 +36,47 @@ function newerThan(remote: string, local: string): boolean {
 
 export async function checkForUpdate(): Promise<void> {
   if (!isCompiledExe || process.env.AUTO_UPDATE === "0") return;
+  const dir = dirname(process.execPath);
   try {
-    const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
-      headers: { "User-Agent": "audience-display-updater" },
+    // The releases/latest page redirects to .../tag/v<version>; reading the
+    // final URL gets the version without touching the rate-limited API.
+    const res = await fetch(`https://github.com/${REPO}/releases/latest`, {
       signal: AbortSignal.timeout(5000),
     });
-    if (!res.ok) {
-      console.log(`Update check: GitHub returned ${res.status}; skipping`);
-      return;
-    }
-    const release = (await res.json()) as {
-      tag_name: string;
-      assets: Array<{ name: string; browser_download_url: string }>;
-    };
-    if (!newerThan(release.tag_name, pkg.version)) {
-      console.log(`Up to date (local ${pkg.version}, latest ${release.tag_name})`);
-      return;
-    }
-    const asset = release.assets.find((a) => a.name.endsWith(".exe"));
-    if (!asset) {
-      console.log(`Update ${release.tag_name} has no exe asset; skipping`);
-      return;
+    const latest = res.url.split("/").pop()?.replace(/^v/, "") || "0.0.0";
+
+    if (newerThan(latest, pkg.version)) {
+      console.log(`Update available: ${pkg.version} -> ${latest}, downloading...`);
+      const name = `audience-display-${latest}.exe`;
+      const target = join(dir, name);
+      const dl = await fetch(`https://github.com/${REPO}/releases/download/v${latest}/${name}`, {
+        signal: AbortSignal.timeout(180_000),
+      });
+      if (!dl.ok || dl.body === null) {
+        console.log(`Update download failed (HTTP ${dl.status}); starting current version`);
+        return;
+      }
+      const stream = createWriteStream(target);
+      await finished(Readable.fromWeb(dl.body as never).pipe(stream));
+      console.log(`Launching ${name}`);
+      spawn(`"${target}"`, [], { detached: true, shell: true, cwd: dir, stdio: "ignore" }).unref();
+      process.exit(0);
     }
 
-    console.log(`Updating ${pkg.version} -> ${release.tag_name}, downloading ${asset.name}...`);
-    const dl = await fetch(asset.browser_download_url, {
-      headers: { "User-Agent": "audience-display-updater" },
-      signal: AbortSignal.timeout(180_000),
-    });
-    if (!dl.ok) {
-      console.log(`Update download failed (HTTP ${dl.status}); starting current version`);
-      return;
+    console.log(`Running latest version: ${pkg.version}`);
+    // Newest build cleans up the older exes (and any legacy update leftovers)
+    // sitting next to it.
+    const self = basename(process.execPath);
+    for (const f of readdirSync(dir)) {
+      if (f.startsWith("audience-display") && f.endsWith(".exe") && f !== self) {
+        console.log(`Removing old version: ${f}`);
+        try {
+          unlinkSync(join(dir, f));
+        } catch {
+          // Still locked; a later boot gets it.
+        }
+      }
     }
-    const bytes = new Uint8Array(await dl.arrayBuffer());
-    // A real compiled exe is >50 MB; anything tiny is an error page, not a build.
-    if (bytes.length < 10_000_000) {
-      console.log(`Update download suspiciously small (${bytes.length} bytes); starting current version`);
-      return;
-    }
-
-    const exePath = process.execPath;
-    const dir = dirname(exePath);
-    const updatePath = join(dir, "audience-display.update.exe");
-    const batPath = join(dir, "apply-update.bat");
-    await Bun.write(updatePath, bytes);
-    // The bat waits for this process to release the exe, swaps, and relaunches.
-    await Bun.write(
-      batPath,
-      [
-        "@echo off",
-        "timeout /t 2 /nobreak >nul",
-        `:retry`,
-        `move /y "${updatePath}" "${exePath}" >nul 2>&1 || (timeout /t 1 /nobreak >nul & goto retry)`,
-        `start "" "${exePath}"`,
-        `del "%~f0"`,
-        "",
-      ].join("\r\n")
-    );
-    console.log(`Update downloaded; restarting as ${release.tag_name}`);
-    Bun.spawn(["cmd", "/c", "start", "/min", "", batPath], { stdout: "ignore", stderr: "ignore" });
-    process.exit(0);
   } catch (err) {
     console.log("Update check failed (continuing with current version):", err);
   }

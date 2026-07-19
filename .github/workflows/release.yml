@@ -44,8 +44,11 @@ jobs:
       - name: Build Windows exe (embeds UI bundle)
         run: bun run exe:build
 
+      - name: Version the exe (auto-updater downloads by versioned name)
+        run: mv audience-display.exe "audience-display-${GITHUB_REF_NAME#v}.exe"
+
       - name: Create GitHub release with exe
         uses: softprops/action-gh-release@v2
         with:
-          files: audience-display.exe
+          files: audience-display-*.exe
           generate_release_notes: true
