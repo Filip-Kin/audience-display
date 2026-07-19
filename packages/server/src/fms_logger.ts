@@ -58,6 +58,10 @@ export function initFmsLogger(fmsUrl: string): void {
         data TEXT                 -- raw frame / response body
       );
       CREATE INDEX IF NOT EXISTS idx_log_run ON log(runId);
+      CREATE TABLE IF NOT EXISTS sync_state (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      );
     `);
     db.prepare("INSERT INTO runs (startedAt, fmsUrl, appVersion) VALUES (?, ?, ?)").run(ts(), fmsUrl, pkg.version);
     runId = (db.query("SELECT last_insert_rowid() AS id").get() as { id: number }).id;
@@ -84,6 +88,72 @@ function write(kind: string, direction: string, name: string, status: number | n
 
 export function logRest(path: string, status: number, body: string): void {
   write("rest", "response", path, status, body);
+}
+
+/** True when the log database is open and rows are being recorded. */
+export function fmsLogActive(): boolean {
+  return db !== null;
+}
+
+export interface LogRow {
+  id: number;
+  runId: number;
+  ts: string;
+  kind: string;
+  direction: string;
+  name: string;
+  status: number | null;
+  data: string;
+}
+
+export interface RunRow {
+  id: number;
+  startedAt: string;
+  fmsUrl: string;
+  appVersion: string | null;
+}
+
+/** Rows newer than `afterId`, oldest first, capped for chunked incremental sync. */
+export function readLogRowsAfter(afterId: number, limit: number): LogRow[] {
+  if (!db) return [];
+  try {
+    return db
+      .query("SELECT id, runId, ts, kind, direction, name, status, data FROM log WHERE id > ?1 ORDER BY id LIMIT ?2")
+      .all(afterId, limit) as LogRow[];
+  } catch {
+    return [];
+  }
+}
+
+/** The runs referenced by a chunk, so every chunk is self-describing. */
+export function readRuns(runIds: number[]): RunRow[] {
+  if (!db || runIds.length === 0) return [];
+  try {
+    const placeholders = runIds.map(() => "?").join(",");
+    return db.query(`SELECT id, startedAt, fmsUrl, appVersion FROM runs WHERE id IN (${placeholders})`).all(...runIds) as RunRow[];
+  } catch {
+    return [];
+  }
+}
+
+export function getSyncCursor(): number {
+  if (!db) return 0;
+  try {
+    const row = db.query("SELECT value FROM sync_state WHERE key = 'lastSyncedLogId'").get() as { value: string } | null;
+    return row ? Number(row.value) || 0 : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** Only advanced AFTER a chunk uploads successfully, so nothing is ever skipped. */
+export function setSyncCursor(id: number): void {
+  if (!db) return;
+  try {
+    db.prepare("INSERT INTO sync_state (key, value) VALUES ('lastSyncedLogId', ?1) ON CONFLICT(key) DO UPDATE SET value = ?1").run(String(id));
+  } catch {
+    // Worst case the next sync re-uploads a chunk; uploads are idempotent by name.
+  }
 }
 
 /**

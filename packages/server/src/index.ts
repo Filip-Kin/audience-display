@@ -2,6 +2,7 @@ import { AudienceDisplayManager } from "./fms/audience_display";
 import { ProfileSelector } from "./profile_selector";
 import { checkForUpdate } from "./auto_update";
 import { initFmsLogger } from "./fms_logger";
+import { initLogSync } from "./log_sync";
 import { existsSync } from "fs";
 import { join } from "path";
 import zipFile from "../../../ui-dist.zip" with { type: "file" };
@@ -23,6 +24,7 @@ await checkForUpdate();
 // Must run before the SignalR connections are created so the websocket wrapper
 // captures every frame from the first handshake on.
 initFmsLogger(RESOLVED_FMS_URL);
+initLogSync();
 
 if (process.execPath.endsWith(".exe") && !process.execPath.endsWith("bun.exe")) {
   await Bun.write("./.temp/public.zip", file(zipFile));

@@ -34,6 +34,7 @@ import {
 import type { AllianceSelection, QualRanking, Team } from "lib/types/audience_display";
 import { getTeamName } from "../team_name";
 import { logRest } from "../fms_logger";
+import { syncFmsLog } from "../log_sync";
 import { emptyAllianceScore, mapLiveScore, mapResultScore, defaultGameConfig } from "./score_mappers";
 import { fetchGameConfig } from "./game_config";
 import { fetchBracket } from "./bracket";
@@ -559,6 +560,13 @@ export class AudienceDisplayManager {
       this.results.tiebreaker = results.tiebreaker;
       this.results.score.winner = results.matchWinner === null ? "Tie" : results.matchWinner;
 
+      // Finals results are the captures that matter most; push the FMS log to
+      // the NAS whenever one is posted (also hooked on commit, but not every
+      // FMS path emits WaitingForPostResults).
+      if (results.matchType === "f") {
+        void syncFmsLog("finals results posted");
+      }
+
       // Clear under-review now that results are posted.
       this.results.underReview = false;
       this.match.underReview = false;
@@ -594,6 +602,11 @@ export class AudienceDisplayManager {
       this.cancelScoreRevealFlip();
       this.screen = "scores-ready";
       this.broadcastState();
+      // Finals results are the captures that matter most; push the FMS log to
+      // the NAS as soon as each one commits (internal 14+ = finals/overtime).
+      if (this.currentLevel === LevelParam.Playoff && this.match.details.matchNumber >= 14) {
+        void syncFmsLog("finals match committed");
+      }
     });
 
     this.fmsConnection.on("allianceTimer", (data: { Round: string; TimerType: string }) => {
