@@ -57,7 +57,10 @@
      for the long "TRANSITION SHIFT" label) so the bar never reflows. The 6px
      rainbow frame comes from the padded gradient wrapper. -->
 <div class="relative z-10 w-72" style="padding: 6px; background: var(--rr-rainbow);">
-	<div class="relative h-full w-full flex flex-col items-center justify-center bg-[oklch(0_0_0/0.9)] px-5 py-3">
+	<!-- pt-1.5 lifts the shift counter onto the same line as the hub arrows
+	     (absolute top-2), with the leftover space below balancing the gap to
+	     the phase label. -->
+	<div class="relative h-full w-full flex flex-col items-center justify-center bg-[oklch(0_0_0/0.9)] px-5 pt-1.5 pb-3">
 		<!-- Hub active corner indicators (absolute, never shift content) -->
 		{#if arrowSide === "left" || arrowSide === "both"}
 			<svg

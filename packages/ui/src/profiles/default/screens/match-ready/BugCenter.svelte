@@ -55,7 +55,10 @@
 
 <!-- z-10 keeps the active-side glow from bleeding over the center. Fixed width
      (sized for the long "TRANSITION SHIFT" label) so the bar never reflows. -->
-<div class="relative z-10 flex flex-col items-center justify-center bg-[oklch(0_0_0/0.88)] px-6 py-3.5 border-l-[6px] border-r-[6px] border-accentWarn w-72">
+<!-- pt-1 lifts the shift counter onto the same line as the hub arrows
+     (absolute top-1.5), with the leftover space below balancing the gap to
+     the phase label. -->
+<div class="relative z-10 flex flex-col items-center justify-center bg-[oklch(0_0_0/0.88)] px-6 pt-1 pb-3.5 border-l-[6px] border-r-[6px] border-accentWarn w-72">
 	<!-- Hub active corner indicators (absolute, never shift content) -->
 	{#if arrowSide === "left" || arrowSide === "both"}
 		<svg
