@@ -540,10 +540,17 @@ export class AudienceDisplayManager {
         const raw = data.MatchPhase === "Coop" ? "TransitionShift" : data.MatchPhase;
         const phase: MatchPhase = raw === "None" ? "PreMatch" : raw;
         // Ported from the real FMS audience display: entering shifts 1-4 plays
-        // the "Powerup" sound. Coop entry (teleop start) and Endgame have their
-        // own sounds, so they are excluded.
-        const SHIFTS: MatchPhase[] = ["Shift1", "Shift2", "Shift3", "Shift4"];
-        if (phase !== this.match.phase && SHIFTS.includes(phase)) {
+        // the "Powerup" sound. Only a REAL sequential transition counts -
+        // showing the match preview wipes phase to PreMatch mid-stream, so the
+        // next 1 Hz shift frame would otherwise read as a phase change and pop
+        // (same for display restarts and test-sequence jumps).
+        const PREV_PHASE: Partial<Record<MatchPhase, MatchPhase>> = {
+          Shift1: "TransitionShift",
+          Shift2: "Shift1",
+          Shift3: "Shift2",
+          Shift4: "Shift3",
+        };
+        if (PREV_PHASE[phase] === this.match.phase) {
           this.playSound("shiftChange");
         }
         this.match.phase = phase;

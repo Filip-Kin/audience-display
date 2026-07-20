@@ -1,67 +1,81 @@
 # Audience Display
 
-This is the backend server and ui for the custom audience display app for rainbow rumble.
+Custom FRC audience display used for offseason events (built for Rainbow Rumble, themeable for
+others). A Bun server connects to FMS over SignalR + REST and drives a Svelte UI that renders
+every audience screen: match preview, live score bar, score reveal, alliance selection,
+selection break timer, rankings, playoff bracket, and field timeout.
 
-### Setup
+Screens follow the FMS **video switch** directly, so the display is operated entirely from the
+normal FMS match control page (including the alliance-selection wizard's Break Timer button).
 
-To run locally, it _requires_ [bun](https://bun.sh/) as it abuses quite a few of the built in features that it provides.
+## Profiles
+
+The look is defined by a profile; screens a profile doesn't override fall back to `default`.
+
+| Profile | Notes |
+| --- | --- |
+| `default` | Red/blue theme, all screens |
+| `wrc` | Re-theme of default (colors/assets only) |
+| `rainbow-rumble` | Full restyle of every screen |
+
+Pick the profile from the gear menu on the display page (bottom-right hover); the choice is
+stored server-side, so every connected display switches together.
+
+## Running an event (Windows exe)
+
+Grab `audience-display-<version>.exe` from the
+[latest release](https://github.com/Filip-Kin/audience-display/releases/latest) and run it on a
+machine that can reach FMS. Open `http://localhost:3001/display` in a fullscreen browser (OBS
+browser source works too).
+
+- FMS is expected at `10.0.100.5`. For a local FMS install:
+  `$env:FMS_URL = "127.0.0.1"` (PowerShell) before launching the exe.
+- **Auto-update:** on startup the exe checks the latest GitHub release, downloads the new
+  versioned exe next to itself, relaunches, and cleans up old versions on the following boot.
+  Set `AUTO_UPDATE=0` to disable.
+- Display URL parameters: `?inverted=true` (swap red/blue sides), `?top=true` (score bar at the
+  top), `?transitionAfterMatchEnd=<seconds>` (auto-switch to the waiting screen after the match
+  ends; default `-1` keeps the score bar up until scores are committed).
+
+## FMS traffic logging
+
+The server records every SignalR frame and REST response to a SQLite database
+(`%APPDATA%\audience-display\fms-log.sqlite`) for protocol reverse-engineering. If sync
+credentials are configured (baked into release exes via CI secrets, or a `log-sync.json` /
+`LOG_SYNC_USER`/`LOG_SYNC_PASS`/`LOG_SYNC_URL` env vars), new rows are uploaded as gzipped
+NDJSON chunks every 10 minutes and after every finals match. Merge chunks back into one
+database with `bun tools/import-fms-log-chunks.ts`.
+
+## Development
+
+Requires [bun](https://bun.sh/). Install once with `bun install`, then run the server and UI in
+separate terminals:
 
 ```bash
-bun install
+bun run server:dev   # display server on :3001
+bun run ui:dev       # vite dev server on :5173, proxies the websocket to :3001
 ```
 
-By default, the server will expect FMS to be running at `10.0.100.5`. If your instance of FMS is not running at that address, you can set the `FMS_URL` environment variable to the correct address, either in the terminal or in a `.env` file in the server package.
+The server targets `FMS_URL` (default `10.0.100.5`). For development without a real field, run
+[fake-fms](https://github.com/Filip-Kin/fake-fms) - a Bun/TypeScript FMS emulator with a control
+panel, scripted test scenarios, and wire-faithful SignalR/REST behavior - and point the server
+at it with `FAKE_FMS=1`.
 
-### Running
-
-Both the UI and server should be run in separate terminals.
+### Building the exe
 
 ```bash
-bun run server:dev
+bun run exe:build   # bundles the UI, embeds it, cross-compiles to audience-display.exe
 ```
 
-```bash
-bun run ui:dev
+Releases are automated: pushing a `v*` tag builds the exe (with log-sync credentials baked from
+repo secrets) and publishes it as a versioned GitHub release asset, which running installs then
+pick up via auto-update.
+
+## Repo layout
+
 ```
-
-The UI will run at `localhost:5173` and proxy requests to the socket server running at `localhost:3000`.
-
-Eventually I'll set up a docker container for this, but for now, this is how it is.
-
-## Fake FMS
-
-I'm currently working on adding a fake FMS server that will allow you to test the audience display without needing to run FMS. It handles the SignalR server,
-FMS API calls, and will have a UI to help you simulate different scenarios.
-
-It still needs quite a lot of work, but it's a good starting point for testing when you don't have access to FMS.
-
-To run the fake FMS server, run the following command:
-
-> Note that this command requires docker to be installed. If you don't have docker or want to run it manually, [check out this section](#running-fake-fms-manually)
-
-```bash
-bun run fakefms:start
-```
-
-This will kick off a docker container build + run process that will start the fake FMS server. The raw server is available at `localhost:8080` and the UI is available at `localhost:5174`. All of the FMS API calls will be proxied to the fake FMS server, meaning it can be run entirely off `localhost:5174`.
-
-If you want to actually use the fake FMS server, you will need to set the `FAKE_FMS` environment variable to `true` when running the server, or set the `FMS_URL` environment variable to `http://localhost:8080` in the server package.
-
-### Running Fake FMS Manually
-
-If you don't have docker or want to run the fake FMS server manually, you will need to install Dotnet 8.0. You can find the download link [here](https://dotnet.microsoft.com/download/dotnet/8.0).
-
-> Note: Probably don't actually need 8.0, but that's what I used when I made it so ¯\\\_(ツ)\_/¯
-
-Once you have the .NET SDK installed, you can run the following commands to start the fake FMS server:
-
-```bash
-cd packages/fake-fms
-dotnet run
-```
-
-In a separate terminal, run the following command:
-
-```bash
-bun run fakefms-ui:dev
+packages/lib      shared types (FMS wire DTOs, display state)
+packages/server   Bun server: FMS SignalR/REST client, state, logging, auto-update
+packages/ui       Svelte UI: profiles, screens, sounds
+tools/            log-chunk import utility
 ```
