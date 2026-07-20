@@ -2,13 +2,16 @@
 	import { onDestroy, onMount } from "svelte";
 	import { RR_SPONSORS } from "../../sponsors";
 
+	// FUN already has its dedicated spot on the results screen.
+	const SPONSORS = RR_SPONSORS.filter((s) => !s.omitOnResults);
+
 	// Crossfading slideshow: slides stay absolutely stacked so the box never resizes.
 	let index = 0;
 	let timer: ReturnType<typeof setInterval> | null = null;
 
 	onMount(() => {
 		timer = setInterval(() => {
-			index = (index + 1) % RR_SPONSORS.length;
+			index = (index + 1) % SPONSORS.length;
 		}, 3200);
 	});
 
@@ -18,7 +21,7 @@
 </script>
 
 <div class="relative w-full h-full">
-	{#each RR_SPONSORS as sponsor, i (sponsor.src)}
+	{#each SPONSORS as sponsor, i (sponsor.src)}
 		<div
 			class="absolute inset-0 flex items-center justify-center transition-opacity duration-[600ms]"
 			style="opacity: {i === index ? 1 : 0};"

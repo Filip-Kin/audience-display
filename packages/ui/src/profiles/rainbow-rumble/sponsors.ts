@@ -7,12 +7,17 @@ export type RrSponsor = {
 	src: string;
 	/** Logo needs a white card behind it to read on the dark background. */
 	light?: boolean;
+	/** Skip in the score-results carousel (FUN has its own dedicated spot there). */
+	omitOnResults?: boolean;
 };
 
 export const RR_SPONSORS: RrSponsor[] = [
-	{ src: "/rainbow-rumble/rev.png" },
-	{ src: "/rainbow-rumble/techsmith-dark.webp" },
-	{ src: "/rainbow-rumble/thrifty-dark.webp" },
-	{ src: "/rainbow-rumble/mcr.webp" },
+	{ src: "/rainbow-rumble/ctre.png" },
+	{ src: "/rainbow-rumble/fun.webp", omitOnResults: true },
 	{ src: "/rainbow-rumble/rsa.webp", light: true },
+	{ src: "/rainbow-rumble/mcr.webp" },
+	{ src: "/rainbow-rumble/rev.png" },
+	{ src: "/rainbow-rumble/thrifty-dark.webp" },
+	// TechSmith + Jeanette Cona-Larock share a stacked slide (smaller sponsors).
+	{ src: "/rainbow-rumble/techsmith-jeanette.png" },
 ];
