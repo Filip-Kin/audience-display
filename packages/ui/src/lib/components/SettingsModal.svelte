@@ -43,6 +43,9 @@
 		victoryPreview.pause();
 		victoryPreview = null;
 	}
+
+	// Slider drags retune a preview that is already playing.
+	$: if (victoryPreview) victoryPreview.volume = $volumes.victoryVideo;
 </script>
 
 {#if settingsOpen}

@@ -93,6 +93,11 @@ volumes.subscribe((v) => {
 			// Storage full/blocked; volumes just won't persist.
 		}
 	}
+	// Applied to the Howl itself so a slider drag changes the volume of a sound
+	// that is ALREADY playing, not just the next play.
+	for (const d of SOUND_DEFS) {
+		players.get(d.key)?.volume(v[d.key]);
+	}
 });
 
 /** Which sound file each server-announced event plays. */
