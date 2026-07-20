@@ -36,9 +36,7 @@ export const SOUND_DEFS = [
 export type VolumeKey = (typeof SOUND_DEFS)[number]["key"] | "victoryVideo";
 export type Volumes = Record<VolumeKey, number>;
 
-// v2: the first build persisted the defaults on load, pinning them forever;
-// the old key is abandoned so updated code defaults reach existing displays.
-const VOLUME_STORAGE_KEY = "ad-volumes-v2";
+const VOLUME_STORAGE_KEY = "ad-volumes";
 
 const defaultVolumes = (): Volumes => ({
 	matchStart: 0.9,
@@ -85,8 +83,8 @@ const players = new Map<string, Howl>(
 );
 
 let currentVolumes: Volumes = defaultVolumes();
-// Persist only ACTUAL changes (the store fires once on init): a display that
-// never touches the sliders keeps tracking the code defaults across updates.
+// Persist only actual slider changes (the store fires once on init), so an
+// untouched display keeps tracking the code defaults.
 let initialFire = true;
 volumes.subscribe((v) => {
 	currentVolumes = v;

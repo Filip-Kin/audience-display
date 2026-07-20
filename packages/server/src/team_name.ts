@@ -1,26 +1,9 @@
-import { existsSync, readFileSync, writeFileSync, statSync, renameSync, mkdirSync } from 'fs';
-import { homedir, platform } from 'os';
+import { existsSync, readFileSync, writeFileSync, statSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { appDataDir } from './fms_logger';
 
 const filePath = join(appDataDir(), 'customADTeams.json');
 mkdirSync(appDataDir(), { recursive: true });
-
-// The file used to live at the APPDATA root; adopt an existing one into the
-// program's own folder so customized names survive the move.
-const legacyAppData = process.env.APPDATA || (
-    platform() === 'darwin'
-        ? join(homedir(), 'Library', 'Application Support')
-        : join(homedir(), '.config')
-);
-const legacyPath = join(legacyAppData, 'customADTeams.json');
-if (existsSync(legacyPath) && !existsSync(filePath)) {
-    try {
-        renameSync(legacyPath, filePath);
-    } catch {
-        // Cross-device or locked; the default file gets created instead.
-    }
-}
 
 interface TeamEntry {
     number: number;
