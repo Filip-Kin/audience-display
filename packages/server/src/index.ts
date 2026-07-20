@@ -1,7 +1,7 @@
 import { AudienceDisplayManager } from "./fms/audience_display";
 import { ProfileSelector } from "./profile_selector";
 import { checkForUpdate } from "./auto_update";
-import { initFmsLogger } from "./fms_logger";
+import { initFmsLogger, setFmsLoggingEnabled } from "./fms_logger";
 import { initLogSync } from "./log_sync";
 import { existsSync } from "fs";
 import { join } from "path";
@@ -66,6 +66,11 @@ const server = Bun.serve({
         const payload = JSON.parse(message.toString());
         if (payload && payload.type === "selectProfile" && typeof payload.id === "string") {
           audienceDisplay.selectProfile(payload.id);
+          return;
+        }
+        if (payload && payload.type === "setFmsLogging" && typeof payload.on === "boolean") {
+          setFmsLoggingEnabled(payload.on);
+          audienceDisplay.broadcastState();
           return;
         }
       } catch {

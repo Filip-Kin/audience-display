@@ -1,4 +1,4 @@
-import { Sound } from "svelte-sound";
+import { Howl } from "howler";
 import { writable } from "svelte/store";
 
 /**
@@ -20,68 +20,104 @@ import pickClockExpired_wav from "../assets/audio/pick_clock_expired.wav";
 // Real FMS "Powerup" sound (PowerUp_LinearPop.wav), played entering shifts 1-4.
 import shiftChange_wav from "../assets/audio/shift_change.wav";
 
-const matchStartSound = new Sound(matchStart_wav);
-const endgameWarningSound = new Sound(endgameWarning_wav);
-const matchEndSound = new Sound(matchEnd_wav);
-const teleopStartSound = new Sound(teleopStart_wav);
-const abortSound = new Sound(abort_wav, { volume: 0.5 });
-const matchReadySound = new Sound(ready_wav);
-const pickClockSound = new Sound(pickClock_wav);
-const pickClockExpiredSound = new Sound(pickClockExpired_wav);
-const shiftChangeSound = new Sound(shiftChange_wav);
+/** One entry per distinct sound file: drives both playback and the volume sliders. */
+export const SOUND_DEFS = [
+	{ key: "matchStart", label: "Match Start", src: matchStart_wav },
+	{ key: "teleopStart", label: "Teleop Start", src: teleopStart_wav },
+	{ key: "shiftChange", label: "Shift Change", src: shiftChange_wav },
+	{ key: "endgameWarning", label: "Endgame Warning", src: endgameWarning_wav },
+	{ key: "matchEnd", label: "Match End", src: matchEnd_wav },
+	{ key: "matchAbort", label: "Match Abort", src: abort_wav },
+	{ key: "matchReady", label: "Match Ready", src: ready_wav },
+	{ key: "pickClock", label: "Pick Clock", src: pickClock_wav },
+	{ key: "pickClockExpired", label: "Pick Clock Expired", src: pickClockExpired_wav },
+] as const;
 
-export const playMatchStartSound = () => {
-  matchStartSound.play();
-};
+export type VolumeKey = (typeof SOUND_DEFS)[number]["key"] | "victoryVideo";
+export type Volumes = Record<VolumeKey, number>;
 
-export const playAutoEndSound = () => {
-  matchEndSound.play();
-};
+const VOLUME_STORAGE_KEY = "ad-volumes";
 
-export const playEndgameWarning = () => {
-  endgameWarningSound.play();
-};
+const defaultVolumes = (): Volumes => ({
+	matchStart: 1,
+	teleopStart: 1,
+	shiftChange: 1,
+	endgameWarning: 1,
+	matchEnd: 1,
+	// The abort foghorn shipped at half volume before sliders existed.
+	matchAbort: 0.5,
+	matchReady: 1,
+	pickClock: 1,
+	pickClockExpired: 1,
+	victoryVideo: 1,
+});
 
-export const playMatchEndSound = () => {
-  matchEndSound.play();
-};
+function loadVolumes(): Volumes {
+	const base = defaultVolumes();
+	if (typeof window === "undefined") return base;
+	try {
+		const raw = window.localStorage.getItem(VOLUME_STORAGE_KEY);
+		if (!raw) return base;
+		const saved = JSON.parse(raw) as Partial<Record<VolumeKey, number>>;
+		for (const key of Object.keys(base) as VolumeKey[]) {
+			const v = saved[key];
+			if (typeof v === "number" && v >= 0 && v <= 1) base[key] = v;
+		}
+	} catch {
+		// Corrupt storage; fall back to defaults.
+	}
+	return base;
+}
 
-export const playTeleopStartSound = () => {
-  teleopStartSound.play();
-};
+/**
+ * Per-sound volume (0..1), persisted in localStorage per display machine.
+ * `victoryVideo` is consumed by the score-reveal screens for the winner
+ * animation's audio track.
+ */
+export const volumes = writable<Volumes>(loadVolumes());
 
-export const playAbortSound = () => {
-  abortSound.play();
-};
+// Howler directly (not svelte-sound's wrapper): Howl queues play() calls made
+// before the file finishes loading, so the first press always sounds, and
+// volume can be set per-play without recreating anything.
+const players = new Map<string, Howl>(
+	SOUND_DEFS.map((d) => [d.key, new Howl({ src: [d.src] })])
+);
 
-export const playMatchReadySound = () => {
-  matchReadySound.play();
+let currentVolumes: Volumes = defaultVolumes();
+volumes.subscribe((v) => {
+	currentVolumes = v;
+	if (typeof window !== "undefined") {
+		try {
+			window.localStorage.setItem(VOLUME_STORAGE_KEY, JSON.stringify(v));
+		} catch {
+			// Storage full/blocked; volumes just won't persist.
+		}
+	}
+});
+
+/** Which sound file each server-announced event plays. */
+const EVENT_SOUNDS: Record<string, (typeof SOUND_DEFS)[number]["key"]> = {
+	matchStart: "matchStart",
+	autoEnd: "matchEnd",
+	endgameWarning: "endgameWarning",
+	matchEnd: "matchEnd",
+	teleopStart: "teleopStart",
+	matchAbort: "matchAbort",
+	matchReady: "matchReady",
+	timeoutWarning: "endgameWarning",
+	timeoutEnd: "matchEnd",
+	pickClock: "pickClock",
+	pickClockExpired: "pickClockExpired",
+	shiftChange: "shiftChange",
 };
 
 export const playSound = (sound: string) => {
-  if (sound === "matchStart") {
-    playMatchStartSound();
-  } else if (sound === "autoEnd") {
-    playAutoEndSound();
-  } else if (sound === "endgameWarning") {
-    playEndgameWarning();
-  } else if (sound === "matchEnd") {
-    playMatchEndSound();
-  } else if (sound === "teleopStart") {
-    playTeleopStartSound();
-  } else if (sound === "matchAbort") {
-    playAbortSound();
-  } else if (sound === "matchReady") {
-    playMatchReadySound();
-  } else if (sound === "timeoutWarning") {
-    playEndgameWarning();
-  } else if (sound === "timeoutEnd") {
-    playMatchEndSound();
-  } else if (sound === "pickClock") {
-    pickClockSound.play();
-  } else if (sound === "pickClockExpired") {
-    pickClockExpiredSound.play();
-  } else if (sound === "shiftChange") {
-    shiftChangeSound.play();
-  }
+	const key = EVENT_SOUNDS[sound];
+	if (!key) return;
+	const volume = currentVolumes[key];
+	if (volume <= 0) return;
+	const player = players.get(key);
+	if (!player) return;
+	player.volume(volume);
+	player.play();
 };

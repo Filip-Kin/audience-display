@@ -14,7 +14,7 @@
 	import MatchEventHeader from "@lib/components/MatchEventHeader.svelte";
 	import { packUrl } from "@lib/animation_pack.js";
 	import { get } from "svelte/store";
-	import { audioUnlocked } from "@lib/audio";
+	import { audioUnlocked, volumes } from "@lib/audio";
 
 	let ready = false;
 	let videoReady = false;
@@ -23,6 +23,8 @@
 
 	let animation: string;
 	let videoElm: HTMLVideoElement;
+	// Live volume for the winner animation (settings slider).
+	$: if (videoElm) videoElm.volume = $volumes.victoryVideo;
 	let canPlay = false;
 	let started = false;
 	let unsubAudio: (() => void) | undefined;
@@ -57,6 +59,7 @@
 			started = true;
 			// Audio is unlocked here, so play from the start with sound.
 			videoElm.muted = false;
+			videoElm.volume = get(volumes).victoryVideo;
 			try {
 				videoElm.currentTime = 0;
 			} catch {}

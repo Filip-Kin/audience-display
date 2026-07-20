@@ -33,7 +33,7 @@ import {
 } from "lib/types/FMS_API_audience";
 import type { AllianceSelection, QualRanking, Team } from "lib/types/audience_display";
 import { getTeamName } from "../team_name";
-import { logRest } from "../fms_logger";
+import { logRest, isFmsLoggingEnabled } from "../fms_logger";
 import { syncFmsLog } from "../log_sync";
 import { emptyAllianceScore, mapLiveScore, mapResultScore, defaultGameConfig } from "./score_mappers";
 import { fetchGameConfig } from "./game_config";
@@ -777,6 +777,7 @@ export class AudienceDisplayManager {
           bracket: this.bracket,
           gameConfig: this.gameConfig,
           activeProfileId: this.profileSelector?.get() ?? null,
+          fmsLogging: isFmsLoggingEnabled(),
         },
       })
     );

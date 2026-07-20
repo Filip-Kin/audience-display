@@ -42,6 +42,10 @@ const profile: ProfileDefinition = {
 		],
 		livestream: "/rainbow-rumble/fun.webp",
 	},
+	settingsDefaults: {
+		// Auto-switch to the awaiting-scores screen 3s after the buzzer.
+		transitionAfterMatchEnd: 3,
+	},
 	options: {
 		// Alliance names on the match preview sit in a red/blue bar like the
 		// default-with-background look, not the design mock's plain text.

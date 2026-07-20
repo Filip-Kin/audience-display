@@ -64,13 +64,13 @@
 	{#if underReview}
 		<!-- Official-FMS style: the whole timer square becomes the review card. -->
 		<div
-			class="relative h-full w-full flex flex-col items-center justify-center gap-1.5 px-4"
+			class="relative h-full w-full flex flex-col items-center justify-center gap-2 px-4"
 			style="background: var(--rr-gold);"
 		>
-			<img src={Whistle} alt="" class="size-11 brightness-0" />
 			<div class="rr-display uppercase text-center text-[27px] leading-[1.05] text-[oklch(0.18_0.04_60)]">
 				Match<br />Under Review
 			</div>
+			<img src={Whistle} alt="" class="size-[112px] mb-1.5" />
 		</div>
 	{:else}
 	<!-- pt-1.5 lifts the shift counter onto the same line as the hub arrows

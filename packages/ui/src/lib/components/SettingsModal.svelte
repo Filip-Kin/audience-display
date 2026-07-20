@@ -1,24 +1,53 @@
 <script lang="ts">
-	import { playSound } from "../audio";
+	import { get } from "svelte/store";
+	import { playSound, volumes, SOUND_DEFS, type VolumeKey } from "../audio";
 	import { settings } from "../settings"; // adjust if path is different
-	import { state, sendSelectProfile } from "../state";
+	import { state, activeProfile, sendSelectProfile, sendSetFmsLogging } from "../state";
+	import { packUrl } from "../animation_pack";
 	import { listProfiles, DEFAULT_PROFILE_ID } from "../../profiles";
 
 	export let settingsOpen: boolean;
 
-	let testSound = "matchStart";
-
 	const profiles = listProfiles();
+
+	const VOLUME_ROWS: { key: VolumeKey; label: string }[] = [
+		...SOUND_DEFS.map((d) => ({ key: d.key as VolumeKey, label: d.label })),
+		{ key: "victoryVideo", label: "Winner Animation" },
+	];
 
 	function handleProfileChange(e: Event) {
 		const target = e.target as HTMLSelectElement;
 		if (target.value) sendSelectProfile(target.value);
 	}
+
+	function setVolume(key: VolumeKey, e: Event) {
+		const value = Number((e.target as HTMLInputElement).value) / 100;
+		volumes.update((v) => ({ ...v, [key]: value }));
+	}
+
+	function handleLoggingChange(e: Event) {
+		sendSetFmsLogging((e.target as HTMLInputElement).checked);
+	}
+
+	// Volume test for the winner animation: play the active profile's victory
+	// video audio track (audio only) at the slider volume.
+	let victoryPreview: HTMLAudioElement | null = null;
+	function playVictoryPreview() {
+		victoryPreview?.pause();
+		victoryPreview = new Audio(packUrl(get(activeProfile), "victoryRed"));
+		victoryPreview.volume = get(volumes).victoryVideo;
+		victoryPreview.play().catch(() => {});
+	}
+
+	$: if (!settingsOpen && victoryPreview) {
+		victoryPreview.pause();
+		victoryPreview = null;
+	}
 </script>
 
 {#if settingsOpen}
 	<div class="absolute top-0 left-0 w-full h-full bg-gray-900/50 z-10">
-		<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-lg p-6 text-black w-2xl">
+		<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-lg p-6 text-black w-2xl max-h-[90vh] overflow-y-auto">
 			<h2 class="text-xl font-bold mb-4">Settings</h2>
 
 			<div class="grid grid-cols-1 gap-6">
@@ -76,19 +105,42 @@
 					<input type="number" bind:value={$settings.transitionAfterMatchEnd} class="bg-gray-100 border border-gray-800 px-2 w-16" />
 				</label>
 
-				<div class="flex flex-col gap-1">
-					<span>Play Sound </span>
-					<div class="flex items-center justify-between gap-2">
-						<select bind:value={testSound} class="bg-gray-200 rounded px-2 py-1 w-full">
-							<option value="matchStart">Match Start</option>
-							<option value="endgameWarning">Endgame Warning</option>
-							<option value="matchEnd">Match End</option>
-							<option value="teleopStart">Teleop Start</option>
-							<option value="matchAbort">Match Abort</option>
-							<option value="matchReady">Match Ready</option>
-						</select>
-						<button class="bg-blue-500 text-white rounded px-2 py-1 ml-2" on:click={() => playSound(testSound)}>Play</button>
+				<label class="flex items-center justify-between">
+					<div class="flex flex-col">
+						<span>FMS Traffic Logging</span>
+						<span class="text-sm text-gray-500">Record all FMS communication for reverse engineering</span>
 					</div>
+					<label class="relative inline-flex items-center cursor-pointer">
+						<input type="checkbox" checked={$state.fmsLogging} on:change={handleLoggingChange} class="sr-only peer" />
+						<div
+							class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:bg-blue-600 transition-colors"
+						></div>
+						<div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+					</label>
+				</label>
+
+				<div class="flex flex-col gap-2 p-4 bg-gray-100 rounded">
+					<span class="font-semibold">Volumes</span>
+					{#each VOLUME_ROWS as row (row.key)}
+						<label class="grid grid-cols-[10rem_1fr_3rem_3.5rem] items-center gap-2">
+							<span class="text-sm">{row.label}</span>
+							<input
+								type="range"
+								min="0"
+								max="100"
+								value={Math.round(($volumes[row.key] ?? 1) * 100)}
+								on:input={(e) => setVolume(row.key, e)}
+								class="w-full accent-blue-600"
+							/>
+							<span class="text-sm tabular-nums text-right">{Math.round(($volumes[row.key] ?? 1) * 100)}%</span>
+							<button
+								class="bg-blue-500 text-white rounded px-2 py-0.5 text-sm"
+								on:click={() => (row.key === "victoryVideo" ? playVictoryPreview() : playSound(row.key))}
+							>
+								Play
+							</button>
+						</label>
+					{/each}
 				</div>
 			</div>
 

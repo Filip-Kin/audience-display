@@ -69,10 +69,10 @@
 >
 	{#if underReview}
 		<!-- Official-FMS style: the whole timer square becomes the review card. -->
-		<img src={Whistle} alt="" class="size-11 brightness-0" />
 		<div class="display uppercase text-center text-[27px] leading-[1.05] text-[oklch(0.18_0.04_60)]">
 			Match<br />Under Review
 		</div>
+		<img src={Whistle} alt="" class="size-[112px] mb-1.5" />
 	{:else}
 	<!-- Hub active corner indicators (absolute, never shift content) -->
 	{#if arrowSide === "left" || arrowSide === "both"}

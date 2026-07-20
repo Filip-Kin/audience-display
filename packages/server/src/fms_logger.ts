@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite";
-import { mkdirSync } from "fs";
+import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { homedir } from "os";
 import pkg from "../../../package.json";
@@ -34,10 +34,36 @@ function ts(): string {
   return new Date().toISOString();
 }
 
+// User-facing on/off switch (settings gear on the display). On by default;
+// persisted in appdata so the choice survives restarts. Only gates writing new
+// rows - the database stays open so sync/import of existing rows still works.
+let loggingEnabled = true;
+
+const settingsPath = () => join(appDataDir(), "settings.json");
+
+export function isFmsLoggingEnabled(): boolean {
+  return loggingEnabled;
+}
+
+export function setFmsLoggingEnabled(on: boolean): void {
+  loggingEnabled = on;
+  try {
+    writeFileSync(settingsPath(), JSON.stringify({ fmsLogging: on }, null, 2));
+  } catch {
+    // Not persisted; still applies for this run.
+  }
+}
+
 export function initFmsLogger(fmsUrl: string): void {
   try {
     const dir = appDataDir();
     mkdirSync(dir, { recursive: true });
+    try {
+      const saved = JSON.parse(readFileSync(settingsPath(), "utf-8"));
+      if (typeof saved.fmsLogging === "boolean") loggingEnabled = saved.fmsLogging;
+    } catch {
+      // No settings file yet; stay on the default (enabled).
+    }
     db = new Database(join(dir, "fms-log.sqlite"));
     db.exec("PRAGMA journal_mode = WAL;");
     db.exec(`
@@ -78,6 +104,7 @@ export function initFmsLogger(fmsUrl: string): void {
 }
 
 function write(kind: string, direction: string, name: string, status: number | null, data: string): void {
+  if (!loggingEnabled) return;
   if (!insertLog || runId === null) return;
   try {
     insertLog.run(runId, ts(), kind, direction, name, status, data);

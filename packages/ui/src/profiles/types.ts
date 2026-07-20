@@ -8,6 +8,14 @@ export type ProfileDefinition = {
   screens: Partial<Record<Screen, ComponentType>>;
   theme: ProfileTheme;
   assets: ProfileAssets;
+  /**
+   * Settings defaults this profile prefers (e.g. RR auto-switches to the
+   * waiting screen 3s after the match ends). Applied when the profile becomes
+   * active, but NEVER over a value the operator pinned via URL parameter.
+   */
+  settingsDefaults?: {
+    transitionAfterMatchEnd?: number;
+  };
   animations?: {
     victoryRed?: string;
     victoryBlue?: string;

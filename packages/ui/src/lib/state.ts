@@ -1,11 +1,13 @@
 import { derived, get, writable } from "svelte/store";
 import type { AudienceDisplayState } from "lib";
 import { playSound } from "./audio";
-import { settings } from "./settings";
+import { settings, applyProfileDefaults } from "./settings";
 import type { Screen } from "../../../lib/types/audience_display";
 import { applyTheme } from "./theme";
 import { displayEventName } from "./matchNamer";
 import { getProfile, DEFAULT_PROFILE_ID } from "../profiles";
+
+let appliedDefaultsFor: string | null = null;
 
 const defaultState: AudienceDisplayState = {
   connected: false,
@@ -21,6 +23,7 @@ const defaultState: AudienceDisplayState = {
   bracket: null,
   gameConfig: null,
   activeProfileId: null,
+  fmsLogging: true,
 };
 
 let socket: WebSocket | null = null;
@@ -55,6 +58,13 @@ export const state = writable(defaultState, (set) => {
         const newState = message.data as AudienceDisplayState;
         set(newState);
         applyProfileTheme(newState.activeProfileId);
+        // Profile settings defaults apply ONCE per profile change - state
+        // broadcasts arrive every second and must not clobber modal edits.
+        const pid = newState.activeProfileId ?? DEFAULT_PROFILE_ID;
+        if (pid !== appliedDefaultsFor) {
+          appliedDefaultsFor = pid;
+          applyProfileDefaults(getProfile(pid).settingsDefaults);
+        }
       }
       if (message.type === "sound") {
         console.log("Playing sound:", message.data);
@@ -109,4 +119,9 @@ export const setScreen = (screen: Screen) => {
 export function sendSelectProfile(id: string): void {
   if (!socket || socket.readyState !== WebSocket.OPEN) return;
   socket.send(JSON.stringify({ type: "selectProfile", id }));
+}
+
+export function sendSetFmsLogging(on: boolean): void {
+  if (!socket || socket.readyState !== WebSocket.OPEN) return;
+  socket.send(JSON.stringify({ type: "setFmsLogging", on }));
 }

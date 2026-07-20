@@ -134,6 +134,8 @@ export type AudienceDisplayState = {
   bracket: BracketData | null;
   gameConfig: GameConfig | null;
   activeProfileId: string | null;
+  /** Server-side FMS traffic logging switch (settings gear toggles it). */
+  fmsLogging: boolean;
 };
 
 export type QualRanking = {

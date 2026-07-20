@@ -11,6 +11,10 @@ export type Settings = {
 
 const browser = typeof window !== "undefined";
 
+// Params that were EXPLICITLY in the URL at load: a profile's settingsDefaults
+// never override these (the operator pinned them on purpose).
+const explicitParams = new Set<string>();
+
 function parseQuerySettings(): Settings {
   if (!browser)
     return {
@@ -21,6 +25,7 @@ function parseQuerySettings(): Settings {
       showDisconnectedScreen: false,
     };
   const params = new URLSearchParams(window.location.search);
+  for (const key of params.keys()) explicitParams.add(key);
 
   return {
     invert: params.get("inverted") === "true",
@@ -92,3 +97,21 @@ function createSettingsStore() {
 }
 
 export const settings = createSettingsStore();
+
+/**
+ * Apply a profile's preferred settings defaults (called once whenever the
+ * active profile changes). URL-pinned values always win.
+ */
+export function applyProfileDefaults(defaults?: { transitionAfterMatchEnd?: number }): void {
+  if (!defaults) return;
+  settings.update((s) => {
+    const next = { ...s };
+    if (
+      defaults.transitionAfterMatchEnd !== undefined &&
+      !explicitParams.has("transitionAfterMatchEnd")
+    ) {
+      next.transitionAfterMatchEnd = defaults.transitionAfterMatchEnd;
+    }
+    return next;
+  });
+}
