@@ -36,20 +36,21 @@ export const SOUND_DEFS = [
 export type VolumeKey = (typeof SOUND_DEFS)[number]["key"] | "victoryVideo";
 export type Volumes = Record<VolumeKey, number>;
 
-const VOLUME_STORAGE_KEY = "ad-volumes";
+// v2: the first build persisted the defaults on load, pinning them forever;
+// the old key is abandoned so updated code defaults reach existing displays.
+const VOLUME_STORAGE_KEY = "ad-volumes-v2";
 
 const defaultVolumes = (): Volumes => ({
-	matchStart: 1,
-	teleopStart: 1,
-	shiftChange: 1,
-	endgameWarning: 1,
-	matchEnd: 1,
-	// The abort foghorn shipped at half volume before sliders existed.
-	matchAbort: 0.5,
+	matchStart: 0.9,
+	teleopStart: 0.9,
+	shiftChange: 0.9,
+	endgameWarning: 0.9,
+	matchEnd: 0.9,
+	matchAbort: 1,
 	matchReady: 1,
-	pickClock: 1,
-	pickClockExpired: 1,
-	victoryVideo: 1,
+	pickClock: 0.9,
+	pickClockExpired: 0.9,
+	victoryVideo: 0.5,
 });
 
 function loadVolumes(): Volumes {
@@ -84,9 +85,14 @@ const players = new Map<string, Howl>(
 );
 
 let currentVolumes: Volumes = defaultVolumes();
+// Persist only ACTUAL changes (the store fires once on init): a display that
+// never touches the sliders keeps tracking the code defaults across updates.
+let initialFire = true;
 volumes.subscribe((v) => {
 	currentVolumes = v;
-	if (typeof window !== "undefined") {
+	if (initialFire) {
+		initialFire = false;
+	} else if (typeof window !== "undefined") {
 		try {
 			window.localStorage.setItem(VOLUME_STORAGE_KEY, JSON.stringify(v));
 		} catch {
