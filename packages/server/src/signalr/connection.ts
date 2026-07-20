@@ -59,6 +59,8 @@ type EventMap = {
   disconnected: null;
   timeout: MatchStatusInfoData;
   matchLoaded: MatchLoadedData;
+  /** Raw FMS MatchState string on every MatchStatusInfoChanged. */
+  matchStateChanged: string;
   fieldMonitorTeamsChanged: { red: number[]; blue: number[] };
   tournamentLevelChanged: unknown;
   gameSpecificMessage: GameSpecificMessage;
@@ -131,6 +133,7 @@ export class FMSSignalRConnection {
     disconnected: [],
     timeout: [],
     matchLoaded: [],
+    matchStateChanged: [],
     fieldMonitorTeamsChanged: [],
     tournamentLevelChanged: [],
     gameSpecificMessage: [],
@@ -328,6 +331,8 @@ export class FMSSignalRConnection {
 
     this.infrastructureConnection.on("matchstatusinfochanged", (data: MatchStatusInfoData) => {
       console.log("matchstatusinfochanged: ", data);
+
+      this.emit("matchStateChanged", data.MatchState);
 
       if (data.MatchState.endsWith("TO")) {
         this.emit("timeout", data);
