@@ -11,6 +11,7 @@
 	export let exit = false;
 
 	const LOGO = "/rainbow-rumble/logo.png";
+	const LOGO_GRAD = "/rainbow-rumble/logo-gradient.png";
 	const SPIN = "rr-spin 3.2s linear infinite";
 
 	$: eventLabel = $eventDisplayName;
@@ -24,6 +25,7 @@
 	// the switch has to happen reactively off $state.screen.
 	$: committed = $state.screen === "scores-ready";
 
+	let logoMaskEl: HTMLDivElement | null = null;
 	let logoEl: HTMLImageElement | null = null;
 	let glintEl: HTMLDivElement | null = null;
 	let frozen = false;
@@ -37,11 +39,12 @@
 	// 8-fold symmetric, so the cogs land exactly on the unrotated glint mask),
 	// then glint continuously until the screen is dismissed. Also fires when the
 	// component mounts straight into scores-ready.
-	$: if (committed && !frozen && logoEl && glintEl) {
+	$: if (committed && !frozen && logoMaskEl && logoEl && glintEl) {
 		frozen = true;
+		const logoMask = logoMaskEl;
 		const logo = logoEl;
 		const glint = glintEl;
-		const m = getComputedStyle(logo).transform;
+		const m = getComputedStyle(logoMask).transform;
 		let angle = 0;
 		if (m && m !== "none") {
 			const parts = m.match(/matrix\(([^)]+)\)/)?.[1]?.split(",").map(Number);
@@ -50,11 +53,16 @@
 		angle = ((angle % 360) + 360) % 360;
 		const target = Math.ceil((angle + 0.001) / 45) * 45;
 		const settleMs = Math.max(50, ((target - angle) / SPIN_DEG_PER_S) * 1000);
+		logoMask.style.animation = "none";
+		logoMask.style.transform = `rotate(${angle}deg)`;
 		logo.style.animation = "none";
-		logo.style.transform = `rotate(${angle}deg)`;
+		logo.style.transform = `rotate(${-angle}deg)`;
+		void logoMask.offsetWidth;
 		void logo.offsetWidth;
+		logoMask.style.transition = `transform ${settleMs}ms linear`;
+		logoMask.style.transform = `rotate(${target}deg)`;
 		logo.style.transition = `transform ${settleMs}ms linear`;
-		logo.style.transform = `rotate(${target}deg)`;
+		logo.style.transform = `rotate(${-target}deg)`;
 		settleTimer = setTimeout(() => {
 			settleTimer = null;
 			glint.style.opacity = "1";
@@ -72,15 +80,19 @@
 	// real retraction: leaving for the score reveal also flips `committed`
 	// false, and the gear must stay static as it slides off, not start
 	// spinning again.
-	$: if ($state.screen === "match-end" && frozen && logoEl && glintEl) {
+	$: if ($state.screen === "match-end" && frozen && logoMaskEl && logoEl && glintEl) {
 		frozen = false;
 		if (settleTimer) {
 			clearTimeout(settleTimer);
 			settleTimer = null;
 		}
+		logoMaskEl.style.transition = "";
+		logoMaskEl.style.transform = "";
+		logoMaskEl.style.animation = SPIN;
 		logoEl.style.transition = "";
 		logoEl.style.transform = "";
 		logoEl.style.animation = SPIN;
+		logoEl.style.animationDirection = "reverse";
 		glintEl.style.animation = "none";
 		glintEl.style.opacity = "0";
 	}
@@ -119,13 +131,31 @@
 			out:fly={{ y: 700, duration: 400 }}
 		>
 			<div class="relative inline-block size-[400px]">
-				<img
-					bind:this={logoEl}
-					src={LOGO}
-					alt="Rainbow Rumble"
-					class="block relative z-[1] size-[400px]"
-					style="animation: {SPIN};"
-				/>
+				<div
+					bind:this={logoMaskEl}
+					style="
+						-webkit-mask-image: url('{LOGO}');
+						-webkit-mask-position: center;
+						-webkit-mask-repeat: no-repeat;
+						mask-image: url('{LOGO}');
+						mask-repeat: no-repeat;
+						mask-size: 90%;
+						mask-position: center;
+
+						animation: {SPIN};
+					"
+				>
+					<img
+						bind:this={logoEl}
+						src={LOGO_GRAD}
+						alt="Rainbow Rumble"
+						class="block relative z-[1] size-[400px]"
+						style="
+							animation: {SPIN};
+							animation-direction: reverse;
+						"
+					>
+				</div>
 				<!-- Glint sweep (loops while scores are ready), masked by the logo so it only lights the artwork -->
 				<div
 					bind:this={glintEl}
@@ -137,10 +167,11 @@
 						background-repeat: no-repeat;
 						-webkit-mask-image: url('{LOGO}');
 						-webkit-mask-repeat: no-repeat;
-						-webkit-mask-size: 100% 100%;
+						-webkit-mask-size: 90% 90%;
 						mask-image: url('{LOGO}');
 						mask-repeat: no-repeat;
-						mask-size: 100% 100%;
+						mask-size: 90% 90%;
+						mask-position: center
 					"
 				></div>
 			</div>
