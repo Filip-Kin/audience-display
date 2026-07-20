@@ -5,6 +5,11 @@ export type ProfileDefinition = {
   id: string;
   name: string;
   eventName?: string;
+  /**
+   * Event information URL encoded into the schedule screen's QR code. Omit to
+   * show the game logo panel instead of a QR on the schedule screen.
+   */
+  eventInfoUrl?: string;
   screens: Partial<Record<Screen, ComponentType>>;
   theme: ProfileTheme;
   assets: ProfileAssets;

@@ -9,14 +9,15 @@
 	const dispatcher = createEventDispatcher();
 	export let exit = false;
 	let ready = false;
+	let exiting = false;
 
 	onMount(() => {
 		ready = true;
 	});
 
-	$: if (exit) {
-		ready = false;
-		setTimeout(() => dispatcher("transitioned"), 200);
+	$: if (exit && !exiting) {
+		exiting = true;
+		setTimeout(() => dispatcher("transitioned"), 450);
 	}
 
 	function mmss(seconds: number): string {
@@ -43,9 +44,9 @@
 </script>
 
 {#if ready}
-	<div class="fixed inset-0 bg-background overflow-hidden">
+	<div class="fixed inset-0 bg-background overflow-hidden" class:exiting>
 		<!-- Header -->
-		<header class="flex items-center justify-between border-b-4 border-accentWarn px-14 pt-7 pb-[18px]">
+		<header class="anim-top flex items-center justify-between border-b-4 border-accentWarn px-14 pt-7 pb-[18px]">
 			<div class="flex items-center gap-[22px]">
 				<Logo class="object-contain size-[150px]" />
 				<div>
@@ -72,10 +73,10 @@
 		<!-- Body -->
 		<div class="grid grid-cols-[1.55fr_1fr] gap-6 px-14 py-6 h-[calc(100vh-200px)]">
 			<!-- Left: slideshow -->
-			<div class="flex flex-col min-h-0 gap-3.5">
+			<div class="anim-left flex flex-col min-h-0 gap-3.5">
 				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
 					<span class="bg-accentWarn size-2"></span>
-					Featured
+					Sponsors
 					<div class="flex-1 h-0.5 bg-[var(--rule)]"></div>
 				</div>
 
@@ -83,7 +84,7 @@
 			</div>
 
 			<!-- Right: Up Next card -->
-			<div class="flex flex-col min-h-0 gap-3.5">
+			<div class="anim-right flex flex-col min-h-0 gap-3.5">
 				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
 					<span class="bg-accentWarn size-2"></span>
 					Up Next

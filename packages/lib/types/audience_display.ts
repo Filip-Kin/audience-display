@@ -24,7 +24,9 @@ export type Screen =
   | "break-timer"
   | "playoff-bracket"
   | "rankings"
-  | "timeout";
+  | "timeout"
+  | "background"
+  | "schedule";
 
 export type AllianceScore = {
   score: number;

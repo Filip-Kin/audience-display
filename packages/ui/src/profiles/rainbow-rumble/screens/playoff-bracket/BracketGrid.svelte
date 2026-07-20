@@ -102,8 +102,10 @@
 		: "flex flex-col justify-around min-h-0 gap-3 py-1";
 </script>
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
 	bind:this={container}
+	on:animationend={computeLines}
 	class="relative grid h-full w-full {compact
 		? 'grid-cols-[auto_repeat(5,1fr)_1.15fr] gap-x-2'
 		: 'grid-cols-[auto_repeat(5,1fr)_1.25fr] gap-x-6'}"
@@ -111,8 +113,8 @@
 >
 	<!-- Winner-advancement lines, measured from the live box positions -->
 	<svg class="absolute inset-0 w-full h-full pointer-events-none" aria-hidden="true">
-		{#each paths as d}
-			<path {d} fill="none" stroke="oklch(1 0 0 / 0.28)" stroke-width={compact ? 1.5 : 2} />
+		{#each paths as d, lineIdx}
+			<path {d} class="anim-line" style="--anim-delay: {0.6 + lineIdx * 0.07}s;" fill="none" stroke="oklch(1 0 0 / 0.28)" stroke-width={compact ? 1.5 : 2} />
 		{/each}
 	</svg>
 
@@ -136,7 +138,7 @@
 	{#each upperByRound as col, i}
 		<div class={cellCls} style="grid-row: 2; grid-column: {i + 2};">
 			{#each col as match (match.matchNumber)}
-				<div use:registerNode={String(match.matchNumber)}>
+				<div use:registerNode={String(match.matchNumber)} class="anim-card" style="--anim-delay: {i * 0.08}s;">
 					<BracketNode {match} {compact} alliances={compact ? null : allianceMap} />
 				</div>
 			{/each}
@@ -152,7 +154,7 @@
 	{#each lowerByRound as col, i}
 		<div class={cellCls} style="grid-row: 3; grid-column: {i + 2};">
 			{#each col as match (match.matchNumber)}
-				<div use:registerNode={String(match.matchNumber)}>
+				<div use:registerNode={String(match.matchNumber)} class="anim-card" style="--anim-delay: {i * 0.08}s;">
 					<BracketNode {match} {compact} alliances={compact ? null : allianceMap} />
 				</div>
 			{/each}
@@ -162,7 +164,7 @@
 	<!-- M13 spans both tracks so it sits between the upper and lower brackets -->
 	{#if m13}
 		<div class="flex flex-col justify-center min-h-0" style="grid-row: 2 / span 2; grid-column: 6;">
-			<div use:registerNode={"13"}>
+			<div use:registerNode={"13"} class="anim-card" style="--anim-delay: 0.32s;">
 				<BracketNode match={m13} {compact} alliances={compact ? null : allianceMap} />
 			</div>
 		</div>
@@ -176,7 +178,7 @@
 		style="grid-row: 2 / span 2; grid-column: 7;"
 	>
 		{#if bracket.finals}
-			<div use:registerNode={"F"}>
+			<div use:registerNode={"F"} class="anim-card" style="--anim-delay: 0.4s;">
 				<BracketNode match={bracket.finals} {compact} alliances={compact ? null : allianceMap} />
 			</div>
 		{/if}

@@ -10,6 +10,7 @@
 	const dispatcher = createEventDispatcher();
 	export let exit = false;
 	let ready = false;
+	let exiting = false;
 
 	// #region Sponsor slideshow
 	type Slide = { kind: "sponsor"; sponsor: RrSponsor } | { kind: "bracket" };
@@ -36,16 +37,16 @@
 		ready = true;
 		rotationTimer = setInterval(() => {
 			slideIdx += 1;
-		}, 3200);
+		}, 4800);
 	});
 
 	onDestroy(() => {
 		if (rotationTimer) clearInterval(rotationTimer);
 	});
 
-	$: if (exit) {
-		ready = false;
-		setTimeout(() => dispatcher("transitioned"), 200);
+	$: if (exit && !exiting) {
+		exiting = true;
+		setTimeout(() => dispatcher("transitioned"), 450);
 	}
 
 	function mmss(seconds: number): string {
@@ -76,10 +77,10 @@
 </script>
 
 {#if ready}
-	<div class="rr fixed inset-0 bg-background overflow-hidden">
+	<div class="rr fixed inset-0 bg-background overflow-hidden" class:exiting>
 		<!-- Header -->
 		<header
-			class="flex items-center justify-between border-b-4 border-transparent px-14 pt-7 pb-[18px]"
+			class="anim-top flex items-center justify-between border-b-4 border-transparent px-14 pt-7 pb-[18px]"
 			style="border-image: var(--rr-rainbow) 1;"
 		>
 			<div class="flex items-center gap-[22px]">
@@ -110,10 +111,10 @@
 		<!-- Body -->
 		<div class="grid grid-cols-[1.55fr_1fr] gap-6 px-14 py-6 h-[calc(100vh-200px)]">
 			<!-- Left: featured sponsor slideshow -->
-			<div class="flex flex-col min-h-0 gap-3.5">
+			<div class="anim-left flex flex-col min-h-0 gap-3.5">
 				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-[var(--rr-dim)] font-black">
 					<span class="size-[9px] rounded-[2px]" style="background: var(--rr-rainbow);"></span>
-					Featured
+					Sponsors
 					<div class="flex-1 h-0.5 bg-[var(--rr-rule)]"></div>
 				</div>
 
@@ -162,7 +163,7 @@
 			</div>
 
 			<!-- Right: Up Next card -->
-			<div class="flex flex-col min-h-0 gap-3.5">
+			<div class="anim-right flex flex-col min-h-0 gap-3.5">
 				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-[var(--rr-dim)] font-black">
 					<span class="size-[9px] rounded-[2px]" style="background: var(--rr-rainbow);"></span>
 					Up Next

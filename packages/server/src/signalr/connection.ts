@@ -71,13 +71,13 @@ type EventCallbacks = { [K in keyof EventMap]: Array<(data: EventMap[K]) => void
 
 /** Where every real FMS video switch option lands. Options without a dedicated screen idle on "none". */
 const VIDEO_SWITCH_SCREENS: Record<VideoSwitchOption, VideoSwitchScreen> = {
-  Background: "none",
+  Background: "background",
   MatchPreview: "match-preview",
   VideoOnly: "none",
   VideoAndScore: "match-ready",
   MatchResult: "match-reveal",
   Rankings: "rankings",
-  Schedule: "none",
+  Schedule: "schedule",
   Alliance: "alliance-selection",
   // Only one alliance-selection layout exists; mapping all three options to the same
   // screen also makes hybrid<->fullscreen switches no-ops instead of transitions.
@@ -580,7 +580,7 @@ export class FMSSignalRConnection {
       return;
     }
     const screen = VIDEO_SWITCH_SCREENS[option];
-    if (screen === "none" && option !== "Background" && option !== "VideoOnly") {
+    if (screen === "none" && option !== "VideoOnly") {
       console.log(`No dedicated screen for video switch option "${option}"; showing idle screen`);
     }
     this.emit("videoSwitch", screen);

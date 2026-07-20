@@ -6,6 +6,7 @@
 	const dispatcher = createEventDispatcher();
 	export let exit = false;
 	let ready = false;
+	let exiting = false;
 	let camW = 0;
 	let camH = 0;
 
@@ -13,9 +14,9 @@
 		ready = true;
 	});
 
-	$: if (exit) {
-		ready = false;
-		setTimeout(() => dispatcher("transitioned"), 200);
+	$: if (exit && !exiting) {
+		exiting = true;
+		setTimeout(() => dispatcher("transitioned"), 450);
 	}
 
 	function mmss(seconds: number): string {
@@ -101,9 +102,9 @@
 </script>
 
 {#if ready}
-	<div class="fixed inset-0 bg-background overflow-hidden">
+	<div class="fixed inset-0 bg-background overflow-hidden" class:exiting>
 		<!-- Header -->
-		<header class="flex items-center justify-between border-b-4 border-accentWarn px-14 pt-7 pb-[18px]">
+		<header class="anim-top flex items-center justify-between border-b-4 border-accentWarn px-14 pt-7 pb-[18px]">
 			<div class="flex items-center gap-[22px]">
 				<Logo class="object-contain size-[120px]" />
 				<div>
@@ -132,7 +133,7 @@
 			<!-- LEFT: full team grid on top, camera fills the rest -->
 			<div class="grid grid-rows-[auto_auto_minmax(0,1fr)] gap-3.5 min-h-0">
 				<!-- Section label -->
-				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
+				<div class="anim-left flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
 					<span class="bg-accentWarn size-2"></span>
 					Available Teams
 					<div class="flex-1 h-0.5 bg-[var(--rule)]"></div>
@@ -141,7 +142,7 @@
 				<!-- Rank grid: 7 cols filled top-to-bottom (rank 1,2,3... down each column),
 				     the row count is fixed from the full roster so the height never changes -->
 				<div
-					class="grid grid-cols-7 gap-1.5 content-start"
+					class="anim-left grid grid-cols-7 gap-1.5 content-start"
 					style="grid-auto-flow: column; grid-template-rows: repeat({rankRows}, minmax(38px, auto));"
 				>
 					{#each rankedTeams as team (team.number)}
@@ -196,15 +197,18 @@
 
 			<!-- RIGHT: alliances + sponsor -->
 			<div class="flex flex-col min-h-0 gap-3.5">
-				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
+				<div class="anim-right flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
 					<span class="bg-accentWarn size-2"></span>
 					Alliances
 					<div class="flex-1 h-0.5 bg-[var(--rule)]"></div>
 				</div>
 
 				<div class="flex flex-col gap-1.5">
-					{#each paddedAlliances as alliance (alliance.allianceNumber)}
+					{#each paddedAlliances as alliance, allianceIdx (alliance.allianceNumber)}
 						{@const isCurrent = alliance.allianceNumber === currentPickAllianceNum}
+						<!-- Stagger wrapper: bars enter one by one with 1/3 overlap; the pulse
+						     animation lives on the inner bar so the two never fight. -->
+						<div class="anim-right" style="--anim-delay: {allianceIdx * 0.18}s;">
 						<div
 							class="grid items-stretch grid-cols-[48px_1fr] text-[oklch(0.14_0_0)]"
 							class:ad-pulse={isCurrent}
@@ -217,7 +221,7 @@
 							<div
 								class="flex items-center justify-center font-black text-[26px]"
 								style="
-									background: {isCurrent ? 'oklch(0.18 0.04 60)' : 'oklch(0.16 0 0)'};
+									background: {isCurrent ? 'oklch(0.18 0.04 60)' : 'oklch(0.32 0.01 250)'};
 									color: {isCurrent ? 'var(--accentWarn)' : 'white'};
 								"
 							>
@@ -243,11 +247,12 @@
 								{/each}
 							</div>
 						</div>
+						</div>
 					{/each}
 				</div>
 
 				<!-- Sponsor logos: Pit Podcast + FAMNM side by side -->
-				<div class="flex items-center justify-center gap-10 flex-1 mt-1 p-4">
+				<div class="anim-right flex items-center justify-center gap-10 flex-1 mt-1 p-4">
 					<img
 						src="/pitpodcast.png"
 						alt="Pit Podcast"

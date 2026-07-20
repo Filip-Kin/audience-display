@@ -4,7 +4,7 @@
 	import BracketGrid from "../screens/playoff-bracket/BracketGrid.svelte";
 
 	/** Slide rotation period. Kept slow so the loop isn't dizzying on a big screen. */
-	export let intervalMs = 8000;
+	export let intervalMs = 12000;
 	/** Set false to keep the playoff mini-bracket slide out of the deck. */
 	export let includeBracket = true;
 

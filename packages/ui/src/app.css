@@ -276,3 +276,40 @@ body { font-family: var(--font-body); }
     0%, 100% { opacity: 1; transform: scale(1); }
     50%       { opacity: 0.15; transform: scale(0.78); }
 }
+
+/* #region Screen load/unload slides
+   Chrome screens (rankings, bracket, alliance selection, background, schedule,
+   timeout) enter with the header sliding down and the body blocks sliding in
+   from their own side; adding .exiting on the screen root plays the reverse.
+   Stagger via --anim-delay (entrances only - exits all leave together). */
+.anim-top   { animation: screen-in-top   0.55s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: var(--anim-delay, 0s); }
+.anim-left  { animation: screen-in-left  0.55s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: var(--anim-delay, 0s); }
+.anim-right { animation: screen-in-right 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: var(--anim-delay, 0s); }
+
+.exiting .anim-top   { animation: screen-out-top   0.4s cubic-bezier(0.5, 0, 0.75, 0) both; animation-delay: 0s; }
+.exiting .anim-left  { animation: screen-out-left  0.4s cubic-bezier(0.5, 0, 0.75, 0) both; animation-delay: 0s; }
+.exiting .anim-right { animation: screen-out-right 0.4s cubic-bezier(0.5, 0, 0.75, 0) both; animation-delay: 0s; }
+
+@keyframes screen-in-top    { from { transform: translateY(-130%); } to { transform: none; } }
+@keyframes screen-out-top   { from { transform: none; } to { transform: translateY(-130%); } }
+@keyframes screen-in-left   { from { transform: translateX(-130%); } to { transform: none; } }
+@keyframes screen-out-left  { from { transform: none; } to { transform: translateX(-130%); } }
+@keyframes screen-in-right  { from { transform: translateX(130%); } to { transform: none; } }
+@keyframes screen-out-right { from { transform: none; } to { transform: translateX(130%); } }
+
+/* Fade-only exits: the bracket body is too delicate to slide, so it fades on
+   screen unload; .swap-fade is the same fade used between the bracket's
+   alternating views (bracket <-> full-screen alliances). */
+.exiting .anim-exit-fade { animation: screen-fade-out 0.35s ease both; }
+.swap-fade { animation: screen-fade-out 0.4s ease both; }
+@keyframes screen-fade-out { to { opacity: 0; } }
+
+/* Bracket entrance: match cards pop-slide in, then the connector lines fade in
+   sequentially once the cards have landed. */
+.anim-card { animation: bracket-card-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: var(--anim-delay, 0s); }
+.anim-line { animation: bracket-line-in 0.35s ease-out both; animation-delay: var(--anim-delay, 0s); }
+.exiting .anim-card, .exiting .anim-line { animation: none; }
+
+@keyframes bracket-card-in { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: none; } }
+@keyframes bracket-line-in { from { opacity: 0; } to { opacity: 1; } }
+/* #endregion */

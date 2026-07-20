@@ -11,6 +11,7 @@
 	export let title = "QUALIFICATION RANKINGS";
 	export let showBreakTimer = false;
 	let ready = false;
+	let exiting = false;
 
 	onMount(() => {
 		ready = true;
@@ -21,12 +22,28 @@
 		cancelAnimationFrame(scrollRaf);
 	});
 
-	$: if (exit) {
-		ready = false;
-		setTimeout(() => dispatcher("transitioned"), 200);
+	$: if (exit && !exiting) {
+		exiting = true;
+		setTimeout(() => dispatcher("transitioned"), 450);
 	}
 
 	$: rankings = [...$state.rankData].sort((a, b) => a.rank - b.rank);
+
+
+	// Top-8 seeds (the future alliance captains) get rainbow rank badges:
+	// ROYGBIV from the leader down, plus magenta for #8; everyone else stays gray.
+	const RANK_COLORS: Array<{ bg: string; fg: string }> = [
+		{ bg: "oklch(0.55 0.22 25)", fg: "white" },
+		{ bg: "oklch(0.70 0.19 55)", fg: "oklch(0.22 0.05 55)" },
+		{ bg: "oklch(0.85 0.17 100)", fg: "oklch(0.25 0.05 100)" },
+		{ bg: "oklch(0.60 0.20 145)", fg: "white" },
+		{ bg: "oklch(0.55 0.20 240)", fg: "white" },
+		{ bg: "oklch(0.45 0.20 275)", fg: "white" },
+		{ bg: "oklch(0.55 0.25 310)", fg: "white" },
+		{ bg: "oklch(0.62 0.24 340)", fg: "white" },
+	];
+	const rankColor = (rank: number) =>
+		RANK_COLORS[rank - 1] ?? { bg: "oklch(0.32 0.01 250)", fg: "white" };
 
 	/** Total ranking points: FMS only sends the average (sort1), so scale by matches played. */
 	const totalRp = (t: (typeof rankings)[number]): number =>
@@ -71,9 +88,9 @@
 </script>
 
 {#if ready}
-	<div class="fixed inset-0 bg-background overflow-hidden">
+	<div class="fixed inset-0 bg-background overflow-hidden" class:exiting>
 		<!-- Header -->
-		<header class="flex items-center justify-between border-b-4 border-accentWarn px-14 pt-7 pb-[18px]">
+		<header class="anim-top flex items-center justify-between border-b-4 border-accentWarn px-14 pt-7 pb-[18px]">
 			<div class="flex items-center gap-[22px]">
 				<Logo class="object-contain size-[150px]" />
 				<div>
@@ -101,10 +118,10 @@
 		<!-- Body: sponsor slideshow | scrolling standings -->
 		<div class="grid grid-cols-[1.3fr_1fr] gap-6 px-14 py-6 h-[calc(100vh-200px)]">
 			<!-- Left: slideshow -->
-			<div class="flex flex-col min-h-0 gap-3.5">
+			<div class="anim-left flex flex-col min-h-0 gap-3.5">
 				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
 					<span class="bg-accentWarn size-2"></span>
-					Featured
+					Sponsors
 					<div class="flex-1 h-0.5 bg-[var(--rule)]"></div>
 				</div>
 
@@ -112,7 +129,7 @@
 			</div>
 
 			<!-- Right: rankings -->
-			<div class="flex flex-col min-h-0 gap-3.5">
+			<div class="anim-right flex flex-col min-h-0 gap-3.5">
 				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
 					<span class="bg-accentWarn size-2"></span>
 					Rankings
@@ -142,9 +159,9 @@
 										{#each rankings as team (`${copy}-${team.teamNumber}`)}
 											<div class="pb-2">
 												<div class="grid grid-cols-[56px_80px_122px_1fr_76px_116px] gap-2.5 items-center bg-white text-[oklch(0.14_0_0)] px-2 py-2.5">
-													<div
-														class="flex items-center justify-center self-stretch my-[-10px] ml-[-8px] font-black text-[34px] bg-[oklch(0.16_0_0)] text-white"
-														style="font-family: var(--font-mono);"
+														<div
+														class="flex items-center justify-center self-stretch font-black text-[34px]"
+														style="font-family: var(--font-mono); background: {rankColor(team.rank).bg}; color: {rankColor(team.rank).fg};"
 													>
 														{team.rank}
 													</div>

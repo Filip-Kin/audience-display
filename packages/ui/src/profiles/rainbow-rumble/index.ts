@@ -8,6 +8,8 @@ import BreakTimer from "./screens/break-timer/BreakTimer.svelte";
 import Timeout from "./screens/time-out/Timeout.svelte";
 import PlayoffBracket from "./screens/playoff-bracket/PlayoffBracket.svelte";
 import Rankings from "./screens/rankings/Rankings.svelte";
+import Background from "./screens/background/Background.svelte";
+import Schedule from "./screens/schedule/Schedule.svelte";
 import "./rr.css";
 
 /**
@@ -19,6 +21,7 @@ const profile: ProfileDefinition = {
 	id: "rainbow-rumble",
 	name: "Rainbow Rumble",
 	eventName: "Rainbow Rumble",
+	eventInfoUrl: "https://rainbowrumble.org/#schedule",
 	theme: {
 		// Same alliance + surface palette as default; the rainbow identity comes
 		// from the per-screen accents in rr.css, not the theme tokens.
@@ -70,6 +73,8 @@ const profile: ProfileDefinition = {
 		"playoff-bracket": PlayoffBracket,
 		rankings: Rankings,
 		timeout: Timeout,
+		background: Background,
+		schedule: Schedule,
 	},
 };
 

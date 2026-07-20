@@ -7,6 +7,7 @@
 	const dispatcher = createEventDispatcher();
 	export let exit = false;
 	let ready = false;
+	let exiting = false;
 
 	// Sponsor crossfade: absolute-stacked slides, one visible at a time.
 	let sponsorIndex = 0;
@@ -16,7 +17,7 @@
 		ready = true;
 		sponsorTimer = setInterval(() => {
 			sponsorIndex = (sponsorIndex + 1) % RR_SPONSORS.length;
-		}, 3200);
+		}, 4800);
 	});
 
 	onDestroy(() => {
@@ -24,9 +25,9 @@
 		if (flashTimeout) clearTimeout(flashTimeout);
 	});
 
-	$: if (exit) {
-		ready = false;
-		setTimeout(() => dispatcher("transitioned"), 200);
+	$: if (exit && !exiting) {
+		exiting = true;
+		setTimeout(() => dispatcher("transitioned"), 450);
 	}
 
 	function mmss(seconds: number): string {
@@ -113,10 +114,10 @@
 </script>
 
 {#if ready}
-	<div class="rr fixed inset-0 bg-background overflow-hidden">
+	<div class="rr fixed inset-0 bg-background overflow-hidden" class:exiting>
 		<!-- Header: rainbow underline, logo + stacked titles, pick timer card -->
 		<header
-			class="flex items-center justify-between border-b-4 px-14 pt-7 pb-[18px]"
+			class="anim-top flex items-center justify-between border-b-4 px-14 pt-7 pb-[18px]"
 			style="border-image: var(--rr-rainbow) 1;"
 		>
 			<div class="flex items-center gap-[22px]">
@@ -157,7 +158,7 @@
 			<!-- LEFT: full team grid on top, camera fills the rest -->
 			<div class="grid grid-rows-[auto_auto_minmax(0,1fr)] gap-3.5 min-h-0">
 				<!-- Section label -->
-				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] font-black" style="color: var(--rr-dim);">
+				<div class="anim-left flex items-center uppercase gap-3 text-sm tracking-[0.22em] font-black" style="color: var(--rr-dim);">
 					<span class="size-[9px] rounded-[2px]" style="background: var(--rr-rainbow);"></span>
 					Available Teams
 					<div class="flex-1 h-0.5" style="background: var(--rr-rule);"></div>
@@ -168,7 +169,7 @@
 				<!-- minmax keeps empty rows at chip height (38px) late in the ceremony
 				     so the grid never collapses under the last few teams. -->
 				<div
-					class="grid grid-cols-7 gap-1.5 content-start"
+					class="anim-left grid grid-cols-7 gap-1.5 content-start"
 					style="grid-auto-flow: column; grid-template-rows: repeat({rankRows}, minmax(38px, auto));"
 				>
 					{#each rankedTeams as team (team.number)}
@@ -223,15 +224,18 @@
 
 			<!-- RIGHT: alliances + sponsor slideshow -->
 			<div class="flex flex-col min-h-0 gap-3.5">
-				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] font-black" style="color: var(--rr-dim);">
+				<div class="anim-right flex items-center uppercase gap-3 text-sm tracking-[0.22em] font-black" style="color: var(--rr-dim);">
 					<span class="size-[9px] rounded-[2px]" style="background: var(--rr-rainbow);"></span>
 					Alliances
 					<div class="flex-1 h-0.5" style="background: var(--rr-rule);"></div>
 				</div>
 
 				<div class="flex flex-col gap-1.5">
-					{#each paddedAlliances as alliance (alliance.allianceNumber)}
+					{#each paddedAlliances as alliance, allianceIdx (alliance.allianceNumber)}
 						{@const isCurrent = alliance.allianceNumber === currentPickAllianceNum}
+						<!-- Stagger wrapper: bars enter one by one with 1/3 overlap; the pulse
+						     animation lives on the inner bar so the two never fight. -->
+						<div class="anim-right" style="--anim-delay: {allianceIdx * 0.18}s;">
 						<div
 							class="grid items-stretch grid-cols-[48px_1fr] rounded-lg overflow-hidden"
 							style="
@@ -243,7 +247,7 @@
 							<!-- Alliance number: just the digit -->
 							<div
 								class="flex items-center justify-center font-black text-[26px] text-white"
-								style="background: {isCurrent ? 'oklch(0 0 0 / 0.55)' : 'oklch(0.16 0 0)'};"
+								style="background: {isCurrent ? 'oklch(0 0 0 / 0.55)' : 'oklch(0.32 0.01 250)'};"
 							>
 								{alliance.allianceNumber}
 							</div>
@@ -267,11 +271,12 @@
 								{/each}
 							</div>
 						</div>
+						</div>
 					{/each}
 				</div>
 
 				<!-- Sponsor crossfade slideshow -->
-				<div class="flex-1 mt-1 p-3 flex items-center justify-center">
+				<div class="anim-right flex-1 mt-1 p-3 flex items-center justify-center">
 					<div class="relative w-full h-full min-h-[150px]">
 						{#each RR_SPONSORS as sponsor, i}
 							<div
