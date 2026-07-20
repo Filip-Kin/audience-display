@@ -7,7 +7,6 @@
 	import RrTopBar from "./RrTopBar.svelte";
 	import ScoreBarHalf from "./ScoreBarHalf.svelte";
 	import BugCenter from "./BugCenter.svelte";
-	import Whistle from "../../../../assets/whistle.svg";
 
 	const dispatcher = createEventDispatcher();
 	export let exit = false;
@@ -90,17 +89,6 @@
      live field video behind the fixed bars stays untouched. -->
 <div class="rr">
 {#if $state.match}
-	{#if $state.match.underReview}
-		<div
-			class="fixed left-0 right-0 bg-accentWarn text-black uppercase text-center px-6 py-3.5 font-black text-[28px] tracking-[0.24em] z-30 flex items-center justify-center gap-4 {top ? 'bottom-0' : 'top-0'}"
-			in:fade={{ duration: 200 }}
-			out:fade={{ duration: 200 }}
-		>
-			<img src={Whistle} alt="" class="size-8 brightness-0" />
-			MATCH UNDER REVIEW
-			<img src={Whistle} alt="" class="size-8 brightness-0 scale-x-[-1]" />
-		</div>
-	{/if}
 
 	<!-- Top bar — slides in from the anchored edge. Needs an explicit height:
 	     TopBar's header is absolute, so without it this wrapper collapses to 0
@@ -139,6 +127,7 @@
 					phase={$state.match.phase}
 					timer={$state.match.timer}
 					phaseTimer={$state.match.phaseTimer}
+					underReview={$state.match.underReview}
 					{arrowSide}
 					pulseLeft={leftEnding}
 					pulseRight={rightEnding}

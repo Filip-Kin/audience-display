@@ -11,6 +11,10 @@
 	export let pulseRight: boolean = false;
 	/** Show "MATCH OVER" instead of the phase label once the match has ended. */
 	export let matchOver: boolean = false;
+	/** Replace the whole timer square with the yellow "match under review" card. */
+	export let underReview: boolean = false;
+
+	import Whistle from "../../../../assets/whistle.svg";
 
 	const ARROW_PULSE = "animation: rr-arrow 0.6s ease-in-out infinite; transform-origin: center;";
 
@@ -57,6 +61,18 @@
      for the long "TRANSITION SHIFT" label) so the bar never reflows. The 6px
      rainbow frame comes from the padded gradient wrapper. -->
 <div class="relative z-10 w-72" style="padding: 6px; background: var(--rr-rainbow);">
+	{#if underReview}
+		<!-- Official-FMS style: the whole timer square becomes the review card. -->
+		<div
+			class="relative h-full w-full flex flex-col items-center justify-center gap-1.5 px-4"
+			style="background: var(--rr-gold);"
+		>
+			<img src={Whistle} alt="" class="size-11 brightness-0" />
+			<div class="rr-display uppercase text-center text-[27px] leading-[1.05] text-[oklch(0.18_0.04_60)]">
+				Match<br />Under Review
+			</div>
+		</div>
+	{:else}
 	<!-- pt-1.5 lifts the shift counter onto the same line as the hub arrows
 	     (absolute top-2), with the leftover space below balancing the gap to
 	     the phase label. -->
@@ -106,4 +122,5 @@
 			{mmss(timer)}
 		</div>
 	</div>
+	{/if}
 </div>

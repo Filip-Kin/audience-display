@@ -5,6 +5,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { matchName } from "@lib/matchNamer";
 	import Logo from "@lib/components/Logo.svelte";
+	import Whistle from "../../../../assets/whistle.svg";
 	import Shutter from "@lib/components/Shutter.svelte";
 	import MatchEventHeader from "@lib/components/MatchEventHeader.svelte";
 
@@ -28,6 +29,17 @@
 />
 
 <div class="fixed flex flex-col w-full h-full justify-around z-10">
+	{#if $state.match?.underReview}
+		<div
+			class="fixed left-0 right-0 top-0 bg-accentWarn text-black uppercase text-center px-6 py-3.5 font-black text-[28px] tracking-[0.24em] z-30 flex items-center justify-center gap-4"
+			in:fade={{ duration: 200 }}
+			out:fade={{ duration: 200 }}
+		>
+			<img src={Whistle} alt="" class="size-8 brightness-0" />
+			MATCH UNDER REVIEW
+			<img src={Whistle} alt="" class="size-8 brightness-0 scale-x-[-1]" />
+		</div>
+	{/if}
 	<div class="w-full flex flex-row justify-around py-16">
 		{#if $state.match}
 			{#if ready && !exit}
