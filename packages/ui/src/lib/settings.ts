@@ -7,6 +7,8 @@ export type Settings = {
   matchReadySound: boolean;
   transitionAfterMatchEnd: number;
   showDisconnectedScreen: boolean;
+  /** Show team avatars on the score bar's team-number pills. */
+  scoreBarAvatars: boolean;
 };
 
 const browser = typeof window !== "undefined";
@@ -23,6 +25,7 @@ function parseQuerySettings(): Settings {
       matchReadySound: true,
       transitionAfterMatchEnd: -1,
       showDisconnectedScreen: false,
+      scoreBarAvatars: false,
     };
   const params = new URLSearchParams(window.location.search);
   for (const key of params.keys()) explicitParams.add(key);
@@ -36,6 +39,7 @@ function parseQuerySettings(): Settings {
       10
     ),
     showDisconnectedScreen: params.get("showDisconnectedScreen") === "true",
+    scoreBarAvatars: params.get("scoreBarAvatars") === "true",
   };
 }
 
@@ -60,6 +64,12 @@ function updateQueryParams(settings: Settings) {
     params.set("matchReadySound", "false");
   } else {
     params.delete("matchReadySound");
+  }
+
+  if (settings.scoreBarAvatars) {
+    params.set("scoreBarAvatars", "true");
+  } else {
+    params.delete("scoreBarAvatars");
   }
 
   // 0 is a legal value (transition immediately); only the default -1 is omitted.

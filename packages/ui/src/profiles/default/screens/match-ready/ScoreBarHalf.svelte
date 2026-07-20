@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { AllianceScore, Team } from "lib";
 	import { tweened } from "svelte/motion";
+	import Avatar from "@lib/components/Avatar.svelte";
+	import { settings } from "@lib/settings";
 	import { cubicOut } from "svelte/easing";
 	import FuelGauge from "./FuelGauge.svelte";
 
@@ -31,18 +33,25 @@
 		{isEndingPulse ? `animation: glow-flashout-${color} 3s ease-in-out forwards;` : ''}
 	"
 >
-	<!-- Team numbers -->
+	<!-- Team numbers; optional full-bleed avatar on the pill's inner edge -->
 	<div class="flex flex-col gap-1.5" style="order: {isLeft ? 1 : 3};">
 		{#each teams.slice(0, 3) as team (team.number)}
 			<!-- A carded team's whole chip takes the card color; size never changes. -->
 			<div
-				class="display team-num text-center text-[42px] leading-none px-3.5 py-1 min-w-[5.6ch] {team.card === 'Yellow'
+				class="flex items-stretch {isLeft ? '' : 'flex-row-reverse'} {team.card === 'Yellow'
 					? 'bg-accentWarn text-black'
 					: team.card === 'Red'
 						? 'bg-[oklch(0.5_0.21_29)] text-white'
 						: 'bg-[oklch(0_0_0/0.36)] text-white'}"
 			>
-				{team.number}
+				<div class="display team-num flex-1 text-center text-[42px] leading-none px-3.5 py-1 min-w-[5.6ch]">
+					{team.number}
+				</div>
+				{#if $settings.scoreBarAvatars}
+					<div class="w-[52px] flex-none bg-[oklch(0_0_0/0.28)]">
+						<Avatar avatar={team.avatar || undefined} team={team.number} class="w-full h-full object-cover" alt="" />
+					</div>
+				{/if}
 			</div>
 		{/each}
 	</div>
