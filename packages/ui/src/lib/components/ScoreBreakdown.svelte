@@ -32,18 +32,18 @@
 		<span class="tabular-nums">{rightScore.autoFuelPoints}</span>
 	</div>
 	<div class="grid grid-cols-[.2fr_.6fr_.2fr] even:bg-gray-200 px-2 py-2">
+		<span class="tabular-nums">{leftScore.autoClimbPoints}</span>
+		<span>Auto Tower</span>
+		<span class="tabular-nums">{rightScore.autoClimbPoints}</span>
+	</div>
+	<div class="grid grid-cols-[.2fr_.6fr_.2fr] even:bg-gray-200 px-2 py-2">
 		<span class="tabular-nums">{leftScore.teleopFuelPoints}</span>
 		<span>Teleop Fuel</span>
 		<span class="tabular-nums">{rightScore.teleopFuelPoints}</span>
 	</div>
 	<div class="grid grid-cols-[.2fr_.6fr_.2fr] even:bg-gray-200 px-2 py-2">
-		<span class="tabular-nums">{leftScore.autoClimbPoints}</span>
-		<span>Auto Climb</span>
-		<span class="tabular-nums">{rightScore.autoClimbPoints}</span>
-	</div>
-	<div class="grid grid-cols-[.2fr_.6fr_.2fr] even:bg-gray-200 px-2 py-2">
 		<span class="tabular-nums">{leftScore.endgameClimbPoints}</span>
-		<span>Endgame Climb</span>
+		<span>Teleop Tower</span>
 		<span class="tabular-nums">{rightScore.endgameClimbPoints}</span>
 	</div>
 	<div class="grid grid-cols-[.2fr_.6fr_.2fr] even:bg-gray-200 px-2 py-2">
