@@ -332,8 +332,6 @@ export class FMSSignalRConnection {
     this.infrastructureConnection.on("matchstatusinfochanged", (data: MatchStatusInfoData) => {
       console.log("matchstatusinfochanged: ", data);
 
-      this.emit("matchStateChanged", data.MatchState);
-
       if (data.MatchState.endsWith("TO")) {
         this.emit("timeout", data);
       }
@@ -535,10 +533,13 @@ export class FMSSignalRConnection {
       },
     );
 
-    // Known-noisy no-ops (this hub also mirrors match status; the display uses
-    // the infrastructure hub's copy).
+    // Field state comes from this hub (same event FTA-Buddy consumes here).
+    this.fieldMonitorConnection.on("matchstatusinfochanged", (data: MatchStatusInfoData) => {
+      this.emit("matchStateChanged", data.MatchState);
+    });
+
+    // Known-noisy no-ops.
     const fieldMonitorNoOps = [
-      "matchstatusinfochanged",
       "fieldmonitorpreviousmacaddresseschanged",
       "scheduleaheadbehindchanged",
     ];

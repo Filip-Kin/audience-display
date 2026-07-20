@@ -330,11 +330,8 @@ export class AudienceDisplayManager {
   // captain position, so declines seen on the wire are tracked here and merged
   // with the REST flags (event wins where present).
   private eventDeclines: Map<number, boolean> = new Map();
-  // Raw FMS MatchState + the shift-sound detector's private phase memory
-  // (only the game-specific stream writes it; see the gameSpecificMessage
-  // handler).
+  // Current field state, from the field monitor hub's MatchStatusInfoChanged.
   private currentMatchState = "";
-  private lastGamePhase: MatchPhase | null = null;
   private rankData: QualRanking[] = [];
   private connected = false;
   private bracket: BracketData | null = demoBracket();
@@ -544,28 +541,16 @@ export class AudienceDisplayManager {
         // normalize it to our TransitionShift phase so the label reads correctly.
         const raw = data.MatchPhase === "Coop" ? "TransitionShift" : data.MatchPhase;
         const phase: MatchPhase = raw === "None" ? "PreMatch" : raw;
-        // Ported from the real FMS audience display: entering shifts 1-4
-        // during teleop plays the "Powerup" sound. The detector keeps its OWN
-        // phase memory (lastGamePhase) fed only by this stream, so screen
-        // logic wiping match.phase (e.g. the preview reset) can't fake a
-        // transition - and unlike the official display, the first frame after
-        // a mid-match restart primes the memory instead of popping.
+        // Entering shifts 1-4 plays the FMS "Powerup" sound - only while the
+        // field is actually running teleop (state from the field monitor hub).
         const SHIFTS: MatchPhase[] = ["Shift1", "Shift2", "Shift3", "Shift4"];
-        // A display started mid-match sees no MatchStatusInfoChanged until the
-        // next state change, so the teleop-only phases in this stream also
-        // establish the state (Coop/shifts/endgame only ever occur in teleop).
-        if (phase === "TransitionShift" || phase === "Endgame" || SHIFTS.includes(phase)) {
-          this.currentMatchState = "MatchTeleop";
-        }
         if (
           this.currentMatchState === "MatchTeleop" &&
           SHIFTS.includes(phase) &&
-          this.lastGamePhase !== null &&
-          this.lastGamePhase !== phase
+          phase !== this.match.phase
         ) {
           this.playSound("shiftChange");
         }
-        this.lastGamePhase = phase;
         this.match.phase = phase;
         this.match.phaseTimer = data.CurrentPhaseTimeSeconds;
       }
