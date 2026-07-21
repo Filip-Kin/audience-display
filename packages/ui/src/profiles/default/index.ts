@@ -30,7 +30,7 @@ const profile: ProfileDefinition = {
   },
   assets: {
     event: '/wrc.png',
-    sponsors: ['/famnm.png', '/pitpodcast.png', '/sponsors.png'],
+    sponsors: [{ src: '/famnm.png' }, { src: '/pitpodcast.png' }, { src: '/sponsors.png' }],
     livestream: '/pitpodcast.png',
   },
   screens: {

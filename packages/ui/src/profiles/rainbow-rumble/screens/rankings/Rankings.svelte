@@ -1,10 +1,12 @@
 <script lang="ts">
-	import { state, eventDisplayName } from "@lib/state";
+	import { state, eventDisplayName, activeProfile } from "@lib/state";
 	import { createEventDispatcher, onDestroy, onMount } from "svelte";
 	import Logo from "@lib/components/Logo.svelte";
 	import Avatar from "@lib/components/Avatar.svelte";
 	import BracketGrid from "../playoff-bracket/BracketGrid.svelte";
-	import { RR_SPONSORS, type RrSponsor } from "../../sponsors";
+	import SlideRotator from "@lib/components/SlideRotator.svelte";
+	import SponsorSlide from "../../components/SponsorSlide.svelte";
+	import { sponsorDeck } from "@lib/sponsors";
 
 	const dispatcher = createEventDispatcher();
 	export let exit = false;
@@ -15,36 +17,19 @@
 	let exiting = false;
 
 	// #region Sponsor slideshow
-	type Slide = { kind: "sponsor"; sponsor: RrSponsor } | { kind: "bracket" };
-
-	let slideIdx = 0;
-	let rotationTimer: ReturnType<typeof setInterval> | null = null;
-
 	// A live mini bracket only makes sense once the event is in playoffs.
 	$: inPlayoffs =
 		$state.match?.details.matchType === "sf" || $state.match?.details.matchType === "f";
 	$: showBracket = !showBreakTimer && inPlayoffs && !!$state.bracket;
-
-	// Deck built from the profile's sponsor art, plus one bracket page
-	// (mid-deck) during playoffs.
-	$: slides = ((): Slide[] => {
-		const deck: Slide[] = RR_SPONSORS.map((sponsor) => ({ kind: "sponsor" as const, sponsor }));
-		if (showBracket) deck.splice(Math.min(2, deck.length), 0, { kind: "bracket" });
-		return deck;
-	})();
-	$: currentSlide = slideIdx % slides.length;
+	$: slides = sponsorDeck($activeProfile.assets.sponsors, showBracket);
 	// #endregion
 
 	onMount(() => {
 		ready = true;
-		rotationTimer = setInterval(() => {
-			slideIdx += 1;
-		}, 4800);
 		startTicker();
 	});
 
 	onDestroy(() => {
-		if (rotationTimer) clearInterval(rotationTimer);
 		cancelAnimationFrame(scrollRaf);
 	});
 
@@ -156,47 +141,16 @@
 					<div class="flex-1 h-0.5 bg-[var(--rr-rule)]"></div>
 				</div>
 
-				<div class="relative flex-1 min-h-0 bg-[oklch(0_0_0/0.6)] border-2 border-white rounded-[var(--rr-r)] overflow-hidden">
-					{#each slides as slide, i}
-						<div
-							class="absolute inset-0 transition-opacity duration-[600ms]"
-							style="
-								opacity: {i === currentSlide ? 1 : 0};
-								pointer-events: {i === currentSlide ? 'auto' : 'none'};
-							"
-						>
-							{#if slide.kind === "sponsor"}
-								<div class="w-full h-full flex items-center justify-center p-12">
-									<img
-										src={slide.sponsor.src}
-										alt="Sponsor"
-										class="object-contain {slide.sponsor.light
-											? 'max-w-[78%] max-h-[78%] bg-white rounded-2xl p-6'
-											: 'max-w-[70%] max-h-[70%]'}"
-									/>
-								</div>
-							{:else if $state.bracket}
-								<div class="w-full h-full p-2.5 pb-8">
-									<BracketGrid compact bracket={$state.bracket} />
-								</div>
-							{/if}
-						</div>
-					{/each}
-
-					<!-- Slide dots (inside the box so they never change the surrounding layout) -->
-					{#if slides.length > 1}
-						<div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-							{#each slides as _, i}
-								<div
-									class="h-2 rounded transition-all duration-300"
-									style="
-										width: {i === currentSlide ? '32px' : '8px'};
-										background: {i === currentSlide ? 'var(--rr-rainbow)' : 'oklch(1 0 0 / 0.35)'};
-									"
-								></div>
-							{/each}
-						</div>
-					{/if}
+				<div class="flex-1 min-h-0 bg-[oklch(0_0_0/0.6)] border-2 border-white rounded-[var(--rr-r)] overflow-hidden">
+					<SlideRotator {slides} showDots dotAccent="var(--rr-rainbow)" let:slide>
+						{#if slide.kind === "sponsor" && slide.sponsor}
+							<SponsorSlide sponsor={slide.sponsor} />
+						{:else if slide.kind === "bracket" && $state.bracket}
+							<div class="w-full h-full p-2.5 pb-8">
+								<BracketGrid compact bracket={$state.bracket} />
+							</div>
+						{/if}
+					</SlideRotator>
 				</div>
 			</div>
 

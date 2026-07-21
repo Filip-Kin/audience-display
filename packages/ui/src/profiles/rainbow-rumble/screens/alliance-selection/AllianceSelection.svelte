@@ -1,27 +1,19 @@
 <script lang="ts">
-	import { state, eventDisplayName } from "@lib/state";
+	import { state, eventDisplayName, activeProfile } from "@lib/state";
 	import { createEventDispatcher, onDestroy, onMount } from "svelte";
 	import Logo from "@lib/components/Logo.svelte";
-	import { RR_SPONSORS } from "../../sponsors";
+	import SlideRotator from "@lib/components/SlideRotator.svelte";
 
 	const dispatcher = createEventDispatcher();
 	export let exit = false;
 	let ready = false;
 	let exiting = false;
 
-	// Sponsor crossfade: absolute-stacked slides, one visible at a time.
-	let sponsorIndex = 0;
-	let sponsorTimer: ReturnType<typeof setInterval> | null = null;
-
 	onMount(() => {
 		ready = true;
-		sponsorTimer = setInterval(() => {
-			sponsorIndex = (sponsorIndex + 1) % RR_SPONSORS.length;
-		}, 4800);
 	});
 
 	onDestroy(() => {
-		if (sponsorTimer) clearInterval(sponsorTimer);
 		if (flashTimeout) clearTimeout(flashTimeout);
 	});
 
@@ -277,21 +269,18 @@
 
 				<!-- Sponsor crossfade slideshow -->
 				<div class="anim-right flex-1 mt-1 p-3 flex items-center justify-center">
-					<div class="relative w-full h-full min-h-[150px]">
-						{#each RR_SPONSORS as sponsor, i}
-							<div
-								class="absolute inset-0 flex items-center justify-center p-4"
-								style="opacity: {i === sponsorIndex ? 1 : 0}; transition: opacity 0.6s;"
-							>
+					<div class="w-full h-full min-h-[150px]">
+						<SlideRotator slides={$activeProfile.assets.sponsors} let:slide>
+							<div class="w-full h-full flex items-center justify-center p-4">
 								<img
-									src={sponsor.src}
+									src={slide.src}
 									alt="Sponsor"
-									class="max-h-full max-w-full object-contain box-border {sponsor.light
+									class="max-h-full max-w-full object-contain box-border {slide.light
 										? 'bg-white rounded-2xl p-[18px]'
 										: ''}"
 								/>
 							</div>
-						{/each}
+						</SlideRotator>
 					</div>
 				</div>
 			</div>

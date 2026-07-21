@@ -37,11 +37,14 @@ const profile: ProfileDefinition = {
 	assets: {
 		event: "/rainbow-rumble/logo.png",
 		sponsors: [
-			"/rainbow-rumble/rev.png",
-			"/rainbow-rumble/techsmith-dark.webp",
-			"/rainbow-rumble/thrifty-dark.webp",
-			"/rainbow-rumble/mcr.webp",
-			"/rainbow-rumble/rsa.webp",
+			{ src: "/rainbow-rumble/ctre.png" },
+			{ src: "/rainbow-rumble/fun.webp" },
+			{ src: "/rainbow-rumble/rsa.webp", light: true },
+			{ src: "/rainbow-rumble/mcr.webp" },
+			{ src: "/rainbow-rumble/rev.png" },
+			{ src: "/rainbow-rumble/thrifty-dark.webp" },
+			// TechSmith + Jeanette Cona-Larock share a stacked slide (smaller sponsors).
+			{ src: "/rainbow-rumble/techsmith-jeanette.png" },
 		],
 		livestream: "/rainbow-rumble/fun.webp",
 	},

@@ -6,6 +6,7 @@
 	import { settings } from "@lib/settings";
 	import Alliance from "./Alliance.svelte";
 	import ScoreBreakdown from "@lib/components/ScoreBreakdown.svelte";
+	import SponsorCarousel from "./SponsorCarousel.svelte";
 	import EventHighScoreBanner from "./EventHighScoreBanner.svelte";
 	import Confetti from "./Confetti.svelte";
 	import MatchUnderReviewOverlay from "./MatchUnderReviewOverlay.svelte";
@@ -158,7 +159,6 @@
 	$: leftBreakdownScore = $state.results?.score[$settings.invert ? "red" : "blue"];
 	$: rightBreakdownScore = $state.results?.score[$settings.invert ? "blue" : "red"];
 	$: tiebreaker = $state.results?.tiebreaker;
-	$: sponsors = $activeProfile.assets.sponsors;
 
 	// Event champion: a finals alliance just clinched the best-of-3 (seriesWins only
 	// exists on finals results). Confetti falls on that alliance's side of the screen.
@@ -227,12 +227,9 @@
 		<!-- Cell 1: left sponsors column -->
 		<div>
 			<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Event Sponsors</h2>
-			<img
-				src={sponsors[0] ?? "/logo.png"}
-				class="h-60 mx-auto self-center object-contain"
-				alt={sponsors[0] ? "sponsor" : "event logo"}
-				in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}
-			/>
+			<div class="h-60" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}>
+				<SponsorCarousel />
+			</div>
 		</div>
 
 		<!-- Cell 2: center match results, spans 2 rows -->

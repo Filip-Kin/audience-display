@@ -33,6 +33,7 @@ export type {
   ProfileAssets,
   ProfileLayout,
   LogoPosition,
+  SponsorLogo,
 } from "./types/profile";
 
 export type {

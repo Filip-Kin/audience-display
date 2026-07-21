@@ -16,10 +16,21 @@ export type ProfileTheme = {
   text: string;
 };
 
+export type SponsorLogo = {
+  src: string;
+  /** Logo needs a white card behind it to read on a dark background. */
+  light?: boolean;
+};
+
 export type ProfileAssets = {
   event?: string;
   livestream?: string;
-  sponsors: string[];
+  /**
+   * Sponsor art rotated on the chrome screens. The entry whose src matches
+   * `livestream` is excluded from the results-screen carousel, since the
+   * livestream partner has its own dedicated spot there.
+   */
+  sponsors: SponsorLogo[];
 };
 
 export type ProfileLayout = {
