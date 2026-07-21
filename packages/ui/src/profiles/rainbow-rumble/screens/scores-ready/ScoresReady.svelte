@@ -4,6 +4,7 @@
 	import Whistle from "../../../../assets/whistle.svg";
 	import { settings } from "@lib/settings";
 	import { createEventDispatcher, onDestroy } from "svelte";
+	import { get } from "svelte/store";
 	import { matchName } from "@lib/matchNamer";
 	import Shutter from "@lib/components/Shutter.svelte";
 
@@ -16,9 +17,21 @@
 	const SPIN = "rr-spin 3.2s linear infinite";
 
 	$: eventLabel = $eventDisplayName;
-	$: matchLabel = $state.match
+
+	// FMS auto-loads the next match the moment scores post, and that must not
+	// rename this screen: track the current match only until commit, then hold.
+	// A mount that starts committed (repost / MatchResult re-show) never saw the
+	// original match load, so it names the loaded results instead.
+	const startedCommitted = get(state).screen === "scores-ready";
+	$: liveMatchLabel = $state.match
 		? matchName($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType) ?? ""
 		: "";
+	$: resultsMatchLabel = $state.results
+		? matchName($state.results.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.results.details.matchType) ?? ""
+		: "";
+	let matchLabel = "";
+	$: if (startedCommitted) matchLabel = resultsMatchLabel;
+	else if (!committed) matchLabel = liveMatchLabel;
 
 	// This component is mounted for both "match-end" (awaiting scores, logo spins)
 	// and "scores-ready" (scores committed, spin frozen + glint). The router keeps

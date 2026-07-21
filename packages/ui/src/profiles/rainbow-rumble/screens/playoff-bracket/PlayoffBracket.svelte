@@ -3,6 +3,7 @@
 	import BracketGrid from "./BracketGrid.svelte";
 	import BracketAlliances from "./BracketAlliances.svelte";
 	import { createEventDispatcher, onDestroy, onMount } from "svelte";
+	import { get } from "svelte/store";
 	import Logo from "@lib/components/Logo.svelte";
 
 	const dispatcher = createEventDispatcher();
@@ -53,6 +54,18 @@
 		: "";
 	$: countdown = formatCountdown(Math.max(0, Math.floor(((firstMatchStart ?? 0) - now) / 1000)));
 
+	// Break clock: FMS ticks it over the wire (AllianceSelectionTimer ->
+	// match.timer) while a break runs. Freshness-gated so a leftover value from
+	// an earlier break can't paint a frozen countdown in the header.
+	let lastSeenTimer: number | null = get(state).match?.timer ?? null;
+	let lastTickAt = 0;
+	$: if ($state.pickTimerType === "break" && $state.match && $state.match.timer !== lastSeenTimer) {
+		lastSeenTimer = $state.match.timer;
+		lastTickAt = Date.now();
+	}
+	$: breakSeconds = $state.match?.timer ?? 0;
+	$: breakActive = $state.pickTimerType === "break" && breakSeconds > 0 && now - lastTickAt < 3000;
+
 	$: if (exit && !exiting) {
 		exiting = true;
 		setTimeout(() => dispatcher("transitioned"), 450);
@@ -78,7 +91,18 @@
 					PLAYOFF BRACKET
 				</div>
 			</div>
-			{#if showCountdown}
+			{#if breakActive}
+				<div
+					class="ml-auto flex items-center gap-5 px-9 py-3.5 bg-[oklch(0_0_0/0.6)] border-2 border-[var(--rr-accent)] rounded-[var(--rr-r-sm)]"
+				>
+					<div class="uppercase text-[16px] font-black tracking-[0.2em] text-[var(--rr-dim)]">
+						Break
+					</div>
+					<div class="rr-display tabular-nums text-[92px] leading-[0.9] text-white">
+						{formatCountdown(breakSeconds)}
+					</div>
+				</div>
+			{:else if showCountdown}
 				<div
 					class="ml-auto flex items-center gap-5 px-9 py-3.5 bg-[oklch(0_0_0/0.6)] border-2 border-[var(--rr-accent)] rounded-[var(--rr-r-sm)]"
 				>

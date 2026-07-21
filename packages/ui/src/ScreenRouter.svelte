@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from "svelte";
-	import { state, activeProfile } from "./lib/state";
+	import { state, activeProfile, freezeStateData, unfreezeStateData } from "./lib/state";
 	import type { Screen } from "lib";
 	import SettingsIcon from "./assets/settings.svg";
 	import SettingsModal from "./lib/components/SettingsModal.svelte";
@@ -38,6 +38,7 @@
 
 	function completeTransition() {
 		clearTransitionTimers();
+		unfreezeStateData();
 		pendingScreen = null;
 		transitioning = false;
 		activeScreen = $state.screen;
@@ -48,6 +49,10 @@
 	}
 
 	function beginExit() {
+		// The outgoing screen keeps showing the data it had when the exit started;
+		// server updates that land mid-animation (a repost's swapped-in results,
+		// the next match loading) only apply once the swap completes.
+		freezeStateData();
 		transitioning = true;
 		// Completion fallback: if the exiting screen never dispatches "transitioned",
 		// finish the swap anyway so the display can't wedge mid-transition.
@@ -66,7 +71,10 @@
 		// If we're loading the score-reveal screen set this to true to hide the flicker when loading the animation
 		preScoreReveal = $state.screen === "score-reveal";
 
-		if ($state.screen === "scores-ready" && $settings.transitionAfterMatchEnd > -1) {
+		if ($state.screen === "scores-ready" && $settings.transitionAfterMatchEnd > -1 && activeScreen.startsWith("match-")) {
+			// The hold exists to keep the final in-match screen up after the buzzer.
+			// From anywhere else (score-reveal sliding out on a repost, a MatchResult
+			// re-show) scores-ready must come up immediately, via the standard branch.
 			// Don't transition to scores-ready if the active screen is match-end
 			console.log("scores-ready");
 			if (activeScreen !== "match-end") {

@@ -435,12 +435,15 @@ export class AudienceDisplayManager {
     });
 
     this.fmsConnection.on("allianceClockTick", (time) => {
-      // Selection break clock; only meaningful on the selection screens, so a
-      // stray/leftover alliance clock can never clobber the match clock.
+      // Selection break clock; only meaningful on the selection screens - and
+      // the bracket, whose header shows the break countdown during playoff
+      // breaks - so a stray/leftover alliance clock can never clobber the
+      // match clock.
       if (
         this.screen !== "alliance-selection" &&
         this.screen !== "alliance-selection-fullscreen" &&
-        this.screen !== "break-timer"
+        this.screen !== "break-timer" &&
+        this.screen !== "playoff-bracket"
       ) {
         return;
       }

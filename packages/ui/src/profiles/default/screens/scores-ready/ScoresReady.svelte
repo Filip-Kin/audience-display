@@ -3,6 +3,7 @@
 	import { state, eventDisplayName, activeProfile } from "@lib/state";
 	import { settings } from "@lib/settings";
 	import { createEventDispatcher } from "svelte";
+	import { get } from "svelte/store";
 	import { matchName } from "@lib/matchNamer";
 	import Logo from "@lib/components/Logo.svelte";
 	import Whistle from "../../../../assets/whistle.svg";
@@ -15,9 +16,22 @@
 
 	$: eventLabel = $eventDisplayName;
 	$: eventLogo = $activeProfile.assets.event ?? "/logo.png";
-	$: matchLabel = $state.match
+
+	// FMS auto-loads the next match the moment scores post, and that must not
+	// rename this screen: track the current match only until commit, then hold.
+	// A mount that starts committed (repost / MatchResult re-show) never saw the
+	// original match load, so it names the loaded results instead.
+	const startedCommitted = get(state).screen === "scores-ready";
+	$: committed = $state.screen === "scores-ready";
+	$: liveMatchLabel = $state.match
 		? matchName($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType) ?? ""
 		: "";
+	$: resultsMatchLabel = $state.results
+		? matchName($state.results.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.results.details.matchType) ?? ""
+		: "";
+	let matchLabel = "";
+	$: if (startedCommitted) matchLabel = resultsMatchLabel;
+	else if (!committed) matchLabel = liveMatchLabel;
 </script>
 
 <Shutter

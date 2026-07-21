@@ -30,6 +30,15 @@ const defaultState: AudienceDisplayState = {
 let socket: WebSocket | null = null;
 let lastAppliedProfileId: string | null = null;
 
+// #region Exit-transition data freeze
+// While a screen slides out it must keep showing the data it exited with -
+// otherwise a repost swaps new results into the still-visible screen mid
+// animation. The router freezes on exit start and unfreezes once the swap is
+// done; screen/connection/profile fields always pass through so screen
+// commands are never delayed.
+let frozenData: AudienceDisplayState | null = null;
+let bufferedWhileFrozen: AudienceDisplayState | null = null;
+
 function applyProfileTheme(profileId: string | null) {
   const id = profileId ?? DEFAULT_PROFILE_ID;
   if (id === lastAppliedProfileId) return;
@@ -57,7 +66,17 @@ export const state = writable(defaultState, (set) => {
       const message = JSON.parse(event.data);
       if (message.type === "state") {
         const newState = message.data as AudienceDisplayState;
-        set(newState);
+        if (frozenData) {
+          bufferedWhileFrozen = newState;
+          set({
+            ...frozenData,
+            connected: newState.connected,
+            screen: newState.screen,
+            activeProfileId: newState.activeProfileId,
+          });
+        } else {
+          set(newState);
+        }
         applyProfileTheme(newState.activeProfileId);
         // Profile settings defaults apply ONCE per profile change - state
         // broadcasts arrive every second and must not clobber modal edits.
@@ -83,6 +102,8 @@ export const state = writable(defaultState, (set) => {
 
     ws.onclose = () => {
       console.log("Disconnected from server!");
+      frozenData = null;
+      bufferedWhileFrozen = null;
       set(defaultState);
       if (stopped) return;
       reconnectTimeout = setTimeout(connect, 5000);
@@ -102,6 +123,19 @@ export const state = writable(defaultState, (set) => {
     socket = null;
   };
 });
+
+export function freezeStateData(): void {
+  frozenData = get(state);
+}
+
+export function unfreezeStateData(): void {
+  if (!frozenData) return;
+  frozenData = null;
+  if (bufferedWhileFrozen) {
+    state.set(bufferedWhileFrozen);
+    bufferedWhileFrozen = null;
+  }
+}
 
 export const activeProfileId = derived(state, ($s) => $s.activeProfileId);
 export const activeProfile = derived(state, ($s) => getProfile($s.activeProfileId));
