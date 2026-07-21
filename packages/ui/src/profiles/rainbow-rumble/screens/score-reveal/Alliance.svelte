@@ -58,8 +58,8 @@
 	<div class="flex flex-col gap-3.5 justify-start">
 		<!-- Top status: rainbow Winner/Tie banner, or a 60px spacer on the loser so
 		     both alliance cards keep the same height. Playoff advancement attaches
-		     beneath. -->
-		<div class="flex flex-col gap-1">
+		     beneath, at the same gap as the rest of the column. -->
+		<div class="flex flex-col gap-3.5">
 			{#if isWinner}
 				<div
 					class="h-[60px] flex flex-row items-center justify-center gap-4 text-white text-[44px] font-bold rounded-[var(--rr-r-sm)]"
@@ -96,8 +96,10 @@
 
 		<AllianceSection {alliance} {teams} {ready} {invert} showRank={!isPlayoff} gap={10}>
 			<svelte:fragment slot="card" let:team let:index>
+				<!-- flex-col + flex-1 on the name row: the 4-team grid stretches every cell to
+				     the tallest card, so the white bg must grow to fill the rounded outline. -->
 				<div
-					class="ad-in rounded-2xl overflow-hidden shadow-[0_6px_20px_oklch(0_0_0/0.55)]"
+					class="ad-in flex flex-col rounded-2xl overflow-hidden shadow-[0_6px_20px_oklch(0_0_0/0.55)]"
 					style="animation-delay: {index * 70}ms;"
 				>
 					<div class="flex items-center gap-3 {allianceBg} text-white px-3.5 py-2">
@@ -106,7 +108,7 @@
 						</div>
 						<span class="rr-display text-[40px] leading-[0.9]">{team.number}</span>
 					</div>
-					<div class="flex items-center gap-2 bg-white text-[oklch(0.16_0_0)] px-3.5 py-[5px]">
+					<div class="flex-1 flex items-center gap-2 bg-white text-[oklch(0.16_0_0)] px-3.5 py-[5px]">
 						<!-- Long names drop a size instead of truncating, like the shared TeamCard -->
 						<span
 							class="min-w-0 flex-1 font-bold whitespace-nowrap overflow-hidden text-ellipsis {team.name.length > 22

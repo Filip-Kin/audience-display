@@ -7,8 +7,8 @@
 	export let tiebreaker: PlayoffTiebreakType | undefined = undefined;
 
 	// 2026 REBUILT playoff tiebreaker criteria, in FMS sort order (game manual Table 10-3).
-	const TIEBREAK_LABELS: Record<PlayoffTiebreakType, string> = {
-		Unknown: "Decided by Tiebreaker",
+	// "Unknown" is FMS's enum default (-1): the match was decided on points, so no banner.
+	const TIEBREAK_LABELS: Partial<Record<PlayoffTiebreakType, string>> = {
 		TrueTie: "True Tie: Match Replay",
 		TieBreakSortOrder1: "Tiebreaker: Major Foul Points",
 		TieBreakSortOrder2: "Tiebreaker: Auto Fuel Points",
@@ -18,7 +18,7 @@
 		TieBreakSortOrder6: "Tiebreaker: Sort Order 6",
 	};
 
-	$: tiebreakLabel = tiebreaker ? TIEBREAK_LABELS[tiebreaker] : "";
+	$: tiebreakLabel = (tiebreaker && TIEBREAK_LABELS[tiebreaker]) ?? "";
 </script>
 
 <div

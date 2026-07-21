@@ -56,8 +56,9 @@
 {#if $state.results && ready}
 	<div class="flex flex-col gap-4 justify-start">
 		<!-- Top status: winner/tie banner (or a spacer to hold layout) with the
-		     playoff advancement banner attached directly beneath it. -->
-		<div class="flex flex-col gap-1">
+		     playoff advancement banner beneath it, at the same gap as the rest
+		     of the column. -->
+		<div class="flex flex-col gap-4">
 			{#if isWinner}
 				<div class={bannerStyle}>
 					<img src={Trophy} alt="Trophy" class="size-16" />
