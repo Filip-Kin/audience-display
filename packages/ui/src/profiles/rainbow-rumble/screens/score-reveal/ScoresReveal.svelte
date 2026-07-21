@@ -249,7 +249,11 @@
 
 			<div class="flex flex-col items-center">
 				{#if leftBreakdownScore && rightBreakdownScore}
-					<div class="rr-breakdown w-full max-w-3xl mt-2.5">
+					<div
+						class="rr-breakdown w-full max-w-3xl mt-2.5"
+						in:fly={{ y: 200, duration: 400 }}
+						out:fade={{ duration: 150 }}
+					>
 						<ScoreBreakdown leftScore={leftBreakdownScore} rightScore={rightBreakdownScore} {tiebreaker} />
 					</div>
 				{/if}
