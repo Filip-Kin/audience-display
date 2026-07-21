@@ -134,6 +134,8 @@ export type AudienceDisplayState = {
   /** Full qualification standings for the rankings screen (from GetQualificationRankData). */
   rankData: QualRanking[];
   bracket: BracketData | null;
+  /** Scheduled start of playoff match 1 (ISO), for the bracket screen's pre-playoff countdown. */
+  firstPlayoffMatchTime: string | null;
   gameConfig: GameConfig | null;
   activeProfileId: string | null;
   /** Server-side FMS traffic logging switch (settings gear toggles it). */

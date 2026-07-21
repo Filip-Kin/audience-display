@@ -15,6 +15,8 @@
 	let view = 0;
 	let fading = false;
 	let swapTimer: ReturnType<typeof setInterval> | null = null;
+	let now = Date.now();
+	let clockTimer: ReturnType<typeof setInterval> | null = null;
 
 	onMount(() => {
 		ready = true;
@@ -26,11 +28,30 @@
 				fading = false;
 			}, 400);
 		}, 15000);
+		clockTimer = setInterval(() => (now = Date.now()), 1000);
 	});
 
 	onDestroy(() => {
 		if (swapTimer) clearInterval(swapTimer);
+		if (clockTimer) clearInterval(clockTimer);
 	});
+
+	// Pre-playoff header: scheduled start of M1 plus a live countdown, until M1 is played.
+	const formatCountdown = (totalSeconds: number): string => {
+		const h = Math.floor(totalSeconds / 3600);
+		const m = Math.floor((totalSeconds % 3600) / 60);
+		const s = totalSeconds % 60;
+		return h > 0
+			? `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
+			: `${m}:${String(s).padStart(2, "0")}`;
+	};
+	$: firstMatchStart = $state.firstPlayoffMatchTime ? Date.parse($state.firstPlayoffMatchTime) : null;
+	$: m1 = $state.bracket?.doubleElimMatchesList.find((m) => m.matchNumber === 1) ?? null;
+	$: showCountdown = firstMatchStart !== null && !Number.isNaN(firstMatchStart) && !!m1 && !m1.isComplete;
+	$: startClock = firstMatchStart
+		? new Date(firstMatchStart).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+		: "";
+	$: countdown = formatCountdown(Math.max(0, Math.floor(((firstMatchStart ?? 0) - now) / 1000)));
 
 	$: if (exit && !exiting) {
 		exiting = true;
@@ -57,6 +78,18 @@
 					PLAYOFF BRACKET
 				</div>
 			</div>
+			{#if showCountdown}
+				<div
+					class="ml-auto flex items-center gap-5 px-9 py-3.5 bg-[oklch(0_0_0/0.6)] border-2 border-[var(--rr-accent)] rounded-[var(--rr-r-sm)]"
+				>
+					<div class="uppercase text-[16px] font-black tracking-[0.2em] text-[var(--rr-dim)]">
+						First Match<br />at {startClock}
+					</div>
+					<div class="rr-display tabular-nums text-[92px] leading-[0.9] text-white">
+						{countdown}
+					</div>
+				</div>
+			{/if}
 		</header>
 
 		<!-- Bracket / full-screen alliances, swapped every 15s -->

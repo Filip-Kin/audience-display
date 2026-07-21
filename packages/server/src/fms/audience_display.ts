@@ -335,6 +335,7 @@ export class AudienceDisplayManager {
   private rankData: QualRanking[] = [];
   private connected = false;
   private bracket: BracketData | null = demoBracket();
+  private firstPlayoffMatchTime: string | null = null;
   private gameConfig: GameConfig = defaultGameConfig();
   private bracketRefreshTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -760,6 +761,7 @@ export class AudienceDisplayManager {
           pickTimerType: this.pickTimerType,
           rankData: this.rankData,
           bracket: this.bracket,
+          firstPlayoffMatchTime: this.firstPlayoffMatchTime,
           gameConfig: this.gameConfig,
           activeProfileId: this.profileSelector?.get() ?? null,
           fmsLogging: isFmsLoggingEnabled(),
@@ -781,6 +783,12 @@ export class AudienceDisplayManager {
 
   private async refreshBracket() {
     this.bracket = await fetchBracket(this.fmsUrl);
+    // Scheduled start of playoff M1, for the bracket header's pre-playoff countdown.
+    const schedule = await this.getCurrentSchedule();
+    this.firstPlayoffMatchTime =
+      schedule?.find(
+        (m) => m.tournamentLevel === "Playoff" && m.matchNumber === 1
+      )?.startTime ?? null;
   }
 
   private startBracketRefresh() {
