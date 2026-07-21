@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from "svelte";
-	import { state, activeProfile, freezeStateData, unfreezeStateData } from "./lib/state";
+	import { state, activeProfile, freezeStateData, unfreezeStateData, previousScreen } from "./lib/state";
 	import type { Screen } from "lib";
 	import SettingsIcon from "./assets/settings.svg";
 	import SettingsModal from "./lib/components/SettingsModal.svelte";
@@ -39,6 +39,7 @@
 	function completeTransition() {
 		clearTransitionTimers();
 		unfreezeStateData();
+		previousScreen.set(activeScreen);
 		pendingScreen = null;
 		transitioning = false;
 		activeScreen = $state.screen;

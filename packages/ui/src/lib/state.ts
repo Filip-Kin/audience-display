@@ -137,6 +137,10 @@ export function unfreezeStateData(): void {
   }
 }
 
+// The screen the router last transitioned away from. Lets a screen that mounts
+// mid-flow tell a live match flow from a repost/re-show (see ScoresReady).
+export const previousScreen = writable<Screen>("none");
+
 export const activeProfileId = derived(state, ($s) => $s.activeProfileId);
 export const activeProfile = derived(state, ($s) => getProfile($s.activeProfileId));
 export const eventDisplayName = derived(

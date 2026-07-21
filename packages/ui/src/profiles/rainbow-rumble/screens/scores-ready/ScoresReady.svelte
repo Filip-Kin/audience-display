@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { fly, fade } from "svelte/transition";
-	import { state, eventDisplayName } from "@lib/state";
+	import { state, eventDisplayName, previousScreen } from "@lib/state";
 	import Whistle from "../../../../assets/whistle.svg";
 	import { settings } from "@lib/settings";
 	import { createEventDispatcher, onDestroy } from "svelte";
@@ -20,9 +20,12 @@
 
 	// FMS auto-loads the next match the moment scores post, and that must not
 	// rename this screen: track the current match only until commit, then hold.
-	// A mount that starts committed (repost / MatchResult re-show) never saw the
-	// original match load, so it names the loaded results instead.
-	const startedCommitted = get(state).screen === "scores-ready";
+	// A mount that starts committed can't watch the commit happen: coming from a
+	// match screen it's still the live flow (transitionAfterMatchEnd -1 skips the
+	// match-end phase entirely), so hold the current match's name; from anywhere
+	// else it's a repost/re-show, so name the loaded results instead.
+	const liveFlow =
+		get(state).screen !== "scores-ready" || get(previousScreen).startsWith("match-");
 	$: liveMatchLabel = $state.match
 		? matchName($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType) ?? ""
 		: "";
@@ -30,8 +33,8 @@
 		? matchName($state.results.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.results.details.matchType) ?? ""
 		: "";
 	let matchLabel = "";
-	$: if (startedCommitted) matchLabel = resultsMatchLabel;
-	else if (!committed) matchLabel = liveMatchLabel;
+	$: if (!liveFlow) matchLabel = resultsMatchLabel;
+	else if (!committed || !matchLabel) matchLabel = liveMatchLabel;
 
 	// This component is mounted for both "match-end" (awaiting scores, logo spins)
 	// and "scores-ready" (scores committed, spin frozen + glint). The router keeps
