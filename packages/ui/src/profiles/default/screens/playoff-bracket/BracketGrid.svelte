@@ -22,20 +22,22 @@
 	//   upper: M1-M4 -> M7, M8 -> M11
 	//   lower: M5, M6 -> M9, M10 -> M12 -> M13
 	// M10 is listed above M9 so the winner lines (M5->M10, M6->M9) don't cross.
-	$: upperByRound = [
-		byNumbers(matches, [1, 2, 3, 4]),
-		byNumbers(matches, [7, 8]),
-		[],
-		byNumbers(matches, [11]),
+	// Fluid placement on a 25-unit grid (a card spans 4 units, so placement has
+	// quarter-card resolution). The lower track is offset half a card from the
+	// upper so each round visibly steps right; M13 leaves a spare unit before
+	// the finals divider so its elbow (colinear with M11's) has room.
+	$: upperCols = [
+		{ matches: byNumbers(matches, [1, 2, 3, 4]), col: 2, extra: "padding-left: 10px;" },
+		{ matches: byNumbers(matches, [7, 8]), col: 8, extra: "" },
+		{ matches: byNumbers(matches, [11]), col: 14, extra: "" },
 	];
-	$: lowerByRound = [
-		[],
-		byNumbers(matches, [5, 6]),
-		byNumbers(matches, [10, 9]),
-		byNumbers(matches, [12]),
+	$: lowerCols = [
+		{ matches: byNumbers(matches, [5, 6]), col: 4, extra: "" },
+		// Raised a third of a card so the M5/M6 -> M9/M10 flow reads diagonally.
+		{ matches: byNumbers(matches, [10, 9]), col: 9, extra: "position: relative; top: -32px;" },
+		{ matches: byNumbers(matches, [12]), col: 14, extra: "position: relative; top: -32px;" },
 	];
 	$: m13 = matches.find((m) => m.matchNumber === 13) ?? null;
-	const roundLabels = ["Round 1", "Round 2", "Round 3", "Round 4", "Round 5"];
 
 	// #region connector lines
 	// Winner-advancement pairs; "F" is the finals node.
@@ -72,9 +74,14 @@
 			const y1 = ra.top + ra.height / 2 - c.top;
 			const x2 = rb.left - c.left;
 			const y2 = rb.top + rb.height / 2 - c.top;
-			// Elbow just before the destination box: long links (e.g. M11 -> Finals) would
-			// otherwise run their destination-height segment across intermediate columns (M13).
-			const xm = Math.max(x1 + 6, x2 - (compact ? 14 : 30));
+			// Merge joins (two sources into one destination) put their shared vertical
+			// midway between the cards; M12 -> M13 hugs its destination so the
+			// next-match pulse zoom never touches it; finals links elbow just before
+			// the box so their verticals stay colinear right of M13.
+			const midpointJoin = to === "7" || to === "8" || to === "11" || to === "12";
+			const xm = midpointJoin
+				? Math.max(x1 + 6, (x1 + x2) / 2)
+				: Math.max(x1 + 6, x2 - (compact ? (to === "13" ? 7 : 14) : to === "13" ? 12 : 30));
 			return [`M ${x1} ${y1} H ${xm} V ${y2} H ${x2}`];
 		});
 		// afterUpdate calls this on every render; only reassign when the geometry
@@ -91,9 +98,6 @@
 	afterUpdate(computeLines);
 	// #endregion
 
-	$: headerCls = compact
-		? "uppercase text-center font-black text-[10px] tracking-[0.14em] pb-1"
-		: "uppercase text-center font-black text-sm tracking-[0.22em] pb-3";
 	$: trackLabelCls = compact
 		? "uppercase text-dim font-black text-[9px] tracking-[0.2em]"
 		: "uppercase text-dim font-black text-[13px] tracking-[0.3em]";
@@ -106,10 +110,8 @@
 <div
 	bind:this={container}
 	on:animationend={computeLines}
-	class="relative grid h-full w-full {compact
-		? 'grid-cols-[auto_repeat(5,1fr)_1.15fr] gap-x-2'
-		: 'grid-cols-[auto_repeat(5,1fr)_1.25fr] gap-x-4'}"
-	style="grid-template-rows: auto 1.7fr 1fr;"
+	class="relative grid h-full w-full grid-cols-[auto_repeat(25,minmax(0,1fr))]"
+	style="grid-template-rows: 1.7fr 1fr;"
 >
 	<!-- Winner-advancement lines, measured from the live box positions -->
 	<svg class="absolute inset-0 w-full h-full pointer-events-none" aria-hidden="true">
@@ -118,26 +120,16 @@
 		{/each}
 	</svg>
 
-	<!-- Round headers -->
-	<div style="grid-row: 1; grid-column: 1;"></div>
-	{#each roundLabels as label, i}
-		<div class="{headerCls} text-dim" style="grid-row: 1; grid-column: {i + 2};">
-			{label}
-		</div>
-	{/each}
-	<div class="{headerCls} text-accentWarn" style="grid-row: 1; grid-column: 7;">
-		Finals
-	</div>
 
 	<!-- Upper bracket track -->
-	<div class="flex items-center justify-center" style="grid-row: 2; grid-column: 1;">
+	<div class="flex items-center justify-center" style="grid-row: 1; grid-column: 1;">
 		<div class={trackLabelCls} style="writing-mode: vertical-rl; transform: rotate(180deg);">
 			Upper Bracket
 		</div>
 	</div>
-	{#each upperByRound as col, i}
-		<div class={cellCls} style="grid-row: 2; grid-column: {i + 2};">
-			{#each col as match (match.matchNumber)}
+	{#each upperCols as c, i}
+		<div class={cellCls} style="grid-row: 1; grid-column: {c.col} / span 4; {c.extra}">
+			{#each c.matches as match (match.matchNumber)}
 				<div use:registerNode={String(match.matchNumber)} class="anim-card" style="--anim-delay: {i * 0.08}s;">
 					<BracketNode {match} {compact} alliances={compact ? null : allianceMap} />
 				</div>
@@ -146,14 +138,14 @@
 	{/each}
 
 	<!-- Lower bracket track -->
-	<div class="flex items-center justify-center" style="grid-row: 3; grid-column: 1;">
+	<div class="flex items-center justify-center" style="grid-row: 2; grid-column: 1;">
 		<div class={trackLabelCls} style="writing-mode: vertical-rl; transform: rotate(180deg);">
 			Lower Bracket
 		</div>
 	</div>
-	{#each lowerByRound as col, i}
-		<div class={cellCls} style="grid-row: 3; grid-column: {i + 2};">
-			{#each col as match (match.matchNumber)}
+	{#each lowerCols as c, i}
+		<div class={cellCls} style="grid-row: 2; grid-column: {c.col} / span 4; {c.extra}">
+			{#each c.matches as match (match.matchNumber)}
 				<div use:registerNode={String(match.matchNumber)} class="anim-card" style="--anim-delay: {i * 0.08}s;">
 					<BracketNode {match} {compact} alliances={compact ? null : allianceMap} />
 				</div>
@@ -163,7 +155,7 @@
 
 	<!-- M13 spans both tracks so it sits between the upper and lower brackets -->
 	{#if m13}
-		<div class="flex flex-col justify-center min-h-0" style="grid-row: 2 / span 2; grid-column: 6;">
+		<div class="flex flex-col justify-center min-h-0" style="grid-row: 1 / span 2; grid-column: 18 / span 4; position: relative; left: 22px;">
 			<div use:registerNode={"13"} class="anim-card" style="--anim-delay: 0.32s;">
 				<BracketNode match={m13} {compact} alliances={compact ? null : allianceMap} />
 			</div>
@@ -175,7 +167,7 @@
 		class="flex flex-col justify-center border-l border-white/20 {compact
 			? 'gap-2 pl-2'
 			: 'gap-6 pl-4'}"
-		style="grid-row: 2 / span 2; grid-column: 7;"
+		style="grid-row: 1 / span 2; grid-column: 23 / span 4;"
 	>
 		{#if bracket.finals}
 			<div use:registerNode={"F"} class="anim-card" style="--anim-delay: 0.4s;">
