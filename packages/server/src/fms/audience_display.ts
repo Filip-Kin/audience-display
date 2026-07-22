@@ -463,14 +463,24 @@ export class AudienceDisplayManager {
         // FMS option MatchResult: re-show the currently loaded results by routing
         // through scores-ready then score-reveal.
         this.stopBracketRefresh();
-        // A freshly booted server has no loaded results to re-show (only the
-        // demo placeholder); showing that would be wrong data with authority.
-        // Fall back to the background screen until a real command arrives.
         if (!this.resultsLoaded) {
-          console.log("MatchResult with no results loaded this session; showing background");
-          this.screen = "background";
-          this.broadcastState();
-          return;
+          // A normal post flips VideoSwitchOption to MatchResult AND sends
+          // AudienceShowMatchResult moments apart, in either order. Give that
+          // flow a few seconds to land before concluding this is a fresh boot
+          // mid-MatchResult with nothing to re-show.
+          for (let i = 0; i < 12 && !this.resultsLoaded; i++) {
+            await new Promise((resolve) => setTimeout(resolve, 250));
+            // A showResults arrived and claimed the screen; it owns the flow.
+            if (!isCurrent()) return;
+          }
+          if (!this.resultsLoaded) {
+            // Nothing loaded to re-show (fresh server boot); showing the demo
+            // placeholder would be wrong data with authority.
+            console.log("MatchResult with no results loaded this session; showing background");
+            this.screen = "background";
+            this.broadcastState();
+            return;
+          }
         }
         this.screen = "scores-ready";
         this.broadcastState();
