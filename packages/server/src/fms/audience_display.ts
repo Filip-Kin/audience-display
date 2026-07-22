@@ -1002,8 +1002,9 @@ export class AudienceDisplayManager {
   ): Promise<NormalizedMatchPreview | null> {
     if (level === LevelParam.Playoff) {
       // Same rule as getMatchResults: playoff wire numbers are 1-13, finals
-      // 14-19; the number decides the endpoint, never the (possibly
-      // already-advanced) GetCurrentPlayoffLevel.
+      // 14-19 with the Final Tiebreaker riding the wire as 0 (internally 16);
+      // the number decides the endpoint, never GetCurrentPlayoffLevel.
+      if (matchNumber === 0) matchNumber = 16;
       const isFinals = matchNumber >= 14;
       const endpoint = isFinals
         ? "GetDoubleElimFinalMatchPreviewData"
@@ -1184,11 +1185,13 @@ export class AudienceDisplayManager {
     matchNumber: number
   ): Promise<NormalizedMatchResults | null> {
     if (level === LevelParam.Playoff) {
-      // Real-FMS ground truth (2026-07-22 laptop log, 8-alliance bracket):
+      // Real-FMS ground truth (2026-07-22/23 laptop logs, 8-alliance bracket):
       // playoff wire numbers are 1-13 and finals continue the sequence at
-      // 14-16 (17-19 overtime), so the number alone decides the endpoint.
-      // GetCurrentPlayoffLevel must NOT be consulted here: it already says
-      // "Final" the moment M13's result records, which mislabeled M13.
+      // 14-15 (17-19 overtime) - EXCEPT the Final Tiebreaker, which rides the
+      // wire as MatchNumber 0 (internally 16). The number alone decides the
+      // endpoint; GetCurrentPlayoffLevel must NOT be consulted (it already
+      // says "Final" the moment M13's result records).
+      if (matchNumber === 0) matchNumber = 16;
       const isFinals = matchNumber >= 14;
       if (isFinals) {
         const data = await this.fetchJson<FMSFinalMatchScore>(
