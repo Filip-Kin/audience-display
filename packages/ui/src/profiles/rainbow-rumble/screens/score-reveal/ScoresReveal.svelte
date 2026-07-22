@@ -249,10 +249,12 @@
 
 			<div class="flex flex-col items-center">
 				{#if leftBreakdownScore && rightBreakdownScore}
+					<!-- |global: the screen exit unmounts the OUTER if-block; Svelte 4
+					     transitions are local by default and would not fire from here. -->
 					<div
 						class="rr-breakdown w-full max-w-3xl mt-2.5"
-						in:fly={{ y: 200, duration: 400 }}
-						out:fade={{ duration: 150 }}
+						in:fly|global={{ y: 200, duration: 400 }}
+						out:fade|global={{ duration: 150 }}
 					>
 						<ScoreBreakdown leftScore={leftBreakdownScore} rightScore={rightBreakdownScore} {tiebreaker} />
 					</div>
