@@ -17,6 +17,12 @@ const browser = typeof window !== "undefined";
 // never override these (the operator pinned them on purpose).
 const explicitParams = new Set<string>();
 
+// What a reload WITHOUT the URL param would resolve to: -1 until the active
+// profile ships a default (e.g. RR's 3). The URL keeps transitionAfterMatchEnd
+// whenever the current value differs from this, so a pinned -1 survives under
+// a profile whose default is not -1.
+let profileDefaultTransition = -1;
+
 function parseQuerySettings(): Settings {
   if (!browser)
     return {
@@ -72,8 +78,9 @@ function updateQueryParams(settings: Settings) {
     params.delete("scoreBarAvatars");
   }
 
-  // 0 is a legal value (transition immediately); only the default -1 is omitted.
-  if (settings.transitionAfterMatchEnd !== -1) {
+  // 0 is a legal value (transition immediately); only the value a paramless
+  // reload would produce anyway is omitted.
+  if (settings.transitionAfterMatchEnd !== profileDefaultTransition) {
     params.set(
       "transitionAfterMatchEnd",
       settings.transitionAfterMatchEnd.toString()
@@ -114,6 +121,11 @@ export const settings = createSettingsStore();
  */
 export function applyProfileDefaults(defaults?: { transitionAfterMatchEnd?: number }): void {
   if (!defaults) return;
+  if (defaults.transitionAfterMatchEnd !== undefined) {
+    // Track the ambient default even when a URL pin wins, so updateQueryParams
+    // knows which value can be safely omitted from the URL.
+    profileDefaultTransition = defaults.transitionAfterMatchEnd;
+  }
   settings.update((s) => {
     const next = { ...s };
     if (
