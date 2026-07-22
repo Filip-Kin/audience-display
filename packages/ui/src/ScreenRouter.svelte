@@ -223,11 +223,11 @@
      priority; with the ws up, a false connected flag means the SERVER lost
      its SignalR link to FMS. -->
 {#if !$serverConnected}
-	<div class="fixed top-4 left-1/2 -translate-x-1/2 z-[60] text-red-500 font-black uppercase text-3xl tracking-[0.15em] bg-black/70 px-6 py-2 rounded-lg">
+	<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] text-red-500 font-black uppercase text-[90px] leading-tight text-center tracking-[0.15em] bg-black/70 px-14 py-6 rounded-2xl">
 		Connection Lost
 	</div>
 {:else if !$state.connected}
-	<div class="fixed top-4 left-1/2 -translate-x-1/2 z-[60] text-red-500 font-black uppercase text-3xl tracking-[0.15em] bg-black/70 px-6 py-2 rounded-lg">
+	<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] text-red-500 font-black uppercase text-[90px] leading-tight text-center tracking-[0.15em] bg-black/70 px-14 py-6 rounded-2xl">
 		Lost SignalR Connection
 	</div>
 {/if}
