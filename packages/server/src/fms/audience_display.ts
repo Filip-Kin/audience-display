@@ -356,6 +356,9 @@ export class AudienceDisplayManager {
   };
 
   private results: MatchState = demoResultsState();
+  /** True once real results have been fetched this session; a fresh boot has
+   * only the demo placeholder and must never re-show it as if it were real. */
+  private resultsLoaded = false;
   private match: MatchState = defaultMatchState(1);
 
   private teamLineup: { red: number[]; blue: number[] } = { red: [], blue: [] };
@@ -460,6 +463,15 @@ export class AudienceDisplayManager {
         // FMS option MatchResult: re-show the currently loaded results by routing
         // through scores-ready then score-reveal.
         this.stopBracketRefresh();
+        // A freshly booted server has no loaded results to re-show (only the
+        // demo placeholder); showing that would be wrong data with authority.
+        // Fall back to the background screen until a real command arrives.
+        if (!this.resultsLoaded) {
+          console.log("MatchResult with no results loaded this session; showing background");
+          this.screen = "background";
+          this.broadcastState();
+          return;
+        }
         this.screen = "scores-ready";
         this.broadcastState();
         this.scheduleScoreRevealFlip();
@@ -612,6 +624,7 @@ export class AudienceDisplayManager {
       this.results.details.blueSeriesWins = results.blueSeriesWins;
       this.results.tiebreaker = results.tiebreaker;
       this.results.score.winner = results.matchWinner === null ? "Tie" : results.matchWinner;
+      this.resultsLoaded = true;
 
       // Finals results are the captures that matter most; push the FMS log to
       // the NAS whenever one is posted (also hooked on commit, but not every
