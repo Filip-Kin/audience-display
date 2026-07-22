@@ -73,13 +73,21 @@
 		preScoreReveal = $state.screen === "score-reveal";
 
 		if ($state.screen === "scores-ready" && $settings.transitionAfterMatchEnd > -1 && activeScreen.startsWith("match-")) {
-			// The hold exists to keep the final in-match screen up after the buzzer.
+			// transitionAfterMatchEnd is a field-privacy feature, not presentation:
+			// stock FMS stays on the match video screen until scores post (-1 mode).
+			// With it set, the display auto-switches OFF the video N seconds after
+			// the match ends so the field camera is hidden while people are on the
+			// field between matches; N is just long enough to read the final score.
 			// From anywhere else (score-reveal sliding out on a repost, a MatchResult
 			// re-show) scores-ready must come up immediately, via the standard branch.
 			// Don't transition to scores-ready if the active screen is match-end
 			console.log("scores-ready");
 			if (activeScreen !== "match-end") {
 				console.log("Transitioning to scores-ready");
+				// Freeze for the whole hold, not just the exit: a fast post loads
+				// the next match DURING the hold, and the still-visible match
+				// screen must not repaint its header with it.
+				freezeStateData();
 				delayTimer = setTimeout(beginExit, $settings.transitionAfterMatchEnd * 1000);
 			}
 		} else if ($state.screen === "match-end") {
