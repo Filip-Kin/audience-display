@@ -99,4 +99,9 @@ const audienceDisplay = new AudienceDisplayManager(
   profileSelector
 );
 
+// State heartbeat: FMS events can go quiet for minutes between matches, and
+// displays use this cadence to detect half-dead sockets (their watchdog forces
+// a reconnect after ~6s of silence).
+setInterval(() => audienceDisplay.broadcastState(), 2000);
+
 console.log(`Listening on ${server.hostname}:${server.port}`);

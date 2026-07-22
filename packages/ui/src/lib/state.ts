@@ -49,6 +49,8 @@ function applyProfileTheme(profileId: string | null) {
 
 export const state = writable(defaultState, (set) => {
   let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+  let watchdog: ReturnType<typeof setInterval> | null = null;
+  let lastMessageAt = 0;
   let stopped = false;
 
   // Every (re)connection goes through here so each socket gets the full set of
@@ -57,12 +59,22 @@ export const state = writable(defaultState, (set) => {
   function connect() {
     const ws = new WebSocket(`ws://${location.host}/ws`);
     socket = ws;
+    lastMessageAt = Date.now();
+
+    // An attempt to an unreachable host can hang in CONNECTING for the OS TCP
+    // timeout (20s+); abort it so retries keep their ~1s cadence.
+    const connectTimeout = setTimeout(() => {
+      if (ws.readyState === WebSocket.CONNECTING) ws.close();
+    }, 4000);
 
     ws.onopen = () => {
       console.log("Connected to server!");
+      clearTimeout(connectTimeout);
+      lastMessageAt = Date.now();
     };
 
     ws.onmessage = (event) => {
+      lastMessageAt = Date.now();
       const message = JSON.parse(event.data);
       if (message.type === "state") {
         const newState = message.data as AudienceDisplayState;
@@ -102,15 +114,27 @@ export const state = writable(defaultState, (set) => {
 
     ws.onclose = () => {
       console.log("Disconnected from server!");
+      clearTimeout(connectTimeout);
       frozenData = null;
       bufferedWhileFrozen = null;
       set(defaultState);
       if (stopped) return;
-      reconnectTimeout = setTimeout(connect, 5000);
+      reconnectTimeout = setTimeout(connect, 1000);
     };
   }
 
   connect();
+
+  // A connection that dies without a close frame (network blip, server machine
+  // hard-killed or asleep) never fires onclose, leaving the display frozen on
+  // stale state. The server heartbeats state every 2s; if the socket has been
+  // silent well past that, force a close so the reconnect loop takes over.
+  watchdog = setInterval(() => {
+    if (socket && socket.readyState === WebSocket.OPEN && Date.now() - lastMessageAt > 6000) {
+      console.log("No heartbeat from server; forcing reconnect");
+      socket.close();
+    }
+  }, 2000);
 
   // Apply the default theme immediately so the UI isn't unthemed before the
   // first state message arrives.
@@ -119,6 +143,7 @@ export const state = writable(defaultState, (set) => {
   return () => {
     stopped = true;
     if (reconnectTimeout) clearTimeout(reconnectTimeout);
+    if (watchdog) clearInterval(watchdog);
     socket?.close();
     socket = null;
   };
