@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { state } from "@lib/state";
+	import { get } from "svelte/store";
 	import AllianceSection from "@lib/components/AllianceSection.svelte";
 	import RankingPoints from "@lib/components/RankingPoints.svelte";
 	import Trophy from "../../../../assets/trophy.svg";
@@ -8,13 +9,16 @@
 	export let alliance: "red" | "blue";
 	export let invert: boolean = false;
 
-	$: isPlayoff = $state.results?.details.matchType === "sf" || $state.results?.details.matchType === "f";
-	$: isFinals = $state.results?.details.matchType === "f";
-	$: allianceName = $state.results?.details[alliance === "red" ? "redAlliance" : "blueAlliance"];
-	$: winner = $state.results?.score.winner;
+	// Post-time snapshot; see ScoresReveal.
+	const results = get(state).results;
+
+	$: isPlayoff = results?.details.matchType === "sf" || results?.details.matchType === "f";
+	$: isFinals = results?.details.matchType === "f";
+	$: allianceName = results?.details[alliance === "red" ? "redAlliance" : "blueAlliance"];
+	$: winner = results?.score.winner;
 	$: isWinner = winner === (alliance === "red" ? "Red" : "Blue");
 	$: isTie = winner === "Tie";
-	$: teams = $state.results?.teams[alliance] ?? [];
+	$: teams = results?.teams[alliance] ?? [];
 
 	// Standard 8-alliance double-elim topology (FRC game manual Table 10-2). Where each
 	// alliance goes next is fully determined by the match number + win/loss, so we don't
@@ -25,10 +29,10 @@
 
 	/** Where this alliance heads after the match — drives the banner on the winner side. */
 	$: advancement = ((): { kind: "finals" | "eliminated" } | { kind: "advances"; bracket: "Upper" | "Lower"; matchNumber: number } | null => {
-		if (!isPlayoff || !$state.results) return null;
+		if (!isPlayoff || !results) return null;
 		if (winner !== "Red" && winner !== "Blue") return null; // no advancement on a tie / no result
 
-		const cur = $state.results.details.matchNumber;
+		const cur = results.details.matchNumber;
 		// The finals matches (M14-16) decide the event; no advancement banner on them.
 		if (isFinals || cur >= 14) return null;
 
@@ -53,7 +57,7 @@
 	const bannerStyle = "h-16 flex flex-row bg-bannerAccent gap-4 items-center text-white text-5xl font-bold justify-center";
 </script>
 
-{#if $state.results && ready}
+{#if results && ready}
 	<div class="flex flex-col gap-4 justify-start">
 		<!-- Top status: winner/tie banner (or a spacer to hold layout) with the
 		     playoff advancement banner beneath it, at the same gap as the rest

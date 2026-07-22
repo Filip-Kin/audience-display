@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { state } from "@lib/state";
+	import { get } from "svelte/store";
 	import AllianceSection from "@lib/components/AllianceSection.svelte";
 	import Avatar from "@lib/components/Avatar.svelte";
 	import RrRankingPoints from "./RrRankingPoints.svelte";
@@ -9,13 +10,16 @@
 	export let alliance: "red" | "blue";
 	export let invert: boolean = false;
 
-	$: isPlayoff = $state.results?.details.matchType === "sf" || $state.results?.details.matchType === "f";
-	$: isFinals = $state.results?.details.matchType === "f";
-	$: allianceName = $state.results?.details[alliance === "red" ? "redAlliance" : "blueAlliance"];
-	$: winner = $state.results?.score.winner;
+	// Post-time snapshot; see ScoresReveal.
+	const results = get(state).results;
+
+	$: isPlayoff = results?.details.matchType === "sf" || results?.details.matchType === "f";
+	$: isFinals = results?.details.matchType === "f";
+	$: allianceName = results?.details[alliance === "red" ? "redAlliance" : "blueAlliance"];
+	$: winner = results?.score.winner;
 	$: isWinner = winner === (alliance === "red" ? "Red" : "Blue");
 	$: isTie = winner === "Tie";
-	$: teams = $state.results?.teams[alliance] ?? [];
+	$: teams = results?.teams[alliance] ?? [];
 
 	$: allianceBg = alliance === "red" ? "bg-redAlliance" : "bg-blueAlliance";
 
@@ -28,10 +32,10 @@
 
 	/** Where this alliance heads after the match — drives the banner on the winner side. */
 	$: advancement = ((): { kind: "finals" | "eliminated" } | { kind: "advances"; bracket: "Upper" | "Lower"; matchNumber: number } | null => {
-		if (!isPlayoff || !$state.results) return null;
+		if (!isPlayoff || !results) return null;
 		if (winner !== "Red" && winner !== "Blue") return null; // no advancement on a tie / no result
 
-		const cur = $state.results.details.matchNumber;
+		const cur = results.details.matchNumber;
 		// The finals matches (M14-16) decide the event; no advancement banner on them.
 		if (isFinals || cur >= 14) return null;
 
@@ -54,7 +58,7 @@
 	$: advancementClass = advancement === null ? "" : "bg-[oklch(0.40_0.01_255)] text-white";
 </script>
 
-{#if $state.results && ready}
+{#if results && ready}
 	<div class="flex flex-col gap-3.5 justify-start">
 		<!-- Top status: rainbow Winner/Tie banner, or a 60px spacer on the loser so
 		     both alliance cards keep the same height. Playoff advancement attaches

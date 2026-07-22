@@ -21,6 +21,12 @@
 	const dispatcher = createEventDispatcher();
 	export let exit = false;
 
+	// Post-time snapshot: results never live-update while a reveal is up (a
+	// reconnect can deliver placeholder data mid-show). A repost REMOUNTS this
+	// component, so new results still get in the only way they should.
+	const results = get(state).results;
+	const matchCount = get(state).eventDetails?.matchCount ?? 0;
+
 	let animation: string;
 	let videoElm: HTMLVideoElement;
 	// Live volume for the winner animation (settings slider).
@@ -38,9 +44,9 @@
 	}
 
 	onMount(() => {
-		if ($state.results?.score.winner) {
+		if (results?.score.winner) {
 			const profile = get(activeProfile);
-			switch ($state.results?.score.winner) {
+			switch (results?.score.winner) {
 				case "Red":
 					animation = packUrl(profile, "victoryRed");
 					break;
@@ -118,7 +124,7 @@
 		videoElm.addEventListener("error", (event) => {
 			if (animation && !animation.includes("/animations/default/")) {
 				console.log("Victory animation failed to load; falling back to default animation:", event);
-				const winner = $state.results?.score.winner;
+				const winner = results?.score.winner;
 				if (winner === "Red") animation = "/animations/default/redwins.mp4";
 				else if (winner === "Blue") animation = "/animations/default/bluewins.mp4";
 				else if (winner === "Tie") animation = "/animations/default/tie.mp4";
@@ -148,26 +154,26 @@
 	}
 
 	$: eventLabel = $eventDisplayName;
-	$: matchLabel = $state.results
-		? matchName($state.results.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.results.details.matchType) ?? ""
+	$: matchLabel = results
+		? matchName(results.details.matchNumber, matchCount, results.details.matchType) ?? ""
 		: "";
 
-	$: redScore = $state.results?.score.red;
-	$: blueScore = $state.results?.score.blue;
+	$: redScore = results?.score.red;
+	$: blueScore = results?.score.blue;
 	$: highScoreVisible = !!(redScore?.isHighScore || blueScore?.isHighScore);
-	$: leftBreakdownScore = $state.results?.score[$settings.invert ? "red" : "blue"];
-	$: rightBreakdownScore = $state.results?.score[$settings.invert ? "blue" : "red"];
-	$: tiebreaker = $state.results?.tiebreaker;
+	$: leftBreakdownScore = results?.score[$settings.invert ? "red" : "blue"];
+	$: rightBreakdownScore = results?.score[$settings.invert ? "blue" : "red"];
+	$: tiebreaker = results?.tiebreaker;
 
 	// Event champion: a finals alliance just clinched the best-of-3 (seriesWins only
 	// exists on finals results). Confetti falls on that alliance's side of the screen.
 	// If the data ever claims BOTH clinched (stale/staged series state), trust the
 	// winner of the match being shown.
-	$: redClinched = ($state.results?.details.redSeriesWins ?? 0) >= 2;
-	$: blueClinched = ($state.results?.details.blueSeriesWins ?? 0) >= 2;
+	$: redClinched = (results?.details.redSeriesWins ?? 0) >= 2;
+	$: blueClinched = (results?.details.blueSeriesWins ?? 0) >= 2;
 	$: championColor =
 		redClinched && blueClinched
-			? $state.results?.score.winner === "Blue"
+			? results?.score.winner === "Blue"
 				? ("blue" as const)
 				: ("red" as const)
 			: redClinched
@@ -186,7 +192,7 @@
 				: ("left" as const);
 </script>
 
-<MatchUnderReviewOverlay visible={!!$state.results?.underReview} />
+<MatchUnderReviewOverlay visible={!!results?.underReview} />
 
 {#if ready && championColor}
 	<Confetti side={championSide} color={championColor} />
@@ -209,7 +215,7 @@
 />
 
 <div class="rr fixed z-10 grid grid-cols-[.36fr_.28fr_.36fr] w-full h-full p-8 gap-8" class:flex-row-reverse={$settings.invert}>
-	{#if $state.results && ready}
+	{#if results && ready}
 		<!-- Cell 1: left sponsors column -->
 		<div>
 			<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Event Sponsors</h2>
@@ -235,11 +241,11 @@
 					<div class="flex" class:flex-row-reverse={$settings.invert}>
 						<div class="bg-blueAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3">
 							<span class="text-white font-bold text-[30px]">Blue</span>
-							<span class="text-white font-bold tabular-nums text-[88px] leading-none pt-2">{$state.results?.score.blue.score}</span>
+							<span class="text-white font-bold tabular-nums text-[88px] leading-none pt-2">{results?.score.blue.score}</span>
 						</div>
 						<div class="bg-redAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3">
 							<span class="text-white font-bold text-[30px]">Red</span>
-							<span class="text-white font-bold tabular-nums text-[88px] leading-none pt-2">{$state.results?.score.red.score}</span>
+							<span class="text-white font-bold tabular-nums text-[88px] leading-none pt-2">{results?.score.red.score}</span>
 						</div>
 					</div>
 				</div>

@@ -356,9 +356,13 @@ export class AudienceDisplayManager {
   };
 
   private results: MatchState = demoResultsState();
-  /** True once real results have been fetched this session; a fresh boot has
-   * only the demo placeholder and must never re-show it as if it were real. */
+  /** True once real results have been fetched this session; the demo
+   * placeholder must never be re-shown as if it were real. */
   private resultsLoaded = false;
+  /** False until the first real screen command resolves after boot. While
+   * false, state broadcasts are withheld (pings only) so displays keep
+   * showing whatever they had instead of this server's initial "none". */
+  private screenEstablished = false;
   private match: MatchState = defaultMatchState(1);
 
   private teamLineup: { red: number[]; blue: number[] } = { red: [], blue: [] };
@@ -466,23 +470,29 @@ export class AudienceDisplayManager {
         if (!this.resultsLoaded) {
           // A normal post flips VideoSwitchOption to MatchResult AND sends
           // AudienceShowMatchResult moments apart, in either order. Give that
-          // flow a few seconds to land before concluding this is a fresh boot
-          // mid-MatchResult with nothing to re-show.
+          // flow a few seconds to land; if nothing arrives (a first-ever boot
+          // with no persisted results), keep the current screen rather than
+          // re-show the demo placeholder or disturb the displays.
           for (let i = 0; i < 12 && !this.resultsLoaded; i++) {
             await new Promise((resolve) => setTimeout(resolve, 250));
             // A showResults arrived and claimed the screen; it owns the flow.
             if (!isCurrent()) return;
           }
           if (!this.resultsLoaded) {
-            // Nothing loaded to re-show (fresh server boot); showing the demo
-            // placeholder would be wrong data with authority.
-            console.log("MatchResult with no results loaded this session; showing background");
-            this.screen = "background";
+            // Fresh boot mid-MatchResult: the displays are still showing the
+            // last reveal (they keep their own snapshot of it), so adopt
+            // "score-reveal" and let the heartbeat match what they show. A
+            // display refreshed right now would replay placeholder data, which
+            // is the accepted tradeoff for not disturbing every other display.
+            console.log("MatchResult with no results this session; adopting score-reveal");
+            this.screen = "score-reveal";
+            this.screenEstablished = true;
             this.broadcastState();
             return;
           }
         }
         this.screen = "scores-ready";
+        this.screenEstablished = true;
         this.broadcastState();
         this.scheduleScoreRevealFlip();
         return;
@@ -492,6 +502,7 @@ export class AudienceDisplayManager {
       // including a blank display for VideoOnly/Background during playoffs.
       const next: Screen = screen;
       this.screen = next;
+      this.screenEstablished = true;
 
       if (next === "match-preview") {
         const current = await this.getCurrentMatchAndPlayNumber();
@@ -615,6 +626,7 @@ export class AudienceDisplayManager {
       // once the exit animation has finished.
       if (this.screen === "score-reveal") {
         this.screen = "scores-ready";
+        this.screenEstablished = true;
         this.broadcastState();
         await new Promise((resolve) => setTimeout(resolve, 600));
         if (seq !== this.screenCommandSeq) return;
@@ -655,6 +667,7 @@ export class AudienceDisplayManager {
       }
 
       this.screen = "scores-ready";
+      this.screenEstablished = true;
       this.broadcastState();
       this.scheduleScoreRevealFlip();
     });
@@ -666,6 +679,7 @@ export class AudienceDisplayManager {
     this.fmsConnection.on("endgameWarning", () => this.playSound("endgameWarning"));
     this.fmsConnection.on("matchEnd", () => {
       this.playSound("matchEnd");
+      this.screenEstablished = true;
       this.screenCommandSeq++;
       this.cancelScoreRevealFlip();
       this.screen = "match-end";
@@ -674,6 +688,7 @@ export class AudienceDisplayManager {
     this.fmsConnection.on("matchAbort", () => this.playSound("matchAbort"));
 
     this.fmsConnection.on("matchCommit", () => {
+      this.screenEstablished = true;
       this.screenCommandSeq++;
       this.cancelScoreRevealFlip();
       this.screen = "scores-ready";
@@ -770,6 +785,13 @@ export class AudienceDisplayManager {
   }
 
   broadcastState() {
+    if (!this.screenEstablished) {
+      // Boot window: no screen has been established yet, so don't push the
+      // initial "none" (it would blank every display that is happily showing
+      // its last screen). The ping keeps client heartbeat watchdogs fed.
+      this.server.publish("audience-display", JSON.stringify({ type: "ping" }));
+      return;
+    }
     this.server.publish(
       "audience-display",
       JSON.stringify({
