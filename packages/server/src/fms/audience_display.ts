@@ -8,7 +8,6 @@ import type {
   GameConfig,
   MatchPhase,
   MatchType,
-  PlayoffLevel,
   PlayoffTiebreakType,
 } from "lib";
 import { FMSSignalRConnection } from "../signalr/connection";
@@ -882,26 +881,11 @@ export class AudienceDisplayManager {
     }
   }
 
-  /**
-   * Wire finals/overtime matches are numbered 1-3 (4-6 overtime); the display's
-   * bracket/matchNamer logic numbers them 14-19 continuing the double-elim
-   * sequence. This is the ONLY place that conversion happens.
-   */
-  private finalsWireToInternal(matchNumber: number): number {
-    return 13 + matchNumber;
-  }
-
-  /**
-   * The playoff level decides playoff-vs-finals endpoints, exactly like the
-   * official client: it queries GetCurrentPlayoffLevel ("Final" or "Level2".."Level7")
-   * and passes the raw wire match number through to the DoubleElim endpoints.
-   */
-  private async getCurrentPlayoffLevel(): Promise<PlayoffLevel | null> {
-    return this.fetchJson<PlayoffLevel>(
-      "/api/v1.0/audience/get/GetCurrentPlayoffLevel",
-      "GetCurrentPlayoffLevel"
-    );
-  }
+  // NOTE: real FMS numbers the whole 8-alliance playoff in one sequence
+  // (1-13 double elim, 14-16 finals, 17-19 overtime) on the wire AND in the
+  // DoubleElim endpoints (2026-07-22 laptop log: Final 1 posts as MatchNumber
+  // 14, GetMatchResultsDoubleElimFinalData/14 echoes matchNumber 14). There
+  // is no wire-vs-internal conversion.
 
   // #endregion
 
@@ -972,8 +956,10 @@ export class AudienceDisplayManager {
     matchNumber: number
   ): Promise<NormalizedMatchPreview | null> {
     if (level === LevelParam.Playoff) {
-      const playoffLevel = await this.getCurrentPlayoffLevel();
-      const isFinals = playoffLevel === "Final";
+      // Same rule as getMatchResults: playoff wire numbers are 1-13, finals
+      // 14-19; the number decides the endpoint, never the (possibly
+      // already-advanced) GetCurrentPlayoffLevel.
+      const isFinals = matchNumber >= 14;
       const endpoint = isFinals
         ? "GetDoubleElimFinalMatchPreviewData"
         : "GetDoubleElimPlayoffMatchPreviewData";
@@ -983,7 +969,7 @@ export class AudienceDisplayManager {
       );
       if (data === null) return null;
       return {
-        matchNumber: isFinals ? this.finalsWireToInternal(data.matchNumber) : data.matchNumber,
+        matchNumber: data.matchNumber,
         matchType: isFinals ? "f" : "sf",
         redAllianceName: data.redAlliance.allianceName ?? undefined,
         blueAllianceName: data.blueAlliance.allianceName ?? undefined,
@@ -1107,8 +1093,9 @@ export class AudienceDisplayManager {
       case LevelParam.None: return "t";
       case LevelParam.Practice: return "p";
       case LevelParam.Qualification: return "q";
-      // Playoff resolves to "sf" here; finals are detected via GetCurrentPlayoffLevel
-      // when previews/results are fetched, which set matchType "f" directly.
+      // Playoff resolves to "sf" here; finals (wire numbers 14-19) are
+      // detected by number when previews/results are fetched, which set
+      // matchType "f" directly.
       default: return "sf";
     }
   }
@@ -1152,8 +1139,12 @@ export class AudienceDisplayManager {
     matchNumber: number
   ): Promise<NormalizedMatchResults | null> {
     if (level === LevelParam.Playoff) {
-      const playoffLevel = await this.getCurrentPlayoffLevel();
-      const isFinals = playoffLevel === "Final";
+      // Real-FMS ground truth (2026-07-22 laptop log, 8-alliance bracket):
+      // playoff wire numbers are 1-13 and finals continue the sequence at
+      // 14-16 (17-19 overtime), so the number alone decides the endpoint.
+      // GetCurrentPlayoffLevel must NOT be consulted here: it already says
+      // "Final" the moment M13's result records, which mislabeled M13.
+      const isFinals = matchNumber >= 14;
       if (isFinals) {
         const data = await this.fetchJson<FMSFinalMatchScore>(
           `/api/v1.0/audience_gs/get/GetMatchResultsDoubleElimFinalData/${matchNumber}`,
@@ -1161,7 +1152,7 @@ export class AudienceDisplayManager {
         );
         if (data === null) return null;
         return {
-          matchNumber: this.finalsWireToInternal(data.matchNumber),
+          matchNumber: data.matchNumber,
           matchType: "f",
           redAllianceName: data.redAllianceData.allianceName ?? undefined,
           blueAllianceName: data.blueAllianceData.allianceName ?? undefined,
