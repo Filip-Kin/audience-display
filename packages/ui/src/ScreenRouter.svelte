@@ -24,6 +24,7 @@
 	let pendingScreen: Screen | null = null;
 	let delayTimer: ReturnType<typeof setTimeout> | null = null;
 	let completionTimer: ReturnType<typeof setTimeout> | null = null;
+	let healTimer: ReturnType<typeof setInterval> | null = null;
 
 	function clearTransitionTimers() {
 		if (delayTimer) {
@@ -144,8 +145,28 @@
 		}
 	});
 
+	// Self-heal: every screen except the two deliberate holds (match-end in -1
+	// mode, scores-ready sharing the match-end component) always has a
+	// transition scheduled. If the store's screen sits unapplied with nothing in
+	// flight, the pipeline was interrupted (e.g. a disconnect mid-transition);
+	// force the swap rather than wedge until someone refreshes the display.
+	healTimer = setInterval(() => {
+		if (
+			$state.screen !== activeScreen &&
+			!transitioning &&
+			!delayTimer &&
+			!completionTimer &&
+			$state.screen !== "scores-ready" &&
+			$state.screen !== "match-end"
+		) {
+			console.log("Screen", $state.screen, "stuck unapplied; forcing transition");
+			completeTransition();
+		}
+	}, 2000);
+
 	onDestroy(() => {
 		clearTransitionTimers();
+		if (healTimer) clearInterval(healTimer);
 	});
 
 	function unlockManually() {

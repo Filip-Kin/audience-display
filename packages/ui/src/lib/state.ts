@@ -117,7 +117,13 @@ export const state = writable(defaultState, (set) => {
       clearTimeout(connectTimeout);
       frozenData = null;
       bufferedWhileFrozen = null;
-      set(defaultState);
+      // Keep the last known screen and data on the display through the outage:
+      // blanking the projector on every server blip is worse than briefly
+      // stale content, and re-applying the screen after reconnect is exactly
+      // where a display can wedge. Only the connected flag drops (it feeds the
+      // optional disconnected overlay); the reconnect broadcast then either
+      // matches what is already shown (no transition) or moves it forward.
+      set({ ...get(state), connected: false });
       if (stopped) return;
       reconnectTimeout = setTimeout(connect, 1000);
     };
