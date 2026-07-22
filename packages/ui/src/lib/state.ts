@@ -71,6 +71,7 @@ export const state = writable(defaultState, (set) => {
       console.log("Connected to server!");
       clearTimeout(connectTimeout);
       lastMessageAt = Date.now();
+      serverConnected.set(true);
     };
 
     ws.onmessage = (event) => {
@@ -123,6 +124,7 @@ export const state = writable(defaultState, (set) => {
       // where a display can wedge. Only the connected flag drops (it feeds the
       // optional disconnected overlay); the reconnect broadcast then either
       // matches what is already shown (no transition) or moves it forward.
+      serverConnected.set(false);
       set({ ...get(state), connected: false });
       if (stopped) return;
       reconnectTimeout = setTimeout(connect, 1000);
@@ -171,6 +173,10 @@ export function unfreezeStateData(): void {
 // The screen the router last transitioned away from. Lets a screen that mounts
 // mid-flow tell a live match flow from a repost/re-show (see ScoresReady).
 export const previousScreen = writable<Screen>("none");
+
+// This display's OWN websocket to the display server. Distinct from
+// state.connected, which is the SERVER's SignalR link to FMS.
+export const serverConnected = writable(false);
 
 export const activeProfileId = derived(state, ($s) => $s.activeProfileId);
 export const activeProfile = derived(state, ($s) => getProfile($s.activeProfileId));

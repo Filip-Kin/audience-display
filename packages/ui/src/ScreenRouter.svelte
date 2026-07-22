@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from "svelte";
-	import { state, activeProfile, freezeStateData, unfreezeStateData, previousScreen } from "./lib/state";
+	import { state, activeProfile, freezeStateData, unfreezeStateData, previousScreen, serverConnected } from "./lib/state";
 	import type { Screen } from "lib";
 	import SettingsIcon from "./assets/settings.svg";
 	import SettingsModal from "./lib/components/SettingsModal.svelte";
@@ -216,6 +216,19 @@
 {#if !$state.connected && $settings.showDisconnectedScreen}
 	<div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
 		<h1 class="p-12 text-red-500 font-bold bg-gray-800 text-4xl">Disconnected</h1>
+	</div>
+{/if}
+
+<!-- Always-on connection banner: this display's ws to the server takes
+     priority; with the ws up, a false connected flag means the SERVER lost
+     its SignalR link to FMS. -->
+{#if !$serverConnected}
+	<div class="fixed top-4 left-1/2 -translate-x-1/2 z-[60] text-red-500 font-black uppercase text-3xl tracking-[0.15em] bg-black/70 px-6 py-2 rounded-lg">
+		Connection Lost
+	</div>
+{:else if !$state.connected}
+	<div class="fixed top-4 left-1/2 -translate-x-1/2 z-[60] text-red-500 font-black uppercase text-3xl tracking-[0.15em] bg-black/70 px-6 py-2 rounded-lg">
+		Lost SignalR Connection
 	</div>
 {/if}
 
