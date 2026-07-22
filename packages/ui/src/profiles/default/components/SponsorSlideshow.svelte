@@ -29,13 +29,13 @@
 		{#if slide.kind === "sponsor"}
 			<div class="w-full h-full flex items-center justify-center p-8 pb-10">
 				{#if slide.sponsor}
-					<img
-						src={slide.sponsor.src}
-						alt="Sponsor"
-						class="object-contain {slide.sponsor.light
-							? 'max-w-[80%] max-h-[80%] bg-white rounded-2xl p-6'
-							: 'w-[92%] h-[92%]'}"
-					/>
+					{#if slide.sponsor.light}
+						<div class="w-full h-full bg-white rounded-2xl p-6 flex items-center justify-center">
+							<img src={slide.sponsor.src} alt="Sponsor" class="w-full h-full object-contain" />
+						</div>
+					{:else}
+						<img src={slide.sponsor.src} alt="Sponsor" class="w-full h-full object-contain" />
+					{/if}
 				{:else}
 					<div
 						class="flex items-center justify-center uppercase w-[92%] h-[92%] bg-[oklch(0.94_0.005_250)] text-[oklch(0.30_0_0)] text-[32px] font-extrabold tracking-[0.08em] border border-dashed border-[oklch(0_0_0/0.25)]"

@@ -275,7 +275,7 @@
 								<img
 									src={slide.src}
 									alt="Sponsor"
-									class="max-h-full max-w-full object-contain box-border {slide.light
+									class="w-full h-full object-contain box-border {slide.light
 										? 'bg-white rounded-2xl p-[18px]'
 										: ''}"
 								/>

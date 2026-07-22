@@ -4,12 +4,13 @@
 	export let sponsor: SponsorLogo;
 </script>
 
+<!-- w-full/h-full (not max-*) so small source images upscale to fill the box. -->
 <div class="w-full h-full flex items-center justify-center p-12">
-	<img
-		src={sponsor.src}
-		alt="Sponsor"
-		class="object-contain {sponsor.light
-			? 'max-w-[78%] max-h-[78%] bg-white rounded-2xl p-6'
-			: 'max-w-[70%] max-h-[70%]'}"
-	/>
+	{#if sponsor.light}
+		<div class="w-full h-full bg-white rounded-2xl p-6 flex items-center justify-center">
+			<img src={sponsor.src} alt="Sponsor" class="w-full h-full object-contain" />
+		</div>
+	{:else}
+		<img src={sponsor.src} alt="Sponsor" class="w-full h-full object-contain" />
+	{/if}
 </div>
