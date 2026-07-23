@@ -3,8 +3,9 @@
 
 	/** Which edge of the screen the confetti column hugs. */
 	export let side: "left" | "right";
-	/** Winning alliance, used for the confetti palette. */
-	export let color: "red" | "blue";
+	/** Winning alliance; kept for API parity with the default profile's
+	 * confetti (RR's palette is always the rainbow). */
+	export const color: "red" | "blue" = "red";
 
 	let canvas: HTMLCanvasElement;
 
@@ -25,12 +26,18 @@
 		const ctx = canvas.getContext("2d");
 		if (!ctx) return;
 
-		const styles = getComputedStyle(document.documentElement);
-		const allianceColor =
-			styles.getPropertyValue(color === "red" ? "--redAlliance" : "--blueAlliance").trim() ||
-			(color === "red" ? "#e0393c" : "#3960e0");
-		const gold = styles.getPropertyValue("--accentWarn").trim() || "#f2cf3e";
-		const palette = [allianceColor, allianceColor, "#ffffff", gold];
+		// Rainbow Rumble: the champion confetti is the full rainbow (the winning
+		// side still decides WHERE it falls via the `side` prop).
+		const palette = [
+			"#e0393c", // red
+			"#f28c28", // orange
+			"#f2cf3e", // yellow
+			"#3fbf5a", // green
+			"#3960e0", // blue
+			"#7a3fe0", // purple
+			"#e0399e", // magenta
+			"#ffffff",
+		];
 
 		const resize = () => {
 			canvas.width = canvas.clientWidth;
