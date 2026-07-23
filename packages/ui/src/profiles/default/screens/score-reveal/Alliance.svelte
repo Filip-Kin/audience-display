@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { state } from "@lib/state";
+	import { settings } from "@lib/settings";
 	import { get } from "svelte/store";
 	import AllianceSection from "@lib/components/AllianceSection.svelte";
 	import RankingPoints from "@lib/components/RankingPoints.svelte";
@@ -11,6 +12,10 @@
 
 	// Post-time snapshot; see ScoresReveal.
 	const results = get(state).results;
+	const seriesWins =
+		results?.details[alliance === "red" ? "redSeriesWins" : "blueSeriesWins"];
+	// Which bottom panel this instance renders in (blue sits left unless inverted).
+	$: leftPanel = alliance === ($settings.invert ? "red" : "blue");
 
 	$: isPlayoff = results?.details.matchType === "sf" || results?.details.matchType === "f";
 	$: isFinals = results?.details.matchType === "f";
@@ -87,8 +92,18 @@
 		</div>
 
 		{#if allianceName}
-			<div class="flex flex-row shadow-lg rounded {alliance === 'red' ? 'bg-redAlliance' : 'bg-blueAlliance'} text-white p-4 gap-4 align-middle text-5xl font-bold justify-center">
-				{allianceName}
+			<!-- Series wins card (finals only) sits on the INSIDE edge: name-then-
+			     card on the left panel, card-then-name on the right. -->
+			<div class="flex flex-row gap-3" class:flex-row-reverse={!leftPanel}>
+				<div class="flex-1 flex flex-row shadow-lg rounded {alliance === 'red' ? 'bg-redAlliance' : 'bg-blueAlliance'} text-white p-4 gap-4 align-middle text-5xl font-bold justify-center">
+					{allianceName}
+				</div>
+				{#if seriesWins !== undefined}
+					<div class="self-stretch aspect-square flex flex-col items-center justify-center shadow-lg rounded {alliance === 'red' ? 'bg-redAlliance' : 'bg-blueAlliance'} text-white">
+						<span class="uppercase tracking-[0.14em] text-[15px] leading-none opacity-90">Wins</span>
+						<span class="text-4xl font-bold leading-none tabular-nums pt-1">{seriesWins}</span>
+					</div>
+				{/if}
 			</div>
 		{/if}
 
