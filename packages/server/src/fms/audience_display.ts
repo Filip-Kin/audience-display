@@ -652,7 +652,10 @@ export class AudienceDisplayManager {
       // the NAS whenever one is posted (also hooked on commit, but not every
       // FMS path emits WaitingForPostResults).
       if (results.matchType === "f") {
-        void syncFmsLog("finals results posted");
+        // Delayed so the sync also captures the rows logged AFTER this
+        // moment (score-reveal flip, broadcasts) rather than cutting the
+        // capture off mid-flow.
+        setTimeout(() => void syncFmsLog("finals results posted"), 5000);
       }
 
       // Clear under-review now that results are posted.
@@ -696,7 +699,7 @@ export class AudienceDisplayManager {
       // Finals results are the captures that matter most; push the FMS log to
       // the NAS as soon as each one commits (internal 14+ = finals/overtime).
       if (this.currentLevel === LevelParam.Playoff && this.match.details.matchNumber >= 14) {
-        void syncFmsLog("finals match committed");
+        setTimeout(() => void syncFmsLog("finals match committed"), 5000);
       }
     });
 

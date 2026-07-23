@@ -106,12 +106,20 @@ function quietError(reason: string, msg: string): void {
   }
 }
 
+let pendingReason: string | null = null;
+
 /**
- * Push all unsynced rows now, one chunk at a time. Serialized; overlapping
- * calls collapse into the running one.
+ * Push all unsynced rows now, one chunk at a time. Serialized; a call landing
+ * while another sync is in flight queues ONE follow-up run (it must not be
+ * dropped - rows written during the in-flight sync would otherwise wait for
+ * the next periodic timer, or forever at end of event).
  */
 export async function syncFmsLog(reason: string): Promise<void> {
-  if (!config || syncing || !fmsLogActive()) return;
+  if (!config || !fmsLogActive()) return;
+  if (syncing) {
+    pendingReason = reason;
+    return;
+  }
   syncing = true;
   try {
     const auth = `Basic ${Buffer.from(`${config.user}:${config.pass}`).toString("base64")}`;
@@ -156,5 +164,10 @@ export async function syncFmsLog(reason: string): Promise<void> {
     quietError(reason, String(err));
   } finally {
     syncing = false;
+    if (pendingReason !== null) {
+      const followUp = pendingReason;
+      pendingReason = null;
+      void syncFmsLog(followUp);
+    }
   }
 }

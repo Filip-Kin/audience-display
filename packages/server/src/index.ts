@@ -2,7 +2,7 @@ import { AudienceDisplayManager } from "./fms/audience_display";
 import { ProfileSelector } from "./profile_selector";
 import { checkForUpdate } from "./auto_update";
 import { initFmsLogger, setFmsLoggingEnabled } from "./fms_logger";
-import { initLogSync } from "./log_sync";
+import { initLogSync, syncFmsLog } from "./log_sync";
 import { existsSync } from "fs";
 import { join } from "path";
 import zipFile from "../../../ui-dist.zip" with { type: "file" };
@@ -105,3 +105,19 @@ const audienceDisplay = new AudienceDisplayManager(
 setInterval(() => audienceDisplay.broadcastState(), 2000);
 
 console.log(`Listening on ${server.hostname}:${server.port}`);
+
+// End-of-event guarantee: push any unsynced log rows before the process dies
+// (Ctrl+C, service stop, auto-update relaunch). The periodic timer alone would
+// lose everything logged since the last tick.
+let shuttingDown = false;
+async function finalSyncAndExit(signal: string): Promise<void> {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log(`${signal}: running final log sync before exit`);
+  try {
+    await syncFmsLog("shutdown");
+  } catch {}
+  process.exit(0);
+}
+process.on("SIGINT", () => void finalSyncAndExit("SIGINT"));
+process.on("SIGTERM", () => void finalSyncAndExit("SIGTERM"));
