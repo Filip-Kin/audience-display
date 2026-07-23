@@ -26,6 +26,8 @@
 	// component, so new results still get in the only way they should.
 	const results = get(state).results;
 	const matchCount = get(state).eventDetails?.matchCount ?? 0;
+	const seriesVisible =
+		results?.details.redSeriesWins !== undefined && results?.details.blueSeriesWins !== undefined;
 
 	let animation: string;
 	let videoElm: HTMLVideoElement;
@@ -238,7 +240,7 @@
 						<div class="text-white text-[28px] leading-tight">{eventLabel}</div>
 						<div class="rr-display text-[36px] leading-tight" style="color: var(--rr-accent);">{matchLabel}</div>
 					</div>
-					<div class="flex" class:flex-row-reverse={$settings.invert}>
+					<div class="relative flex" class:flex-row-reverse={$settings.invert}>
 						<div class="bg-blueAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3">
 							<span class="text-white font-bold text-[30px]">Blue</span>
 							<span class="text-white font-bold tabular-nums text-[88px] leading-none pt-2">{results?.score.blue.score}</span>
@@ -247,6 +249,17 @@
 							<span class="text-white font-bold text-[30px]">Red</span>
 							<span class="text-white font-bold tabular-nums text-[88px] leading-none pt-2">{results?.score.red.score}</span>
 						</div>
+						{#if seriesVisible}
+							<!-- Best-of-3 tally, floated on the empty seam between the score
+							     halves so it costs no layout. seriesWins = finals only. -->
+							<div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center bg-black rounded-[var(--rr-r-sm)] px-4 py-2.5 shadow-[0_6px_20px_oklch(0_0_0/0.55)]">
+								<span class="text-white font-bold uppercase tracking-[0.2em] text-[17px] leading-none pb-2">Series</span>
+								<span class="inline-flex gap-1.5" class:flex-row-reverse={$settings.invert}>
+									<span class="bg-blueAlliance text-white rr-display text-[30px] leading-none px-3 py-1.5 rounded-md tabular-nums">{results?.details.blueSeriesWins}</span>
+									<span class="bg-redAlliance text-white rr-display text-[30px] leading-none px-3 py-1.5 rounded-md tabular-nums">{results?.details.redSeriesWins}</span>
+								</span>
+							</div>
+						{/if}
 					</div>
 				</div>
 

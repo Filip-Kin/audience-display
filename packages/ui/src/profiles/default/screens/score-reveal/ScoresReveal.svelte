@@ -27,6 +27,8 @@
 	// component, so new results still get in the only way they should.
 	const results = get(state).results;
 	const matchCount = get(state).eventDetails?.matchCount ?? 0;
+	const seriesVisible =
+		results?.details.redSeriesWins !== undefined && results?.details.blueSeriesWins !== undefined;
 
 	let animation: string;
 	let videoElm: HTMLVideoElement;
@@ -242,7 +244,7 @@
 		<div class="flex flex-col row-span-2 pt-32">
 			<div class="max-w-3xl text-center text-6xl mx-auto w-full" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>
 				<div class="overflow-hidden shadow-[0_12px_40px_oklch(0_0_0/0.6)]">
-					<div class="flex" class:flex-row-reverse={$settings.invert}>
+					<div class="relative flex" class:flex-row-reverse={$settings.invert}>
 						<div class="bg-blueAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
 							<span class="text-white font-bold">Blue</span>
 							<span class="text-8xl font-bold pt-2">{results?.score.blue.score}</span>
@@ -251,6 +253,17 @@
 							<span class="text-white font-bold">Red</span>
 							<span class="text-8xl font-bold pt-2">{results?.score.red.score}</span>
 						</div>
+						{#if seriesVisible}
+							<!-- Best-of-3 tally, floated on the empty seam between the score
+							     halves so it costs no layout. seriesWins = finals only. -->
+							<div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center bg-black px-4 py-2.5 shadow-[0_6px_20px_oklch(0_0_0/0.55)]">
+								<span class="text-white font-bold uppercase tracking-[0.2em] text-[17px] leading-none pb-2">Series</span>
+								<span class="inline-flex gap-1.5" class:flex-row-reverse={$settings.invert}>
+									<span class="bg-blueAlliance text-white font-bold text-[30px] leading-none px-3 py-1.5 tabular-nums">{results?.details.blueSeriesWins}</span>
+									<span class="bg-redAlliance text-white font-bold text-[30px] leading-none px-3 py-1.5 tabular-nums">{results?.details.redSeriesWins}</span>
+								</span>
+							</div>
+						{/if}
 					</div>
 				</div>
 
