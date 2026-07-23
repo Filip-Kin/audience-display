@@ -929,6 +929,44 @@ export class AudienceDisplayManager {
     }
   }
 
+  /**
+   * The tiebreak value to display for a decided match: trust FMS's own enum
+   * when it actually sent one (the playoff endpoint does), and recompute from
+   * the score details when it is missing - the finals endpoint never assigns
+   * the field (serializes "None") and "Unknown" is the no-tie default.
+   */
+  private resolveTiebreak(
+    raw: PlayoffTiebreakType | null | undefined,
+    red: AllianceScoreDetails,
+    blue: AllianceScoreDetails
+  ): PlayoffTiebreakType | undefined {
+    if (raw && raw.startsWith("TieBreakSortOrder")) return raw;
+    return this.computeTiebreak(red, blue);
+  }
+
+  /**
+   * Which Table 10-3 criterion decided a points-tied playoff match. Real FMS
+   * does NOT name the criterion on the audience wire (2026-07-23 log: a
+   * tie-broken OT1 carries tiebreaker "None", same as a true tie), so it is
+   * recomputed from the score details. The wire has no major/minor foul
+   * split; penaltyPoints is the closest observable for criterion 1.
+   */
+  private computeTiebreak(
+    red: AllianceScoreDetails,
+    blue: AllianceScoreDetails
+  ): PlayoffTiebreakType | undefined {
+    if (red.totalScore !== blue.totalScore) return undefined; // decided on points
+    if (red.penaltyPoints !== blue.penaltyPoints) return "TieBreakSortOrder1";
+    if (red.autoFuelPoints !== blue.autoFuelPoints) return "TieBreakSortOrder2";
+    if (
+      red.autoClimbPoints + red.teleopClimbPoints !==
+      blue.autoClimbPoints + blue.teleopClimbPoints
+    ) {
+      return "TieBreakSortOrder3";
+    }
+    return undefined;
+  }
+
   // NOTE: real FMS numbers the whole 8-alliance playoff in one sequence
   // (1-13 double elim, 14-16 finals, 17-19 overtime) on the wire AND in the
   // DoubleElim endpoints (2026-07-22 laptop log: Final 1 posts as MatchNumber
@@ -1229,7 +1267,11 @@ export class AudienceDisplayManager {
               : null,
           tiebreaker:
             data.matchWinner === "Red" || data.matchWinner === "Blue"
-              ? data.tiebreaker ?? undefined
+              ? this.resolveTiebreak(
+                  data.tiebreaker,
+                  data.redAllianceData.scoreDetails,
+                  data.blueAllianceData.scoreDetails
+                )
               : "TrueTie",
         };
       }
@@ -1253,7 +1295,11 @@ export class AudienceDisplayManager {
             : null,
         tiebreaker:
           data.matchWinner === "Red" || data.matchWinner === "Blue"
-            ? data.tiebreaker ?? undefined
+            ? this.resolveTiebreak(
+                data.tiebreaker,
+                data.redAllianceData.scoreDetails,
+                data.blueAllianceData.scoreDetails
+              )
             : "TrueTie",
       };
     }
