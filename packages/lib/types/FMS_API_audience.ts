@@ -147,7 +147,7 @@ export type FMSQualMatchScore = {
   tournamentType: string;
   redAllianceData: FMSQualResultsAlliance;
   blueAllianceData: FMSQualResultsAlliance;
-  matchWinner: "Red" | "Blue" | null;
+  matchWinner: "Red" | "Blue" | "None" | null;
 };
 
 /** Playoff/finals results team: 3 fields only (cards live at alliance level). */
@@ -199,7 +199,7 @@ export type FMSPlayoffMatchScore = {
   playoffLevel: PlayoffLevel;
   redAllianceData: FMSPlayoffResultsAlliance;
   blueAllianceData: FMSPlayoffResultsAlliance;
-  matchWinner: "Red" | "Blue" | null;
+  matchWinner: "Red" | "Blue" | "None" | null;
   tiebreaker: PlayoffTiebreakType | null;
 };
 

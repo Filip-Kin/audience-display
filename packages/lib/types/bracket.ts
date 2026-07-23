@@ -19,6 +19,7 @@ export type PlayoffSizeTypes =
   | "SixteenAlliance";
 
 export type PlayoffTiebreakType =
+  | "None"
   | "Unknown"
   | "TrueTie"
   | "TieBreakSortOrder1"

@@ -1002,9 +1002,12 @@ export class AudienceDisplayManager {
   ): Promise<NormalizedMatchPreview | null> {
     if (level === LevelParam.Playoff) {
       // Same rule as getMatchResults: playoff wire numbers are 1-13, finals
-      // 14-19 with the Final Tiebreaker riding the wire as 0 (internally 16);
-      // the number decides the endpoint, never GetCurrentPlayoffLevel.
-      if (matchNumber === 0) matchNumber = 16;
+      // 14-19 with tiebreaker/overtime posts riding the wire as 0; the number
+      // decides the endpoint, never GetCurrentPlayoffLevel.
+      if (matchNumber === 0) {
+        matchNumber =
+          this.match.details.matchNumber >= 14 ? this.match.details.matchNumber : 16;
+      }
       const isFinals = matchNumber >= 14;
       const endpoint = isFinals
         ? "GetDoubleElimFinalMatchPreviewData"
@@ -1187,11 +1190,15 @@ export class AudienceDisplayManager {
     if (level === LevelParam.Playoff) {
       // Real-FMS ground truth (2026-07-22/23 laptop logs, 8-alliance bracket):
       // playoff wire numbers are 1-13 and finals continue the sequence at
-      // 14-15 (17-19 overtime) - EXCEPT the Final Tiebreaker, which rides the
-      // wire as MatchNumber 0 (internally 16). The number alone decides the
-      // endpoint; GetCurrentPlayoffLevel must NOT be consulted (it already
-      // says "Final" the moment M13's result records).
-      if (matchNumber === 0) matchNumber = 16;
+      // 14-15; the Final Tiebreaker (16) and overtimes (17-19) carry their
+      // real numbers while loading/playing but ALL post as MatchNumber 0.
+      // Resolve 0 to the match that was just on the field. The number alone
+      // decides the endpoint; GetCurrentPlayoffLevel must NOT be consulted
+      // (it already says "Final" the moment M13's result records).
+      if (matchNumber === 0) {
+        matchNumber =
+          this.match.details.matchNumber >= 14 ? this.match.details.matchNumber : 16;
+      }
       const isFinals = matchNumber >= 14;
       if (isFinals) {
         const data = await this.fetchJson<FMSFinalMatchScore>(
@@ -1210,8 +1217,17 @@ export class AudienceDisplayManager {
           blueTeams: this.mapPlayoffResultTeams(data.blueAllianceData),
           redScoreDetails: data.redAllianceData.scoreDetails,
           blueScoreDetails: data.blueAllianceData.scoreDetails,
-          matchWinner: data.matchWinner,
-          tiebreaker: data.tiebreaker ?? undefined,
+          // Real FMS reports a true tie as matchWinner "None" with tiebreaker
+          // "None" (2026-07-23 log); normalize to null + TrueTie so the reveal
+          // ties correctly and the breakdown banner shows.
+          matchWinner:
+            data.matchWinner === "Red" || data.matchWinner === "Blue"
+              ? data.matchWinner
+              : null,
+          tiebreaker:
+            data.matchWinner === "Red" || data.matchWinner === "Blue"
+              ? data.tiebreaker ?? undefined
+              : "TrueTie",
         };
       }
       const data = await this.fetchJson<FMSPlayoffMatchScore>(
@@ -1228,8 +1244,14 @@ export class AudienceDisplayManager {
         blueTeams: this.mapPlayoffResultTeams(data.blueAllianceData),
         redScoreDetails: data.redAllianceData.scoreDetails,
         blueScoreDetails: data.blueAllianceData.scoreDetails,
-        matchWinner: data.matchWinner,
-        tiebreaker: data.tiebreaker ?? undefined,
+        matchWinner:
+          data.matchWinner === "Red" || data.matchWinner === "Blue"
+            ? data.matchWinner
+            : null,
+        tiebreaker:
+          data.matchWinner === "Red" || data.matchWinner === "Blue"
+            ? data.tiebreaker ?? undefined
+            : "TrueTie",
       };
     }
 
@@ -1249,7 +1271,10 @@ export class AudienceDisplayManager {
       blueTeams: this.mapQualResultTeams(data.blueAllianceData),
       redScoreDetails: data.redAllianceData.scoreDetails,
       blueScoreDetails: data.blueAllianceData.scoreDetails,
-      matchWinner: data.matchWinner,
+      matchWinner:
+        data.matchWinner === "Red" || data.matchWinner === "Blue"
+          ? data.matchWinner
+          : null,
     };
   }
 
