@@ -9,8 +9,14 @@
 	export let showDots = false;
 	/** Active-dot fill (a color or gradient). */
 	export let dotAccent = "var(--accentWarn)";
+	/**
+	 * Slide to open on. Lets a short-lived screen start mid-deck so the tail of a
+	 * long deck still gets airtime. Read once at init; later changes are ignored
+	 * so a running rotation never jumps.
+	 */
+	export let startIndex = 0;
 
-	let index = 0;
+	let index = startIndex;
 	let timer: ReturnType<typeof setInterval> | null = null;
 
 	$: current = slides.length ? index % slides.length : 0;

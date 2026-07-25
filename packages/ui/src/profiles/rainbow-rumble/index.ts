@@ -36,15 +36,20 @@ const profile: ProfileDefinition = {
 	},
 	assets: {
 		event: "/rainbow-rumble/logo.png",
+		// Roster order = sponsorship tier order. RSA is the only entry whose art is
+		// dark-on-transparent and needs the white card; the rest either ship a light
+		// wordmark or bake in their own background.
 		sponsors: [
 			{ src: "/rainbow-rumble/ctre.png" },
 			{ src: "/rainbow-rumble/fun.webp" },
+			{ src: "/rainbow-rumble/bosch.webp" },
 			{ src: "/rainbow-rumble/rsa.webp", light: true },
+			{ src: "/rainbow-rumble/aptiv-dark.webp" },
 			{ src: "/rainbow-rumble/mcr.webp" },
 			{ src: "/rainbow-rumble/rev.png" },
 			{ src: "/rainbow-rumble/thrifty-dark.webp" },
-			// TechSmith + Jeanette Cona-Larock share a stacked slide (smaller sponsors).
-			{ src: "/rainbow-rumble/techsmith-jeanette.png" },
+			{ src: "/rainbow-rumble/techsmith-dark.webp" },
+			{ src: "/rainbow-rumble/keys-to-the-castle.webp" },
 		],
 		livestream: "/rainbow-rumble/fun.webp",
 	},
