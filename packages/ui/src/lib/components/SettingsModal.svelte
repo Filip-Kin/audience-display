@@ -101,6 +101,20 @@
 				</label>
 
 				<label class="flex items-center justify-between">
+					<div class="flex flex-col">
+						<span>Freeze Scores at Match End</span>
+						<span class="text-sm text-gray-500">Hold the buzzer score on the score bar; ignore post-match edits</span>
+					</div>
+					<label class="relative inline-flex items-center cursor-pointer">
+						<input type="checkbox" bind:checked={$settings.freezeScoresAtEnd} class="sr-only peer" />
+						<div
+							class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:bg-blue-600 transition-colors"
+						></div>
+						<div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+					</label>
+				</label>
+
+				<label class="flex items-center justify-between">
 					<span>Match Ready Sound</span>
 					<label class="relative inline-flex items-center cursor-pointer">
 						<input type="checkbox" bind:checked={$settings.matchReadySound} class="sr-only peer" />

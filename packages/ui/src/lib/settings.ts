@@ -9,6 +9,9 @@ export type Settings = {
   showDisconnectedScreen: boolean;
   /** Show team avatars on the score bar's team-number pills. */
   scoreBarAvatars: boolean;
+  /** Freeze the score bar's scores the moment the match clock hits zero, so
+   *  post-match referee edits never repaint the audience's final score. */
+  freezeScoresAtEnd: boolean;
 };
 
 const browser = typeof window !== "undefined";
@@ -32,6 +35,7 @@ function parseQuerySettings(): Settings {
       transitionAfterMatchEnd: -1,
       showDisconnectedScreen: false,
       scoreBarAvatars: false,
+      freezeScoresAtEnd: true,
     };
   const params = new URLSearchParams(window.location.search);
   for (const key of params.keys()) explicitParams.add(key);
@@ -46,6 +50,9 @@ function parseQuerySettings(): Settings {
     ),
     showDisconnectedScreen: params.get("showDisconnectedScreen") === "true",
     scoreBarAvatars: params.get("scoreBarAvatars") === "true",
+    // Default-true: only an explicit =false disables (a missing param must not
+    // read as false, unlike the matchReadySound quirk).
+    freezeScoresAtEnd: params.get("freezeScoresAtEnd") !== "false",
   };
 }
 
@@ -76,6 +83,12 @@ function updateQueryParams(settings: Settings) {
     params.set("scoreBarAvatars", "true");
   } else {
     params.delete("scoreBarAvatars");
+  }
+
+  if (!settings.freezeScoresAtEnd) {
+    params.set("freezeScoresAtEnd", "false");
+  } else {
+    params.delete("freezeScoresAtEnd");
   }
 
   // 0 is a legal value (transition immediately); only the value a paramless

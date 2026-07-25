@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { state } from "@lib/state";
 	import { settings } from "@lib/settings";
+	import type { AllianceScore } from "lib";
 	import { createEventDispatcher, onMount } from "svelte";
 	import { spring } from "svelte/motion";
 	import { fade } from "svelte/transition";
@@ -33,8 +34,18 @@
 	$: leftIsRed = !$settings.invert;
 	$: leftColor = (leftIsRed ? "red" : "blue") as "red" | "blue";
 	$: rightColor = (leftIsRed ? "blue" : "red") as "red" | "blue";
-	$: leftScore = leftIsRed ? $state.match?.score.red : $state.match?.score.blue;
-	$: rightScore = leftIsRed ? $state.match?.score.blue : $state.match?.score.red;
+
+	// Snapshot the scores the moment the clock hits zero: post-match referee
+	// edits keep streaming ScoreChanged frames, and with the freeze toggle on
+	// (default) they must not repaint the audience's buzzer score.
+	let frozenScore: { red: AllianceScore; blue: AllianceScore } | null = null;
+	$: if (!matchOver) frozenScore = null;
+	else if (!frozenScore && $state.match)
+		frozenScore = { red: $state.match.score.red, blue: $state.match.score.blue };
+	$: scoreSource = $settings.freezeScoresAtEnd && frozenScore ? frozenScore : $state.match?.score;
+
+	$: leftScore = leftIsRed ? scoreSource?.red : scoreSource?.blue;
+	$: rightScore = leftIsRed ? scoreSource?.blue : scoreSource?.red;
 	$: leftTeams = leftIsRed ? $state.match?.teams.red ?? [] : $state.match?.teams.blue ?? [];
 	$: rightTeams = leftIsRed ? $state.match?.teams.blue ?? [] : $state.match?.teams.red ?? [];
 
