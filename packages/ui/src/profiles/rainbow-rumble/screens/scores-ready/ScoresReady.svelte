@@ -7,6 +7,8 @@
 	import { get } from "svelte/store";
 	import { matchName } from "@lib/matchNamer";
 	import Shutter from "@lib/components/Shutter.svelte";
+	import Logo from "@lib/components/Logo.svelte";
+	import SponsorCarousel from "../score-reveal/SponsorCarousel.svelte";
 
 	let ready = false;
 	const dispatcher = createEventDispatcher();
@@ -141,12 +143,21 @@
 	</div>
 
 	{#if ready && !exit}
+		<!-- Same column split and shadow boxes as the reveal screen: sponsor
+		     carousel left, FUN livestream partner right, gear center. -->
 		<div
-			class="w-full flex flex-col items-center gap-7"
+			class="w-full grid grid-cols-[.36fr_.28fr_.36fr] items-center px-8 gap-8"
 			in:fly={{ y: 400, duration: 200 }}
 			out:fly={{ y: 700, duration: 400 }}
 		>
-			<div class="relative inline-block size-[400px]">
+			<div>
+				<h2 class="text-4xl text-center font-bold mb-4">Event Sponsors</h2>
+				<div class="h-60 flex items-center justify-center rounded-[var(--rr-r)] bg-[oklch(0_0_0/0.35)] p-6">
+					<SponsorCarousel />
+				</div>
+			</div>
+
+			<div class="relative inline-block size-[400px] justify-self-center">
 				<img
 					bind:this={logoEl}
 					src={LOGO}
@@ -171,6 +182,13 @@
 						mask-size: 100% 100%;
 					"
 				></div>
+			</div>
+
+			<div>
+				<h2 class="text-4xl text-center font-bold mb-4">Livestream Partner</h2>
+				<div class="h-60 flex items-center justify-center rounded-[var(--rr-r)] bg-[oklch(0_0_0/0.35)] p-6">
+					<Logo type="livestream" alt="FUN Network" class="max-h-[150px] max-w-[90%] object-contain" />
+				</div>
 			</div>
 		</div>
 	{/if}
