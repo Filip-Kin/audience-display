@@ -81,6 +81,17 @@ export function mapResultScore(
   cachedAdvantage: boolean | null,
   thresholds: { energized: number; supercharged: number; traversal: number }
 ): AllianceScore {
+  // The audience results endpoints omit adjustPoints, but FMS folds it into the
+  // total (totalScore = max(components + adjust, 0), decompiled
+  // GameScoreCalculator), so it's recoverable as the residual. Only wrong in
+  // the clamped case where components + adjust went below zero.
+  const inferredAdjust =
+    details.totalScore -
+    (details.autoFuelPoints +
+      details.autoClimbPoints +
+      details.teleopFuelPoints +
+      details.teleopClimbPoints +
+      details.penaltyPoints);
   return {
     score: details.totalScore,
     autoFuelPoints: details.autoFuelPoints,
@@ -103,7 +114,7 @@ export function mapResultScore(
     traversalThreshold: thresholds.traversal,
     rankingPoints: details.rankingPoints,
     foulPoints: details.penaltyPoints,
-    adjustPoints: 0,
+    adjustPoints: inferredAdjust,
     penalties: { g206: false, g418: false, g419: false },
     isHighScore: details.isHighScore,
   };
