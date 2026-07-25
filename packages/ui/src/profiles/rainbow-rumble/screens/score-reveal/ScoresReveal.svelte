@@ -5,7 +5,7 @@
 	import { matchName } from "@lib/matchNamer";
 	import { settings } from "@lib/settings";
 	import Alliance from "./Alliance.svelte";
-	import ScoreBreakdown from "@lib/components/ScoreBreakdown.svelte";
+	import RrScoreBreakdown from "./RrScoreBreakdown.svelte";
 	import SponsorCarousel from "./SponsorCarousel.svelte";
 	import EventHighScoreBanner from "./EventHighScoreBanner.svelte";
 	import Confetti from "./Confetti.svelte";
@@ -164,6 +164,7 @@
 	$: leftBreakdownScore = results?.score[$settings.invert ? "red" : "blue"];
 	$: rightBreakdownScore = results?.score[$settings.invert ? "blue" : "red"];
 	$: tiebreaker = results?.tiebreaker;
+	$: breakdownIsPlayoff = results?.details.matchType === "sf" || results?.details.matchType === "f";
 
 	// Event champion: a finals alliance just clinched the best-of-3 (seriesWins only
 	// exists on finals results). Confetti falls on that alliance's side of the screen.
@@ -262,7 +263,7 @@
 						in:fly|global={{ y: 200, duration: 400 }}
 						out:fade|global={{ duration: 150 }}
 					>
-						<ScoreBreakdown leftScore={leftBreakdownScore} rightScore={rightBreakdownScore} {tiebreaker} />
+						<RrScoreBreakdown leftScore={leftBreakdownScore} rightScore={rightBreakdownScore} {tiebreaker} isPlayoff={breakdownIsPlayoff} />
 					</div>
 				{/if}
 
