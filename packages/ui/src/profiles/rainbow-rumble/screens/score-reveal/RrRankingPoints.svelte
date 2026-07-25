@@ -27,7 +27,8 @@
 		// Rainbow bonus: the scorekeepers award it as +50 climb points with a
 		// -50 adjustment (score-neutral). The adjustment is inferred server-side
 		// from the results totals. Always leads the row; earned-only, no gray tile.
-		if (score.adjustPoints === -50 && score.totalClimbPoints >= 50) {
+		const rainbowBonus = score.adjustPoints === -50 && score.totalClimbPoints >= 50;
+		if (rainbowBonus) {
 			earned.push({ src: "/rainbow-rumble/star.svg", alt: "Rainbow Bonus", rainbow: true });
 		}
 
@@ -43,8 +44,12 @@
 		if (score.superchargedAchieved) earned.push({ src: Supercharged, alt: "Supercharged" });
 		else unearned.push({ src: Supercharged, alt: "Supercharged" });
 
-		if (score.traversalAchieved) earned.push({ src: Traversal, alt: "Traversal" });
-		else unearned.push({ src: Traversal, alt: "Traversal" });
+		// The +50 rainbow climb points trip FMS's traversal RP as a side effect,
+		// so the climb RP tile is hidden entirely whenever the rainbow bonus shows.
+		if (!rainbowBonus) {
+			if (score.traversalAchieved) earned.push({ src: Traversal, alt: "Traversal" });
+			else unearned.push({ src: Traversal, alt: "Traversal" });
+		}
 	}
 </script>
 
