@@ -7,9 +7,14 @@
 	export let tiebreaker: PlayoffTiebreakType | undefined = undefined;
 	/** Rainbow Rumble copy of the shared ScoreBreakdown. The rainbow bonus is
 	 *  entered through the teleop climb field (quals: +50 with a -50 adjust,
-	 *  playoffs: a real +30), so that row is hidden on quals and relabeled
-	 *  "Rainbow Bonus" on playoffs. */
+	 *  playoffs: a real +30), so on quals that row shows the value with the
+	 *  bonus's 50 subtracted, and on playoffs it's relabeled "Rainbow Bonus". */
 	export let isPlayoff = false;
+
+	// Per-alliance: same rainbow-bonus detection as the RP badge.
+	const rainbow = (s: AllianceScore) => s.adjustPoints === -50 && s.totalClimbPoints >= 50;
+	$: leftClimb = leftScore.endgameClimbPoints - (!isPlayoff && rainbow(leftScore) ? 50 : 0);
+	$: rightClimb = rightScore.endgameClimbPoints - (!isPlayoff && rainbow(rightScore) ? 50 : 0);
 
 	// 2026 REBUILT playoff tiebreaker criteria, in FMS sort order (game manual Table 10-3).
 	// "Unknown" is FMS's enum default (-1): the match was decided on points, so no banner.
@@ -46,13 +51,11 @@
 		<span>Teleop Fuel</span>
 		<span class="tabular-nums">{rightScore.teleopFuelPoints}</span>
 	</div>
-	{#if isPlayoff}
-		<div class="grid grid-cols-[.2fr_.6fr_.2fr] even:bg-gray-200 px-2 py-2">
-			<span class="tabular-nums">{leftScore.endgameClimbPoints}</span>
-			<span>Rainbow Bonus</span>
-			<span class="tabular-nums">{rightScore.endgameClimbPoints}</span>
-		</div>
-	{/if}
+	<div class="grid grid-cols-[.2fr_.6fr_.2fr] even:bg-gray-200 px-2 py-2">
+		<span class="tabular-nums">{leftClimb}</span>
+		<span>{isPlayoff ? "Rainbow Bonus" : "Teleop Tower"}</span>
+		<span class="tabular-nums">{rightClimb}</span>
+	</div>
 	<div class="grid grid-cols-[.2fr_.6fr_.2fr] even:bg-gray-200 px-2 py-2">
 		<span class="tabular-nums">{leftScore.foulPoints}</span>
 		<span>Penalty</span>
