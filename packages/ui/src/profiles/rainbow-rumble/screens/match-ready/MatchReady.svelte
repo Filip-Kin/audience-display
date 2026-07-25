@@ -31,7 +31,9 @@
 		setTimeout(() => dispatcher("transitioned"), 500);
 	}
 
-	$: leftIsRed = !$settings.invert;
+	// Same side convention as the preview and results screens (blue-left/red-
+	// right unless inverted), so red/blue never swap sides between displays.
+	$: leftIsRed = $settings.invert;
 	$: leftColor = (leftIsRed ? "red" : "blue") as "red" | "blue";
 	$: rightColor = (leftIsRed ? "blue" : "red") as "red" | "blue";
 
