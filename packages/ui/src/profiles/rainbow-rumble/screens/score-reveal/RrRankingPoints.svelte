@@ -24,6 +24,13 @@
 		const score = $state.results.score[alliance];
 		const winner = $state.results.score.winner;
 
+		// Rainbow bonus: the scorekeepers award it as +50 climb points with a
+		// -50 adjustment (score-neutral). The adjustment is inferred server-side
+		// from the results totals. Always leads the row; earned-only, no gray tile.
+		if (score.adjustPoints === -50 && score.totalClimbPoints >= 50) {
+			earned.push({ src: "/rainbow-rumble/star.svg", alt: "Rainbow Bonus", rainbow: true });
+		}
+
 		if (winner?.toLowerCase() === alliance) {
 			earned.push({ src: Trophy, alt: "Win" }, { src: Trophy, alt: "Win" }, { src: Trophy, alt: "Win" });
 		} else if (winner === "Tie") {
@@ -38,13 +45,6 @@
 
 		if (score.traversalAchieved) earned.push({ src: Traversal, alt: "Traversal" });
 		else unearned.push({ src: Traversal, alt: "Traversal" });
-
-		// Rainbow bonus: the scorekeepers award it as +50 climb points with a
-		// -50 adjustment (score-neutral). The adjustment is inferred server-side
-		// from the results totals; earned-only, no grayed-out tile.
-		if (score.adjustPoints === -50 && score.totalClimbPoints >= 50) {
-			earned.push({ src: "/rainbow-rumble/star.svg", alt: "Rainbow Bonus", rainbow: true });
-		}
 	}
 </script>
 
@@ -59,7 +59,9 @@
 						: alliance === 'red'
 							? 'bg-redAlliance'
 							: 'bg-blueAlliance'}"
-					style={badge.rainbow ? "background: var(--rr-rainbow);" : ""}
+					style={badge.rainbow
+						? "background: conic-gradient(from 0deg, #ff2d55, #ff9500, #ffcc00, #34c759, #00c7ff, #5e5ce6, #af52de, #ff2d55);"
+						: ""}
 					title={badge.alt}
 					in:fly={{ x: 100 * (invert ? -1 : 1), duration: 500, delay: i * 100 }}
 				>
