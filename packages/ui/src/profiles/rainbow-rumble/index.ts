@@ -42,7 +42,7 @@ const profile: ProfileDefinition = {
 		sponsors: [
 			{ src: "/rainbow-rumble/ctre.png" },
 			{ src: "/rainbow-rumble/fun.webp" },
-			{ src: "/rainbow-rumble/bosch.webp" },
+			{ src: "/rainbow-rumble/bosch.webp", light: true },
 			{ src: "/rainbow-rumble/rsa.webp", light: true },
 			{ src: "/rainbow-rumble/aptiv-dark.webp" },
 			{ src: "/rainbow-rumble/mcr.webp" },
