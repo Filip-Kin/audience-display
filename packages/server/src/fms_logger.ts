@@ -94,6 +94,10 @@ export function initFmsLogger(fmsUrl: string): void {
     insertLog = db.prepare(
       "INSERT INTO log (runId, ts, kind, direction, name, status, data) VALUES (?, ?, ?, ?, ?, ?, ?)"
     );
+    insertBatch = db.transaction((rows: LogTuple[]) => {
+      for (const row of rows) insertLog!.run(...row);
+    }) as unknown as (rows: LogTuple[]) => void;
+    startFlushTimer();
     installWebSocketLogging();
     console.log(`FMS logging to ${join(dir, "fms-log.sqlite")} (run ${runId})`);
   } catch (err) {
@@ -103,15 +107,69 @@ export function initFmsLogger(fmsUrl: string): void {
   }
 }
 
-function write(kind: string, direction: string, name: string, status: number | null, data: string): void {
-  if (!loggingEnabled) return;
-  if (!insertLog || runId === null) return;
+// #region batched, throttled logging
+// A synchronous INSERT per frame used to run on the display's event loop. During
+// a match the gameSpecificHub score firehose is ~140 frames/s (and ~97% are
+// no-ops where only a TimeStamp changes), so those writes starved rendering and
+// the realtime score visibly lagged. Two fixes: buffer rows and flush them in a
+// single transaction on a timer (the hot path becomes an array push), and cap
+// the redundant score frames to one per alliance per second.
+type LogTuple = [number, string, string, string, string, number | null, string];
+
+let buffer: LogTuple[] = [];
+let insertBatch: ((rows: LogTuple[]) => void) | null = null;
+let flushTimer: ReturnType<typeof setInterval> | null = null;
+const FLUSH_MS = 1000;
+const MAX_BUFFER = 2000; // safety valve if the flush timer is starved under load
+
+const SEP = "\x1e"; // SignalR JSON record separator (terminates each message)
+const SCORE_THROTTLE_MS = 1000;
+const lastScoreLog = new Map<string, number>();
+
+function flushLog(): void {
+  if (!insertBatch || buffer.length === 0) return;
+  const rows = buffer;
+  buffer = [];
   try {
-    insertLog.run(runId, ts(), kind, direction, name, status, data);
+    insertBatch(rows);
   } catch {
     // Never let logging failures affect the display.
   }
 }
+
+function startFlushTimer(): void {
+  if (flushTimer) return;
+  flushTimer = setInterval(flushLog, FLUSH_MS);
+  // Flush whatever is buffered on a clean shutdown; a hard kill loses <1s of rows.
+  process.on("beforeExit", flushLog);
+}
+
+// A lone, record-separator-terminated score frame we may throttle; null means log
+// it (multi-message frames are rare and could carry other events, so keep them).
+function throttledScoreTarget(data: string): string | null {
+  if (data.indexOf(SEP) !== data.length - 1) return null; // not a single message
+  if (data.includes('"RedScoreChanged"')) return "RedScoreChanged";
+  if (data.includes('"BlueScoreChanged"')) return "BlueScoreChanged";
+  return null;
+}
+
+function write(kind: string, direction: string, name: string, status: number | null, data: string): void {
+  if (!loggingEnabled) return;
+  if (runId === null || !insertBatch) return;
+
+  if (kind === "ws" && direction === "recv") {
+    const scoreTarget = throttledScoreTarget(data);
+    if (scoreTarget) {
+      const now = Date.now();
+      if (now - (lastScoreLog.get(scoreTarget) ?? 0) < SCORE_THROTTLE_MS) return;
+      lastScoreLog.set(scoreTarget, now);
+    }
+  }
+
+  buffer.push([runId, ts(), kind, direction, name, status, data]);
+  if (buffer.length >= MAX_BUFFER) flushLog();
+}
+// #endregion
 
 export function logRest(path: string, status: number, body: string): void {
   write("rest", "response", path, status, body);
