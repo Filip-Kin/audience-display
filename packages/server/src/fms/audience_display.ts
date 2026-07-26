@@ -322,9 +322,6 @@ export class AudienceDisplayManager {
   private ranking: Omit<Team, "name" | "card">[] = demoRanking();
   private allianceSize = 3;
   private pickTimerType: "pick" | "break" = "pick";
-  // FMS never ticks the pick clock over the wire; AudienceAllianceTimer is a
-  // start trigger and the display runs the countdown itself.
-  private pickClockTimer: ReturnType<typeof setInterval> | null = null;
   // Live from GetAllianceSelectionData.availableTeams (see updateAllianceSize).
   private potentialCaptains: Set<number> = new Set();
   private declinedTeams: Set<number> = new Set();
@@ -432,8 +429,6 @@ export class AudienceDisplayManager {
     });
 
     this.fmsConnection.on("timer", async (time) => {
-      // A wire-driven clock always wins over the locally-run pick countdown.
-      this.stopPickClock();
       this.match.timer = time;
       this.broadcastState();
 
@@ -456,8 +451,15 @@ export class AudienceDisplayManager {
       ) {
         return;
       }
-      this.stopPickClock();
       this.match.timer = time;
+      // Pick-clock warning/expiry sounds (previously tied to the local countdown).
+      if (
+        this.pickTimerType === "pick" &&
+        (this.screen === "alliance-selection" || this.screen === "alliance-selection-fullscreen")
+      ) {
+        if (time === 5) this.playSound("pickClock");
+        if (time === 0) this.playSound("pickClockExpired");
+      }
       this.broadcastState();
     });
 
@@ -713,15 +715,16 @@ export class AudienceDisplayManager {
 
     this.fmsConnection.on("allianceTimer", (data: { Round: string; TimerType: string }) => {
       this.pickTimerType = data.TimerType.endsWith("Break") ? "break" : "pick";
-      if (this.pickTimerType === "break") {
-        // Break clocks (TwoMinuteBreak/EightMinuteBreak) tick over the wire as
-        // AllianceSelectionTimer at 1 Hz; no competing local countdown.
-        this.broadcastState();
-      } else {
-        // The pick clock is trigger-only on the wire; run it locally.
-        // FMS wizard timing: round 1 picks 45s, later rounds 90s.
-        this.startPickClock(data.Round === "Round1" ? 45 : 90);
+      // Both break and pick clocks tick over the wire as AllianceSelectionTimer,
+      // and that value respects pauses (it holds while the clock is paused), so
+      // allianceClockTick drives match.timer for both. A local countdown used to
+      // run for picks and kept ticking straight through a paused clock. Seed the
+      // starting value (FMS wizard timing: round 1 = 45s, later rounds = 90s) so
+      // the display shows something until the first wire tick lands.
+      if (this.pickTimerType === "pick") {
+        this.match.timer = data.Round === "Round1" ? 45 : 90;
       }
+      this.broadcastState();
     });
 
     this.fmsConnection.on("allianceDecline", (data) => {
@@ -861,29 +864,6 @@ export class AudienceDisplayManager {
     if (this.bracketRefreshTimer) {
       clearInterval(this.bracketRefreshTimer);
       this.bracketRefreshTimer = null;
-    }
-  }
-
-  /** Run the pick/break clock locally at 1 Hz (FMS only sends the start trigger). */
-  private startPickClock(seconds: number) {
-    this.stopPickClock();
-    this.match.timer = seconds;
-    this.broadcastState();
-    this.pickClockTimer = setInterval(() => {
-      this.match.timer -= 1;
-      if (this.screen === "alliance-selection" || this.screen === "alliance-selection-fullscreen") {
-        if (this.match.timer === 5) this.playSound("pickClock");
-        if (this.match.timer === 0) this.playSound("pickClockExpired");
-      }
-      if (this.match.timer <= 0) this.stopPickClock();
-      this.broadcastState();
-    }, 1000);
-  }
-
-  private stopPickClock() {
-    if (this.pickClockTimer) {
-      clearInterval(this.pickClockTimer);
-      this.pickClockTimer = null;
     }
   }
 
