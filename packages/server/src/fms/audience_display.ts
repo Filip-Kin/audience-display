@@ -38,6 +38,7 @@ import { emptyAllianceScore, mapLiveScore, mapResultScore, defaultGameConfig } f
 import { fetchGameConfig } from "./game_config";
 import { fetchBracket } from "./bracket";
 import type { ProfileSelector } from "../profile_selector";
+import pkg from "../../../../package.json";
 
 /** Normalized (level-independent) match preview the display state is built from. */
 type NormalizedMatchPreview = {
@@ -118,6 +119,7 @@ function defaultMatchState(matchNumber: number): MatchState {
     phaseTimer: 0,
     hubActive: "None",
     underReview: false,
+    underReviewLatched: false,
     score: {
       red: emptyAllianceScore(),
       blue: emptyAllianceScore(),
@@ -258,6 +260,7 @@ function demoResultsState(): MatchState {
     phaseTimer: 0,
     hubActive: "None",
     underReview: false,
+    underReviewLatched: false,
     score: {
       red: demoScore({
         score: 142,
@@ -516,6 +519,7 @@ export class AudienceDisplayManager {
           this.match.phaseTimer = 0;
           this.match.hubActive = "None";
           this.match.underReview = false;
+          this.match.underReviewLatched = false;
           this.cachedAdvantage = { red: null, blue: null };
 
           const matchPreview = await this.getMatchPreview(this.currentLevel, current.matchNumber);
@@ -602,6 +606,9 @@ export class AudienceDisplayManager {
 
     this.fmsConnection.on("plcMatchStatus", (data) => {
       this.match.underReview = data.RefUnderReview;
+      // Latch it: a ref often flags review mid-match and releases it at the
+      // buzzer, so the live flag alone can't drive the waiting-for-scores banner.
+      if (data.RefUnderReview) this.match.underReviewLatched = true;
       this.broadcastState();
     });
 
@@ -661,6 +668,7 @@ export class AudienceDisplayManager {
       // Clear under-review now that results are posted.
       this.results.underReview = false;
       this.match.underReview = false;
+      this.match.underReviewLatched = false;
 
       if (seq !== this.screenCommandSeq) {
         // A newer command took the screen while we were fetching; keep the fresh
@@ -815,6 +823,7 @@ export class AudienceDisplayManager {
           gameConfig: this.gameConfig,
           activeProfileId: this.profileSelector?.get() ?? null,
           fmsLogging: isFmsLoggingEnabled(),
+          version: pkg.version,
         },
       })
     );

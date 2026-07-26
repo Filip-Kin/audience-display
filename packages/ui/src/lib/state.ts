@@ -79,6 +79,20 @@ export const state = writable(defaultState, (set) => {
       const message = JSON.parse(event.data);
       if (message.type === "state") {
         const newState = message.data as AudienceDisplayState;
+        // The exe auto-updates and restarts with a new bundle; a display that
+        // stayed open keeps its old UI until reloaded. When the server reports a
+        // version different from this build, reload once to pick up the new bundle.
+        // (Guarded per version so a stale server can't cause a reload loop.)
+        if (
+          newState.version &&
+          newState.version !== __APP_VERSION__ &&
+          sessionStorage.getItem("reloadedForVersion") !== newState.version
+        ) {
+          console.log(`Server version ${newState.version} != client ${__APP_VERSION__}; reloading`);
+          sessionStorage.setItem("reloadedForVersion", newState.version);
+          location.reload();
+          return;
+        }
         if (frozenData) {
           bufferedWhileFrozen = newState;
           set({

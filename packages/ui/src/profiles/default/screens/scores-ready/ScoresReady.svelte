@@ -46,7 +46,7 @@
 />
 
 <div class="fixed flex flex-col w-full h-full justify-around z-10">
-	{#if $state.match?.underReview}
+	{#if $state.match?.underReviewLatched}
 		<div
 			class="fixed left-0 right-0 top-0 bg-accentWarn text-black uppercase text-center px-6 py-3.5 font-black text-[28px] tracking-[0.24em] z-30 flex items-center justify-center gap-4"
 			in:fade={{ duration: 200 }}

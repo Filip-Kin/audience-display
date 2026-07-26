@@ -93,7 +93,12 @@ export type MatchState = {
   phase: MatchPhase;
   phaseTimer: number;
   hubActive: "Red" | "Blue" | "Both" | "None";
+  /** Live referee "under review" flag (clears when the ref releases it). */
   underReview: boolean;
+  /** Latched: true if the match was flagged for review at any point, held until
+   *  results post. Drives the waiting-for-scores banner (the live flag is too
+   *  transient - refs often release it at the buzzer). */
+  underReviewLatched: boolean;
   tiebreaker?: PlayoffTiebreakType;
   score: {
     red: AllianceScore;
@@ -140,6 +145,9 @@ export type AudienceDisplayState = {
   activeProfileId: string | null;
   /** Server-side FMS traffic logging switch (settings gear toggles it). */
   fmsLogging: boolean;
+  /** Running app version. Clients reload when it changes so a display picks up a
+   *  new UI bundle after the exe auto-updates, without a manual refresh. */
+  version: string;
 };
 
 export type QualRanking = {
