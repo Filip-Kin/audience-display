@@ -1,7 +1,14 @@
 import type { ProfileAssets, SponsorLogo } from "lib";
 
-/** A slideshow deck entry: sponsor art, or the live mini playoff bracket. */
-export type SponsorSlide = { kind: "sponsor"; sponsor?: SponsorLogo } | { kind: "bracket" };
+/**
+ * A slideshow deck entry: sponsor art, the live mini playoff bracket, or the
+ * event-feedback QR. The "feedback" kind is only appended by the full-screen
+ * SponsorSlideshow, never the reveal carousel.
+ */
+export type SponsorSlide =
+	| { kind: "sponsor"; sponsor?: SponsorLogo }
+	| { kind: "bracket" }
+	| { kind: "feedback"; src: string; label: string };
 
 /**
  * Sponsors for the results-screen carousel. The livestream partner already has

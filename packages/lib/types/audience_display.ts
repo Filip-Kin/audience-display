@@ -145,6 +145,9 @@ export type AudienceDisplayState = {
   activeProfileId: string | null;
   /** Server-side FMS traffic logging switch (settings gear toggles it). */
   fmsLogging: boolean;
+  /** Whether the server is auto-positioning the external live-captions overlay
+   *  per the current screen (commands live-captions over its tRPC API). */
+  captionControl: boolean;
   /** Running app version. Clients reload when it changes so a display picks up a
    *  new UI bundle after the exe auto-updates, without a manual refresh. */
   version: string;

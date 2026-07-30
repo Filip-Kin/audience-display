@@ -16,9 +16,13 @@
 
 	// Deck built from whatever sponsor art the profile ships, plus one bracket
 	// page (mid-deck) during playoffs. A sponsor-less profile still gets one
-	// placeholder slide so the box is never empty.
+	// placeholder slide so the box is never empty. The event-feedback QR (if the
+	// profile ships one) rides at the end of the full-screen deck ONLY - it is
+	// never part of the reveal carousel.
 	$: slides = ((): SponsorSlide[] => {
 		const deck = sponsorDeck($activeProfile.assets.sponsors, showBracket);
+		const qr = $activeProfile.assets.feedbackQr;
+		if (qr) deck.push({ kind: "feedback", src: qr.src, label: qr.label });
 		if (!deck.length) deck.push({ kind: "sponsor" });
 		return deck;
 	})();
@@ -44,6 +48,13 @@
 						Event Sponsors
 					</div>
 				{/if}
+			</div>
+		{:else if slide.kind === "feedback"}
+			<div class="w-full h-full flex flex-col items-center justify-center gap-4 p-8 pb-10">
+				<div class="bg-white rounded-2xl p-5 flex items-center justify-center min-h-0 flex-1 aspect-square">
+					<img src={slide.src} alt="Event feedback QR code" class="h-full w-full object-contain" />
+				</div>
+				<span class="uppercase tracking-[0.12em] font-extrabold text-3xl text-white">{slide.label}</span>
 			</div>
 		{:else if $state.bracket}
 			<div class="w-full h-full p-2.5 pb-8">

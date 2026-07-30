@@ -99,7 +99,7 @@
 					{allianceName}
 				</div>
 				{#if seriesWins !== undefined}
-					<div class="self-stretch aspect-square flex flex-col items-center justify-center shadow-lg rounded {alliance === 'red' ? 'bg-redAlliance' : 'bg-blueAlliance'} text-white">
+					<div class="self-stretch flex flex-col items-center justify-center shadow-lg rounded px-10 {alliance === 'red' ? 'bg-redAlliance' : 'bg-blueAlliance'} text-white">
 						<span class="uppercase tracking-[0.14em] text-[15px] leading-none opacity-90">Wins</span>
 						<span class="text-4xl font-bold leading-none tabular-nums pt-1">{seriesWins}</span>
 					</div>

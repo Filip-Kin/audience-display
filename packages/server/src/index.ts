@@ -2,6 +2,7 @@ import { AudienceDisplayManager } from "./fms/audience_display";
 import { ProfileSelector } from "./profile_selector";
 import { checkForUpdate } from "./auto_update";
 import { initFmsLogger, setFmsLoggingEnabled } from "./fms_logger";
+import { initCaptionControl, setCaptionControlEnabled } from "./caption_control";
 import { initLogSync, syncFmsLog } from "./log_sync";
 import { existsSync } from "fs";
 import { join } from "path";
@@ -25,6 +26,7 @@ await checkForUpdate();
 // Must run before the SignalR connections are created so the websocket wrapper
 // captures every frame from the first handshake on.
 initFmsLogger(RESOLVED_FMS_URL);
+initCaptionControl();
 initLogSync();
 
 if (process.execPath.endsWith(".exe") && !process.execPath.endsWith("bun.exe")) {
@@ -70,6 +72,11 @@ const server = Bun.serve({
         }
         if (payload && payload.type === "setFmsLogging" && typeof payload.on === "boolean") {
           setFmsLoggingEnabled(payload.on);
+          audienceDisplay.broadcastState();
+          return;
+        }
+        if (payload && payload.type === "setCaptionControl" && typeof payload.on === "boolean") {
+          setCaptionControlEnabled(payload.on);
           audienceDisplay.broadcastState();
           return;
         }

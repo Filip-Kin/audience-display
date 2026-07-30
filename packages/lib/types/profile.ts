@@ -31,6 +31,12 @@ export type ProfileAssets = {
    * livestream partner has its own dedicated spot there.
    */
   sponsors: SponsorLogo[];
+  /**
+   * Optional event-feedback QR. Shown ONLY on the full-screen sponsor
+   * slideshow (breaks/timeout/background/schedule), never in the score-reveal
+   * carousel. Rendered on a white card with its label beneath.
+   */
+  feedbackQr?: { src: string; label: string };
 };
 
 export type ProfileLayout = {

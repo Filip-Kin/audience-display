@@ -2,7 +2,7 @@
 	import { get } from "svelte/store";
 	import { playSound, volumes, SOUND_DEFS, type VolumeKey } from "../audio";
 	import { settings } from "../settings"; // adjust if path is different
-	import { state, activeProfile, sendSelectProfile, sendSetFmsLogging } from "../state";
+	import { state, activeProfile, sendSelectProfile, sendSetFmsLogging, sendSetCaptionControl } from "../state";
 	import { packUrl } from "../animation_pack";
 	import { listProfiles, DEFAULT_PROFILE_ID } from "../../profiles";
 
@@ -27,6 +27,10 @@
 
 	function handleLoggingChange(e: Event) {
 		sendSetFmsLogging((e.target as HTMLInputElement).checked);
+	}
+
+	function handleCaptionControlChange(e: Event) {
+		sendSetCaptionControl((e.target as HTMLInputElement).checked);
 	}
 
 	// Volume test for the winner animation: play the active profile's victory
@@ -140,6 +144,20 @@
 					</div>
 					<label class="relative inline-flex items-center cursor-pointer">
 						<input type="checkbox" checked={$state.fmsLogging} on:change={handleLoggingChange} class="sr-only peer" />
+						<div
+							class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:bg-blue-600 transition-colors"
+						></div>
+						<div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+					</label>
+				</label>
+
+				<label class="flex items-center justify-between">
+					<div class="flex flex-col">
+						<span>Move Captions Automatically</span>
+						<span class="text-sm text-gray-500">Position the live-captions overlay to fit each screen (commands the caption server)</span>
+					</div>
+					<label class="relative inline-flex items-center cursor-pointer">
+						<input type="checkbox" checked={$state.captionControl} on:change={handleCaptionControlChange} class="sr-only peer" />
 						<div
 							class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:bg-blue-600 transition-colors"
 						></div>

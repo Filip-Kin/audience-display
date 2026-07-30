@@ -33,6 +33,7 @@ import {
 import type { AllianceSelection, QualRanking, Team } from "lib/types/audience_display";
 import { getTeamName } from "../team_name";
 import { logRest, isFmsLoggingEnabled } from "../fms_logger";
+import { isCaptionControlEnabled, syncCaptionScreen } from "../caption_control";
 import { syncFmsLog } from "../log_sync";
 import { emptyAllianceScore, mapLiveScore, mapResultScore, defaultGameConfig } from "./score_mappers";
 import { fetchGameConfig } from "./game_config";
@@ -826,10 +827,15 @@ export class AudienceDisplayManager {
           gameConfig: this.gameConfig,
           activeProfileId: this.profileSelector?.get() ?? null,
           fmsLogging: isFmsLoggingEnabled(),
+          captionControl: isCaptionControlEnabled(),
           version: pkg.version,
         },
       })
     );
+
+    // Keep the external live-captions overlay positioned for this screen.
+    // No-op unless the operator enabled it; deduped inside.
+    syncCaptionScreen(this.screen);
   }
 
   selectProfile(id: string) {

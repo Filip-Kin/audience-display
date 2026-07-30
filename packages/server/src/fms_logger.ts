@@ -48,7 +48,14 @@ export function isFmsLoggingEnabled(): boolean {
 export function setFmsLoggingEnabled(on: boolean): void {
   loggingEnabled = on;
   try {
-    writeFileSync(settingsPath(), JSON.stringify({ fmsLogging: on }, null, 2));
+    // Merge, not overwrite: settings.json is shared with caption_control etc.
+    let existing: Record<string, unknown> = {};
+    try {
+      existing = JSON.parse(readFileSync(settingsPath(), "utf-8"));
+    } catch {
+      // No file yet.
+    }
+    writeFileSync(settingsPath(), JSON.stringify({ ...existing, fmsLogging: on }, null, 2));
   } catch {
     // Not persisted; still applies for this run.
   }

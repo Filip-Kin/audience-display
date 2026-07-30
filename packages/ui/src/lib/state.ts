@@ -25,6 +25,7 @@ const defaultState: AudienceDisplayState = {
   gameConfig: null,
   activeProfileId: null,
   fmsLogging: true,
+  captionControl: false,
 };
 
 let socket: WebSocket | null = null;
@@ -214,4 +215,9 @@ export function sendSelectProfile(id: string): void {
 export function sendSetFmsLogging(on: boolean): void {
   if (!socket || socket.readyState !== WebSocket.OPEN) return;
   socket.send(JSON.stringify({ type: "setFmsLogging", on }));
+}
+
+export function sendSetCaptionControl(on: boolean): void {
+  if (!socket || socket.readyState !== WebSocket.OPEN) return;
+  socket.send(JSON.stringify({ type: "setCaptionControl", on }));
 }

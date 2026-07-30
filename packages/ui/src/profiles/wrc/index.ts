@@ -31,8 +31,21 @@ const profile: ProfileDefinition = {
   },
   assets: {
     event: "/wrc.png", // center logo on the score-reveal screen
-    sponsors: [{ src: "/famnm.png" }, { src: "/pitpodcast.png" }, { src: "/uofmrobotics.jpg" }],
+    // Sponsors in Filip's importance order. famnm ships a light (gray) logo that
+    // reads on the dark background bare; the rest are dark/ink logos so they get
+    // a white card (light: true) to read on navy/black.
+    sponsors: [
+      { src: "/famnm.png" },
+      // coe + ceo are self-contained navy tiles (their own background), so they
+      // read on the dark display without the white card (light omitted).
+      { src: "/coe.png" },
+      { src: "/csg.png", light: true },
+      { src: "/ceo.png" },
+      { src: "/adgpe.png", light: true },
+    ],
     livestream: "/pitpodcast.png",
+    // Event-feedback QR: full-screen sponsor pages (breaks/timeout) only.
+    feedbackQr: { src: "/event-feedback-qr.png", label: "Event Feedback" },
   },
   animations: {
     victoryRed: "/animations/wrc/redwins.mp4",

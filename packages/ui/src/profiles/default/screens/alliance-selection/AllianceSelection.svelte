@@ -102,7 +102,10 @@
 </script>
 
 {#if ready}
-	<div class="fixed inset-0 bg-background overflow-hidden" class:exiting>
+	<!-- Root is transparent so the camera box can punch a hole to the vMix camera
+	     feed below. The background is painted by the camera box's box-shadow
+	     spotlight (see below), which fills the whole screen EXCEPT the box. -->
+	<div class="fixed inset-0 overflow-hidden" class:exiting>
 		<!-- Header -->
 		<header class="anim-top flex items-center justify-between border-b-4 border-accentWarn px-14 pt-7 pb-[18px]">
 			<div class="flex items-center gap-[22px]">
@@ -188,9 +191,14 @@
 				     is measured-contain sized so it is EXACTLY 16:9 whichever dimension
 				     limits (h-full + aspect-video breaks ratio when max-width clamps). -->
 				<div class="min-h-0 flex items-start justify-center" bind:clientWidth={camW} bind:clientHeight={camH}>
+					<!-- Transparent cut-out for the vMix camera feed. The huge solid
+					     box-shadow paints the screen background everywhere around this
+					     box (clipped to the screen by the root's overflow-hidden), and
+					     z-index:-1 keeps that fill behind all the content, so the box
+					     interior stays a clean transparent hole - no border needed. -->
 					<div
-						class="bg-transparent border-2 border-dashed border-[oklch(1_0_0/0.4)]"
-						style="width: {Math.min(camW, (camH * 16) / 9)}px; height: {Math.min(camH, (camW * 9) / 16)}px;"
+						class="bg-transparent"
+						style="width: {Math.min(camW, (camH * 16) / 9)}px; height: {Math.min(camH, (camW * 9) / 16)}px; position: relative; z-index: -1; box-shadow: 0 0 0 200vmax var(--background);"
 					></div>
 				</div>
 			</div>
