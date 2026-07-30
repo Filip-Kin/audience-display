@@ -233,7 +233,7 @@
 		<!-- Cell 1: left sponsors column -->
 		<div>
 			<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Event Sponsors</h2>
-			<div class="h-60" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}>
+			<div class="h-60 flex items-center justify-center rounded-2xl bg-[oklch(0_0_0/0.35)] p-6" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}>
 				<SponsorCarousel />
 			</div>
 		</div>
@@ -278,7 +278,9 @@
 		<!-- Cell 3: right column, always show Pit Podcast -->
 		<div>
 			<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Livestream Partner</h2>
-			<img src="/pitpodcast.png" class="h-60 mx-auto self-center object-contain" alt="Pit Podcast" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }} />
+			<div class="h-60 flex items-center justify-center rounded-2xl bg-[oklch(0_0_0/0.35)] p-6" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}>
+				<img src="/pitpodcast.png" class="max-h-full mx-auto self-center object-contain" alt="Pit Podcast" />
+			</div>
 		</div>
 
 		<!-- Bottom-left: alliance card (blue or red depending on invert) -->

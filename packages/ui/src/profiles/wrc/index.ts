@@ -21,6 +21,8 @@ const profile: ProfileDefinition = {
   id: "wrc",
   name: "WRC (Wolverine Robotics Competition)",
   eventName: "Wolverine Robotics Competition",
+  // Schedule screen QR target (else the screen falls back to the game logo).
+  eventInfoUrl: "https://famnm.club/offseason/",
   theme: {
     ...defaultProfile.theme,
     // Shutter halves read from primary/secondary. WRC uses two navy-blue tones

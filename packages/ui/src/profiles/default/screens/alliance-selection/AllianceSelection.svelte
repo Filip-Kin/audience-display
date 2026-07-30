@@ -190,7 +190,7 @@
 				     so it stays the same size and position for the whole ceremony. The box
 				     is measured-contain sized so it is EXACTLY 16:9 whichever dimension
 				     limits (h-full + aspect-video breaks ratio when max-width clamps). -->
-				<div class="min-h-0 flex items-start justify-center" bind:clientWidth={camW} bind:clientHeight={camH}>
+				<div class="min-h-0 flex items-center justify-center" bind:clientWidth={camW} bind:clientHeight={camH}>
 					<!-- Transparent cut-out for the vMix camera feed. The huge solid
 					     box-shadow paints the screen background everywhere around this
 					     box (clipped to the screen by the root's overflow-hidden), and

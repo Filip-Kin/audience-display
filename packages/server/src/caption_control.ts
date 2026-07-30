@@ -63,12 +63,13 @@ export function setCaptionControlEnabled(on: boolean): void {
 /**
  * live-captions position preset for a screen.
  * 0 = bottom (default). 4 = just under a top bar. 5 = just over a bottom bar.
- * The score-bar screens (live match + waiting-for-scores) sit opposite the
- * score bar; everything else sits at the bottom.
+ * Only the LIVE-match score-bar screens sit opposite the score bar; the
+ * waiting-for-scores (match-end) and scores-ready screens show the gear/waiting
+ * layout (no score bar), so their captions sit at the bottom like everything else.
  */
 function screenToPosition(screen: Screen): number {
   const isScoreBar =
-    (screen.startsWith("match-") && screen !== "match-preview") || screen === "scores-ready";
+    screen.startsWith("match-") && screen !== "match-preview" && screen !== "match-end";
   if (isScoreBar) return scorebarAtTop ? 5 : 4;
   return 0;
 }
