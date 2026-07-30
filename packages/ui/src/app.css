@@ -327,7 +327,13 @@ body { font-family: var(--font-body); }
     from { --cam-scale: 0; }
     to   { --cam-scale: 1; }
 }
+@keyframes cam-pop-out {
+    from { --cam-scale: 1; }
+    to   { --cam-scale: 0; }
+}
 .cam-pop { animation: cam-pop-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: var(--anim-delay, 0s); }
+/* Shrink back into the center on the way out (mirror of the pop-in). */
+.exiting .cam-pop { animation: cam-pop-out 0.4s cubic-bezier(0.5, 0, 0.75, 0) both; animation-delay: 0s; }
 
 /* Fade-only exits: the bracket body is too delicate to slide, so it fades on
    screen unload; .swap-fade is the same fade used between the bracket's

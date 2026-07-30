@@ -3,6 +3,7 @@ import { ProfileSelector } from "./profile_selector";
 import { checkForUpdate } from "./auto_update";
 import { initFmsLogger, setFmsLoggingEnabled } from "./fms_logger";
 import { initCaptionControl, setCaptionControlEnabled } from "./caption_control";
+import { initVmix, vmixStatus, ensureFmsInput, setupAllianceCamera } from "./vmix";
 import { initLogSync, syncFmsLog } from "./log_sync";
 import { existsSync } from "fs";
 import { join } from "path";
@@ -27,6 +28,7 @@ await checkForUpdate();
 // captures every frame from the first handshake on.
 initFmsLogger(RESOLVED_FMS_URL);
 initCaptionControl();
+initVmix();
 initLogSync();
 
 if (process.execPath.endsWith(".exe") && !process.execPath.endsWith("bun.exe")) {
@@ -43,12 +45,45 @@ const profileSelector = new ProfileSelector();
 console.log(`Active profile: ${profileSelector.get()}`);
 
 const server = Bun.serve({
-  fetch(request, server) {
+  async fetch(request, server) {
     const url = new URL(request.url);
     if (url.pathname === "/ws") {
       const success = server.upgrade(request);
       if (success) return undefined;
       return new Response("Failed to upgrade connection", { status: 400 });
+    }
+
+    // vMix automation (landing page). All fail soft with a JSON error so the UI
+    // can show it; they never take the display server down.
+    if (url.pathname.startsWith("/api/vmix/")) {
+      const json = (body: unknown, status = 200) =>
+        new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+      try {
+        if (url.pathname === "/api/vmix/status" && request.method === "GET") {
+          return json(await vmixStatus());
+        }
+        if (url.pathname === "/api/vmix/setup-fms" && request.method === "POST") {
+          const body = (await request.json().catch(() => ({}))) as { displayUrl?: string };
+          return json({ ok: true, ...(await ensureFmsInput(body.displayUrl)) });
+        }
+        if (url.pathname === "/api/vmix/setup-camera" && request.method === "POST") {
+          const body = (await request.json().catch(() => ({}))) as {
+            cameraKey?: string;
+            teamCount?: number;
+            displayUrl?: string;
+          };
+          if (!body.cameraKey) return json({ ok: false, error: "cameraKey required" }, 400);
+          const result = await setupAllianceCamera({
+            cameraKey: body.cameraKey,
+            teamCount: Number(body.teamCount) || 0,
+            displayUrl: body.displayUrl,
+          });
+          return json({ ok: true, ...result });
+        }
+      } catch (e) {
+        return json({ ok: false, error: String(e) }, 500);
+      }
+      return json({ ok: false, error: "unknown vmix endpoint" }, 404);
     }
 
     const rel =
