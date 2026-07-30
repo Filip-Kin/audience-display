@@ -117,7 +117,7 @@
 		</header>
 
 		<!-- Bracket / full-screen alliances, swapped every 15s -->
-		<div class="px-14 pt-6 pb-10 h-[calc(100vh-190px)]">
+		<div class="px-14 pt-6 pb-10 h-[calc(100%-190px)]">
 			{#if bracket}
 				{#key view}
 					<div class="anim-exit-fade h-full" class:swap-fade={fading}>

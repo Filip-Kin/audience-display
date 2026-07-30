@@ -53,9 +53,24 @@
     color: var(--text);
 }
 
-body, #app { height: 100vh; }
+html, body { height: 100%; overflow: hidden; }
 html, body { background: transparent; color: var(--text); }
 body { font-family: var(--font-body); }
+
+/* Resolution independence: the whole UI is authored at a fixed 1920x1080 and
+   scaled to fill the real viewport, so 1080p / 1440p / 4K render identically.
+   The transform also makes #app the containing block for the screens'
+   position:fixed roots (they then fill #app, not the raw viewport).
+   --app-scale is set from JS (App.svelte) = min(innerW/1920, innerH/1080). */
+#app {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1920px;
+    height: 1080px;
+    transform-origin: top left;
+    transform: scale(var(--app-scale, 1));
+}
 
 /* Crisp (non-blurry) scaling for small source images like 40px team avatars. */
 .pixelated { image-rendering: pixelated; }

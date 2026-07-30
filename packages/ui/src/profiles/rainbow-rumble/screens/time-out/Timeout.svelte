@@ -91,7 +91,7 @@
 		</header>
 
 		<!-- Body -->
-		<div class="grid grid-cols-[1.55fr_1fr] gap-6 px-14 py-6 h-[calc(100vh-200px)]">
+		<div class="grid grid-cols-[1.55fr_1fr] gap-6 px-14 py-6 h-[calc(100%-200px)]">
 			<!-- Left: featured sponsor slideshow -->
 			<div class="anim-left flex flex-col min-h-0 gap-3.5">
 				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-[var(--rr-dim)] font-black">

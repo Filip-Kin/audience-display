@@ -54,7 +54,7 @@
 
 {#if settingsOpen}
 	<div class="absolute top-0 left-0 w-full h-full bg-gray-900/50 z-10">
-		<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-lg p-6 text-black w-2xl max-h-[90vh] overflow-y-auto">
+		<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-lg p-6 text-black w-2xl max-h-[960px] overflow-y-auto">
 			<h2 class="text-xl font-bold mb-4">Settings</h2>
 
 			<div class="grid grid-cols-1 gap-6">

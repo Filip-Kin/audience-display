@@ -132,7 +132,7 @@
 		</header>
 
 		<!-- Body: left (available teams + camera) | right (alliances + sponsor) -->
-		<div class="grid grid-cols-[1.85fr_1fr] gap-6 px-14 pt-5 pb-14 h-[calc(100vh-142px)]">
+		<div class="grid grid-cols-[1.85fr_1fr] gap-6 px-14 pt-5 pb-14 h-[calc(100%-142px)]">
 			<!-- LEFT: full team grid on top, camera fills the rest -->
 			<div class="grid grid-rows-[auto_auto_minmax(0,1fr)] gap-3.5 min-h-0">
 				<!-- Section label -->
@@ -260,16 +260,16 @@
 				</div>
 
 				<!-- Sponsor logos: Pit Podcast + FAMNM side by side -->
-				<div class="anim-right flex items-center justify-center gap-8 flex-1 mt-1 p-2">
+				<div class="anim-right flex items-center justify-center gap-10 flex-1 mt-1 p-4">
 					<img
 						src="/pitpodcast.png"
 						alt="Pit Podcast"
-						class="object-contain max-h-[300px] max-w-[48%] w-auto"
+						class="object-contain max-h-[180px] max-w-[45%] w-auto"
 					/>
 					<img
 						src="/famnm.png"
 						alt="FAMNM"
-						class="object-contain max-h-[300px] max-w-[48%] w-auto"
+						class="object-contain max-h-[180px] max-w-[45%] w-auto"
 					/>
 				</div>
 			</div>

@@ -148,7 +148,7 @@
 		</header>
 
 		<!-- Body: left (available teams + camera) | right (alliances + sponsors) -->
-		<div class="grid grid-cols-[1.85fr_1fr] gap-6 px-14 pt-5 pb-14 h-[calc(100vh-142px)]">
+		<div class="grid grid-cols-[1.85fr_1fr] gap-6 px-14 pt-5 pb-14 h-[calc(100%-142px)]">
 			<!-- LEFT: full team grid on top, camera fills the rest -->
 			<div class="grid grid-rows-[auto_auto_minmax(0,1fr)] gap-3.5 min-h-0">
 				<!-- Section label -->

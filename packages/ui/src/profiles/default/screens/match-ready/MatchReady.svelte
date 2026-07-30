@@ -112,7 +112,7 @@
 	{#if ready && leftScore && rightScore}
 		<!-- Score bar — slides up from bottom -->
 		<div
-			class="fixed left-1/2 -translate-x-1/2 w-[min(1440px,calc(100vw-80px))]"
+			class="fixed left-1/2 -translate-x-1/2 w-[min(1440px,calc(100%-80px))]"
 			style="{top ? `top: 60px;` : `bottom: calc(60px + ${$barSpring}px);`}"
 			in:fade={{ duration: 150 }}
 			out:fade={{ duration: 150 }}
