@@ -297,6 +297,23 @@ body { font-family: var(--font-body); }
 @keyframes screen-in-right  { from { transform: translateX(130%); } to { transform: none; } }
 @keyframes screen-out-right { from { transform: none; } to { transform: translateX(130%); } }
 
+/* Alliance-selection camera cut-out pop-in: grow the transparent hole from 0 ->
+   100% (the camera feed behind it is fixed, so no overshoot) while its
+   box-shadow keeps the rest of the screen filled with the
+   background. Scaling the box directly would scale that box-shadow too (the
+   whole background would animate), so instead we animate width/height via a
+   registered custom property (interpolates as a number) with a constant shadow. */
+@property --cam-scale {
+    syntax: "<number>";
+    inherits: false;
+    initial-value: 1;
+}
+@keyframes cam-pop-in {
+    from { --cam-scale: 0; }
+    to   { --cam-scale: 1; }
+}
+.cam-pop { animation: cam-pop-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: var(--anim-delay, 0s); }
+
 /* Fade-only exits: the bracket body is too delicate to slide, so it fades on
    screen unload; .swap-fade is the same fade used between the bracket's
    alternating views (bracket <-> full-screen alliances). */

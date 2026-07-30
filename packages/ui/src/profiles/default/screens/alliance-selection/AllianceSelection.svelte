@@ -197,8 +197,8 @@
 					     z-index:-1 keeps that fill behind all the content, so the box
 					     interior stays a clean transparent hole - no border needed. -->
 					<div
-						class="bg-transparent"
-						style="width: {Math.min(camW, (camH * 16) / 9)}px; height: {Math.min(camH, (camW * 9) / 16)}px; position: relative; z-index: -1; box-shadow: 0 0 0 200vmax var(--background);"
+						class="bg-transparent cam-pop"
+						style="width: calc({Math.min(camW, (camH * 16) / 9)}px * var(--cam-scale)); height: calc({Math.min(camH, (camW * 9) / 16)}px * var(--cam-scale)); position: relative; z-index: -1; box-shadow: 0 0 0 200vmax var(--background);"
 					></div>
 				</div>
 			</div>
@@ -260,16 +260,16 @@
 				</div>
 
 				<!-- Sponsor logos: Pit Podcast + FAMNM side by side -->
-				<div class="anim-right flex items-center justify-center gap-10 flex-1 mt-1 p-4">
+				<div class="anim-right flex items-center justify-center gap-8 flex-1 mt-1 p-2">
 					<img
 						src="/pitpodcast.png"
 						alt="Pit Podcast"
-						class="object-contain max-h-[180px] max-w-[45%] w-auto"
+						class="object-contain max-h-[300px] max-w-[48%] w-auto"
 					/>
 					<img
 						src="/famnm.png"
 						alt="FAMNM"
-						class="object-contain max-h-[180px] max-w-[45%] w-auto"
+						class="object-contain max-h-[300px] max-w-[48%] w-auto"
 					/>
 				</div>
 			</div>

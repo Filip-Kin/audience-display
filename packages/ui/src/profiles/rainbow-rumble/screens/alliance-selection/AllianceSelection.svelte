@@ -106,7 +106,9 @@
 </script>
 
 {#if ready}
-	<div class="rr fixed inset-0 bg-background overflow-hidden" class:exiting>
+	<!-- Root transparent so the camera box can cut a hole to the vMix feed; the
+	     box's box-shadow paints the background around it (see camera box below). -->
+	<div class="rr fixed inset-0 overflow-hidden" class:exiting>
 		<!-- Header: rainbow underline, logo + stacked titles, pick timer card -->
 		<header
 			class="anim-top flex items-center justify-between border-b-4 px-14 pt-7 pb-[18px]"
@@ -207,9 +209,12 @@
 				     is measured-contain sized so it is EXACTLY 16:9 whichever dimension
 				     limits (h-full + aspect-video breaks ratio when max-width clamps). -->
 				<div class="min-h-0 flex items-center justify-center" bind:clientWidth={camW} bind:clientHeight={camH}>
+					<!-- Transparent cut-out for the vMix camera feed; box-shadow paints the
+					     background around it, z-index:-1 keeps that behind content, and the
+					     cut-out pops in with the rest of the screen. No border. -->
 					<div
-						class="border-2 border-dashed border-[oklch(1_0_0/0.4)] rounded-[var(--rr-r-sm)]"
-						style="width: {Math.min(camW, (camH * 16) / 9)}px; height: {Math.min(camH, (camW * 9) / 16)}px;"
+						class="bg-transparent cam-pop rounded-[var(--rr-r-sm)]"
+						style="width: calc({Math.min(camW, (camH * 16) / 9)}px * var(--cam-scale)); height: calc({Math.min(camH, (camW * 9) / 16)}px * var(--cam-scale)); position: relative; z-index: -1; box-shadow: 0 0 0 200vmax var(--background);"
 					></div>
 				</div>
 			</div>
