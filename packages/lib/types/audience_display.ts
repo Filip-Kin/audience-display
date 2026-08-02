@@ -122,6 +122,10 @@ export type MatchState = {
 export type EventDetails = {
   name: string;
   matchCount: number;
+  /** Short FMS event code (e.g. "MIRR"); undefined until FMS reports it. */
+  eventCode?: string;
+  /** Season year (e.g. 2026); undefined until FMS reports it. */
+  season?: number;
 };
 
 export type AudienceDisplayState = {

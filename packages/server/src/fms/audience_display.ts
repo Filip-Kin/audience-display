@@ -1072,6 +1072,7 @@ export class AudienceDisplayManager {
       `Get${levelString}MatchPreviewData`
     );
     if (data === null) return null;
+    this.captureEventMeta(data.eventCode);
     return {
       matchNumber: data.matchNumber,
       matchType: this.getMatchTypeFromLevel(level),
@@ -1275,6 +1276,7 @@ export class AudienceDisplayManager {
         "GetMatchResultsDoubleElimPlayoffData"
       );
       if (data === null) return null;
+      this.captureEventMeta(data.eventCode, data.season);
       return {
         matchNumber: data.matchNumber,
         matchType: "sf",
@@ -1308,6 +1310,7 @@ export class AudienceDisplayManager {
       `GetMatchResults${levelString}Data`
     );
     if (data === null) return null;
+    this.captureEventMeta(data.eventCode, data.season);
     return {
       matchNumber: data.matchNumber,
       matchType: this.getMatchTypeFromLevel(level),
@@ -1436,6 +1439,24 @@ export class AudienceDisplayManager {
     }));
   }
 
+  /**
+   * Capture the FMS event code + season from any DTO that carries them (score /
+   * rank responses), so the audience display can request event-specific avatars
+   * from the avatar store. FMS has no dedicated systembase key for the code, so
+   * we harvest it from responses we already fetch. Updates on change.
+   */
+  private captureEventMeta(
+    eventCode?: string | null,
+    season?: number | null
+  ): void {
+    if (eventCode && this.eventDetails.eventCode !== eventCode) {
+      this.eventDetails.eventCode = eventCode;
+    }
+    if (season && this.eventDetails.season !== season) {
+      this.eventDetails.season = season;
+    }
+  }
+
   private async refreshRankData() {
     // Pre-event the body can be literal JSON null and teamRanks can be null/[];
     // show an empty table rather than dying (fetchJson maps all of those to null).
@@ -1443,6 +1464,7 @@ export class AudienceDisplayManager {
       "/api/v1.0/audience/get/GetQualificationRankData",
       "GetQualificationRankData"
     );
+    this.captureEventMeta(data?.eventCode, data?.seasonYear);
     this.rankData = (data?.teamRanks ?? []).map((t) => ({
       rank: t.rank,
       teamNumber: t.teamNumber,

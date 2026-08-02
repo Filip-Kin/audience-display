@@ -16,65 +16,70 @@
 	export let style = "";
 	export let alt = "";
 
-	// If a store image errors (e.g. a stale list), stop using the store here.
-	let failed = false;
-	$: {
-		team; // reset the fallback whenever the team changes
-		failed = false;
-	}
+	const PLACEHOLDER = `data:image/png;base64,${defaultAvatar}`;
 
-	$: storeOk = !!avatarStoreUrl && !failed;
+	$: storeOk = !!avatarStoreUrl;
 	$: teamVersion = team != null ? $avatarState.teams.get(team) : undefined;
-	$: hasTeamUpload = storeOk && team != null && teamVersion !== undefined;
+	// A team is in the /avatars map iff the store has a CRISP upload for it at the
+	// active event (event override or team default). Otherwise the store may still
+	// serve a low-res TBA fallback, which we try only when FMS gives us nothing.
+	$: hasCrispUpload = storeOk && team != null && teamVersion !== undefined;
 	// Note: `!!avatar` so an empty-string FMS avatar counts as "no avatar".
 	$: hasFms = !!avatar;
 	$: hasDefault = storeOk && $avatarState.default != null;
 
-	// The store image is fetched over the network, so pointing the visible <img>
-	// at it directly would flash the alt text while it loads. Preload it
-	// off-screen instead and only swap once it's actually ready; until then the
-	// instant data-URI sources (FMS avatar / built-in placeholder) stay up.
-	let storeSrc: string | null = null;
-	let storeLoaded = false;
+	// Shown immediately (no network wait): the FMS avatar if we have one, else the
+	// built-in placeholder. Both are ~40px, so both render pixelated.
+	$: instantSrc = hasFms ? `data:image/png;base64,${avatar}` : PLACEHOLDER;
 
-	function preload(url: string): void {
-		const img = new Image();
-		img.onload = () => {
-			if (url === storeSrc) storeLoaded = true;
+	// Network sources we try to UPGRADE to, best first. A crisp upload always wins;
+	// the TBA low-res fallback and the store's shared default only fill in when
+	// there is no FMS avatar to show.
+	$: upgrades = [
+		hasCrispUpload ? avatarUrl(team as number, teamVersion as number) : null,
+		!hasFms && team != null && storeOk
+			? avatarUrl(team as number, teamVersion ?? 0)
+			: null,
+		!hasFms && hasDefault ? defaultAvatarUrl($avatarState.default as number) : null,
+	].filter((u): u is string => u !== null);
+
+	// The visible image + whether to render it pixelated. Pixelated is decided by
+	// the LOADED image's natural size: <= 48px is a low-res FMS/TBA avatar we must
+	// not smooth-upscale; a crisp upload (padded to 160) renders smooth.
+	let shownSrc = PLACEHOLDER;
+	let pixelated = true;
+	let walkToken = 0;
+
+	function resolveSources(instant: string, ups: string[]): void {
+		const mine = ++walkToken; // invalidate any in-flight walk when inputs change
+		shownSrc = instant;
+		pixelated = true;
+		let i = 0;
+		const tryNext = () => {
+			if (mine !== walkToken || i >= ups.length) return;
+			const url = ups[i++];
+			const img = new Image();
+			img.onload = () => {
+				if (mine !== walkToken) return;
+				shownSrc = url;
+				pixelated = img.naturalWidth > 0 && img.naturalWidth <= 48;
+			};
+			img.onerror = () => {
+				if (mine === walkToken) tryNext();
+			};
+			img.src = url;
 		};
-		img.onerror = () => {
-			if (url === storeSrc) failed = true;
-		};
-		img.src = url;
+		tryNext();
 	}
 
-	$: desiredStoreSrc = hasTeamUpload
-		? avatarUrl(team as number, teamVersion as number)
-		: !hasFms && hasDefault
-			? defaultAvatarUrl($avatarState.default as number)
-			: null;
-	$: if (desiredStoreSrc !== storeSrc) {
-		storeSrc = desiredStoreSrc;
-		storeLoaded = false;
-		if (storeSrc) preload(storeSrc);
-	}
-
-	// Priority: team upload (crisp) > FMS avatar (40px, pixelated) > store default
-	// (crisp) > built-in placeholder (pixelated). Store sources only once loaded.
-	$: usingStore = storeSrc !== null && storeLoaded;
-	$: src = usingStore
-		? (storeSrc as string)
-		: hasFms
-			? `data:image/png;base64,${avatar}`
-			: `data:image/png;base64,${defaultAvatar}`;
+	$: resolveSources(instantSrc, upgrades);
 </script>
 
 <img
-	{src}
+	src={shownSrc}
 	class={className}
-	class:pixelated={!usingStore}
+	class:pixelated
 	{style}
 	{alt}
-	on:error={() => (failed = true)}
 	{...$$restProps}
 />

@@ -6,6 +6,13 @@ export type ProfileDefinition = {
   name: string;
   eventName?: string;
   /**
+   * TBA-style event code (e.g. "2026rr") used to fetch event-specific avatars
+   * from the avatar store. Set this on offseason/custom profiles that have no
+   * real FMS event code. When omitted, the code is derived from the live FMS
+   * event (season + event code, e.g. 2026 + "MIRR" -> "2026mirr").
+   */
+  eventCode?: string;
+  /**
    * Event information URL encoded into the schedule screen's QR code. Omit to
    * show the game logo panel instead of a QR on the schedule screen.
    */

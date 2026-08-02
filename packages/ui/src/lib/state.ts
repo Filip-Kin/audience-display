@@ -6,6 +6,7 @@ import type { Screen } from "../../../lib/types/audience_display";
 import { applyTheme } from "./theme";
 import { displayEventName } from "./matchNamer";
 import { getProfile, DEFAULT_PROFILE_ID } from "../profiles";
+import { setAvatarEvent } from "./avatarStore";
 
 let appliedDefaultsFor: string | null = null;
 
@@ -199,6 +200,23 @@ export const eventDisplayName = derived(
   [state, activeProfile],
   ([$s, $p]) => displayEventName($p.eventName || $s.eventDetails?.name)
 );
+
+// TBA-style event code (e.g. "2026mirr") the avatar store is scoped to: an
+// explicit profile override wins, else it's derived from the live FMS event
+// (season + lower-cased event code). Null when neither is known.
+export const activeEventCode = derived([state, activeProfile], ([$s, $p]) => {
+  if ($p.eventCode) return $p.eventCode;
+  const code = $s.eventDetails?.eventCode;
+  if (!code) return null;
+  // FMS has no season key of its own on every response, so fall back to the
+  // current calendar year once the event code is known.
+  const season = $s.eventDetails?.season ?? new Date().getFullYear();
+  return `${season}${code.toLowerCase()}`;
+});
+
+// Push the active event code into the (dependency-free) avatar store so it can
+// scope its /avatars poll + avatar URLs without importing app state itself.
+activeEventCode.subscribe((code) => setAvatarEvent(code));
 
 export const setScreen = (screen: Screen) => {
   state.update((s) => {
