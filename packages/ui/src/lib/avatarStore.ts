@@ -14,7 +14,7 @@ import { writable } from "svelte/store";
  * builds versioned URLs so a re-upload is a fresh URL (instant update) while
  * responses stay long-cached.
  */
-const STORE = (import.meta.env.VITE_AVATAR_STORE_URL ?? "https://avatars.filipkin.com").replace(/\/$/, "");
+const STORE = (import.meta.env.VITE_AVATAR_STORE_URL ?? "https://avatars.frc.tools").replace(/\/$/, "");
 const REFRESH_MS = 120_000;
 
 export const avatarStoreUrl = STORE;
