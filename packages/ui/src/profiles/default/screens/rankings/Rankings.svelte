@@ -30,17 +30,12 @@
 	$: rankings = [...$state.rankData].sort((a, b) => a.rank - b.rank);
 
 
-	// Top-8 seeds (the future alliance captains) get rainbow rank badges:
-	// ROYGBIV from the leader down, plus magenta for #8; everyone else stays gray.
+	// Only the top three seeds get a colored badge (gold / silver / bronze);
+	// everyone else stays gray. (The old ROYGBIV top-8 rainbow was an RR holdover.)
 	const RANK_COLORS: Array<{ bg: string; fg: string }> = [
-		{ bg: "oklch(0.55 0.22 25)", fg: "white" },
-		{ bg: "oklch(0.70 0.19 55)", fg: "oklch(0.22 0.05 55)" },
-		{ bg: "oklch(0.85 0.17 100)", fg: "oklch(0.25 0.05 100)" },
-		{ bg: "oklch(0.60 0.20 145)", fg: "white" },
-		{ bg: "oklch(0.55 0.20 240)", fg: "white" },
-		{ bg: "oklch(0.45 0.20 275)", fg: "white" },
-		{ bg: "oklch(0.55 0.25 310)", fg: "white" },
-		{ bg: "oklch(0.62 0.24 340)", fg: "white" },
+		{ bg: "oklch(0.82 0.16 90)", fg: "oklch(0.25 0.05 90)" }, // 1st - gold
+		{ bg: "oklch(0.80 0.02 250)", fg: "oklch(0.25 0.01 250)" }, // 2nd - silver
+		{ bg: "oklch(0.62 0.11 55)", fg: "white" }, // 3rd - bronze
 	];
 	const rankColor = (rank: number) =>
 		RANK_COLORS[rank - 1] ?? { bg: "oklch(0.32 0.01 250)", fg: "white" };

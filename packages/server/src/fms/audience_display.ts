@@ -1478,7 +1478,7 @@ export class AudienceDisplayManager {
     this.rankData = (data?.teamRanks ?? []).map((t) => ({
       rank: t.rank,
       teamNumber: t.teamNumber,
-      teamName: t.teamName,
+      teamName: getTeamName(t.teamNumber, t.teamName ?? ""),
       avatar: t.teamAvatar ?? "",
       rankingScore: t.sort1,
       wins: t.wins,

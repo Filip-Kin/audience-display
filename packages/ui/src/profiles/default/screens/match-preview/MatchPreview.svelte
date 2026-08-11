@@ -92,7 +92,7 @@
 					<div class="display text-white text-[200px] leading-[0.8] tracking-[0.08em] font-black [transform:scaleX(0.66)]">
 						VS
 					</div>
-					<div class="bg-rainbow h-2 w-40"></div>
+					<div class="bg-accentWarn h-2 w-40"></div>
                     <Logo class="size-64" />
 				</div>
 
