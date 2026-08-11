@@ -7,6 +7,7 @@
 	import Alliance from "./Alliance.svelte";
 	import ScoreBreakdown from "@lib/components/ScoreBreakdown.svelte";
 	import SponsorCarousel from "./SponsorCarousel.svelte";
+	import { resultsSponsors } from "@lib/sponsors";
 	import EventHighScoreBanner from "./EventHighScoreBanner.svelte";
 	import Confetti from "./Confetti.svelte";
 	import MatchUnderReviewOverlay from "./MatchUnderReviewOverlay.svelte";
@@ -32,6 +33,10 @@
 	let videoElm: HTMLVideoElement;
 	// Live volume for the winner animation (settings slider).
 	$: if (videoElm) videoElm.volume = $volumes.victoryVideo;
+	// Sponsorless profiles (e.g. MARC) show the event logo in the left box in place
+	// of a sponsor carousel, drop the "Event Sponsors" heading, and hide the
+	// redundant big center logo (so the event logo only appears in that box).
+	$: hasSponsors = resultsSponsors($activeProfile.assets).length > 0;
 	let canPlay = false;
 	let started = false;
 	let unsubAudio: (() => void) | undefined;
@@ -215,26 +220,34 @@
 	on:transitioned={() => dispatcher("transitioned")}
 />
 
-<!-- Top title bar -->
+<!-- Top title bar. z-20 keeps a long (wrapped) match name above the corner
+     sponsor boxes; matchLabelMaxWidth wraps long playoff names to two lines. -->
 {#if results && ready}
-	<div class="fixed z-10 flex w-full justify-center">
+	<div class="fixed z-20 flex w-full justify-center">
 		<div
 			class="mt-8"
 			in:fly={{ y: -50, duration: 200 }}
 			out:fade={{ duration: 100 }}
 		>
-			<MatchEventHeader {eventLabel} {matchLabel} />
+			<MatchEventHeader {eventLabel} {matchLabel} matchLabelMaxWidth="40rem" />
 		</div>
 	</div>
 {/if}
 
 <div class="fixed z-10 grid grid-cols-[.36fr_.28fr_.36fr] w-full h-full p-8 gap-8" class:flex-row-reverse={$settings.invert}>
 	{#if results && ready}
-		<!-- Cell 1: left sponsors column -->
+		<!-- Cell 1: left column. Sponsors carousel when the profile has sponsors;
+		     otherwise the event logo (no "Event Sponsors" heading). -->
 		<div>
-			<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Event Sponsors</h2>
+			{#if hasSponsors}
+				<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Event Sponsors</h2>
+			{/if}
 			<div class="h-60 flex items-center justify-center rounded-2xl bg-[oklch(0_0_0/0.35)] p-6" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}>
-				<SponsorCarousel />
+				{#if hasSponsors}
+					<SponsorCarousel />
+				{:else}
+					<Logo type="event" alt="event logo" class="max-h-full max-w-full mx-auto object-contain" />
+				{/if}
 			</div>
 		</div>
 
@@ -266,20 +279,29 @@
 					</div>
 				{/if}
 
-				<div
-					in:fly={{ y: 200, duration: 500 }}
-					out:fly={{ y: -400, duration: 200 }}
-				>
-					<Logo alt="logo" class="h-96 mt-8 object-contain" />
-				</div>
+				{#if hasSponsors}
+					<!-- pt-8 (padding) not mt-8 on the child: a margin on a transformed
+					     element's child resolves differently with vs without the fly's
+					     transform, which snapped the logo ~5px when the transition ended.
+					     will-change keeps it composited so it doesn't re-snap either. -->
+					<div
+						class="pt-8 will-change-transform"
+						in:fly={{ y: 200, duration: 500 }}
+						out:fly={{ y: -400, duration: 200 }}
+					>
+						<Logo alt="logo" class="h-96 object-contain" />
+					</div>
+				{/if}
 			</div>
 		</div>
 
-		<!-- Cell 3: right column, always show Pit Podcast -->
+		<!-- Cell 3: right column, livestream partner from the profile's asset. -->
 		<div>
-			<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Livestream Partner</h2>
+			{#if hasSponsors}
+				<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Livestream Partner</h2>
+			{/if}
 			<div class="h-60 flex items-center justify-center rounded-2xl bg-[oklch(0_0_0/0.35)] p-6" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}>
-				<img src="/pitpodcast.png" class="max-h-full mx-auto self-center object-contain" alt="Pit Podcast" />
+				<Logo type="livestream" alt="livestream partner" class="max-h-full mx-auto self-center object-contain" />
 			</div>
 		</div>
 

@@ -147,7 +147,7 @@
 					endingPulse={rightEnding}
 				/>
 				<!-- Accent strip: bottom of the bar normally, top of it in top-mode. -->
-				<div class="bg-accentWarn col-span-full h-2 relative z-10" style="order: {top ? -1 : 1};"></div>
+				<div class="bg-scorebarAccent col-span-full h-2 relative z-10" style="order: {top ? -1 : 1};"></div>
 			</div>
 		</div>
 	{/if}

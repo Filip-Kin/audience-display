@@ -9,6 +9,9 @@
 	export let settingsOpen: boolean;
 
 	const profiles = listProfiles();
+	// Baked at build time via vite `define` (from root package.json). Shown in the
+	// dialog header so the running build is identifiable at a glance.
+	const appVersion = __APP_VERSION__;
 
 	const VOLUME_ROWS: { key: VolumeKey; label: string }[] = [
 		...SOUND_DEFS.map((d) => ({ key: d.key as VolumeKey, label: d.label })),
@@ -55,7 +58,10 @@
 {#if settingsOpen}
 	<div class="absolute top-0 left-0 w-full h-full bg-gray-900/50 z-10">
 		<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-lg p-6 text-black w-2xl max-h-[960px] overflow-y-auto">
-			<h2 class="text-xl font-bold mb-4">Settings</h2>
+			<div class="flex items-baseline justify-between mb-4">
+				<h2 class="text-xl font-bold">Settings</h2>
+				<span class="text-sm text-gray-500 tabular-nums">v{appVersion}</span>
+			</div>
 
 			<div class="grid grid-cols-1 gap-6">
 				<div class="flex flex-col gap-2 p-4 bg-gray-100 rounded">

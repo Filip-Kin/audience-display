@@ -14,6 +14,12 @@ export type ProfileTheme = {
   background: string;
   surface: string;
   text: string;
+  /**
+   * Accent for the SCORE-BAR bars/borders (top-bar trim, the shift bar, the
+   * shift/bug highlights). Defaults to `accentWarn`. Set it (e.g. to white) when
+   * the accent color would blend with the red/blue alliance on the bar.
+   */
+  scoreBarAccent?: string;
 };
 
 export type SponsorLogo = {

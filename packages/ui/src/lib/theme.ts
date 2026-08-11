@@ -9,6 +9,7 @@ const VAR_MAP: Record<keyof ProfileTheme, string> = {
   background: "--background",
   surface: "--surface",
   text: "--text",
+  scoreBarAccent: "--scoreBarAccent",
 };
 
 export function applyTheme(theme: ProfileTheme): void {
@@ -17,6 +18,9 @@ export function applyTheme(theme: ProfileTheme): void {
     [keyof ProfileTheme, string]
   >) {
     const value = theme[key];
+    // Clear optional vars a profile omits, so switching profiles can't leave a
+    // previous profile's override (e.g. scoreBarAccent) stuck on :root.
     if (value) root.style.setProperty(varName, value);
+    else root.style.removeProperty(varName);
   }
 }

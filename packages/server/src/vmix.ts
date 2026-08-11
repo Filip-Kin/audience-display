@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
 import { appDataDir } from "./fms_logger";
 
@@ -31,10 +31,36 @@ function readSettings(): Record<string, unknown> {
   }
 }
 
+function mergeSettings(patch: Record<string, unknown>): void {
+  try {
+    mkdirSync(appDataDir(), { recursive: true });
+    writeFileSync(
+      join(appDataDir(), "settings.json"),
+      JSON.stringify({ ...readSettings(), ...patch }, null, 2)
+    );
+  } catch {
+    // not persisted; still applies this run
+  }
+}
+
 export function initVmix(): void {
   const s = readSettings();
   if (typeof s.vmixUrl === "string" && s.vmixUrl) baseUrl = s.vmixUrl.replace(/\/+$/, "");
   if (process.env.VMIX_URL) baseUrl = process.env.VMIX_URL.replace(/\/+$/, "");
+}
+
+export function getVmixUrl(): string {
+  return baseUrl;
+}
+
+/** Set + persist the vMix HTTP-API base URL (from the landing page). */
+export function setVmixUrl(url: string): string {
+  const cleaned = (url || "").trim().replace(/\/+$/, "");
+  if (cleaned) {
+    baseUrl = cleaned;
+    mergeSettings({ vmixUrl: baseUrl });
+  }
+  return baseUrl;
 }
 // #endregion
 

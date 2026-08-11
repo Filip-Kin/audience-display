@@ -1,5 +1,6 @@
 <script lang="ts">
 	import MainPage from "./MainPage.svelte";
+	import BitfocusConfig from "./BitfocusConfig.svelte";
 	import ScreenRouter from "./ScreenRouter.svelte";
 	import { Router, Link, Route } from "svelte-routing";
 	import { onMount } from "svelte";
@@ -23,6 +24,7 @@
 <main class="w-full h-full">
 	<Router {url}>
 		<Route path="/display" component={ScreenRouter} />
+		<Route path="/bitfocus" component={BitfocusConfig} />
 		<Route path="/" component={MainPage} />
 	</Router>
 </main>

@@ -34,6 +34,7 @@ import type { AllianceSelection, QualRanking, Team } from "lib/types/audience_di
 import { getTeamName } from "../team_name";
 import { logRest, isFmsLoggingEnabled } from "../fms_logger";
 import { isCaptionControlEnabled, syncCaptionScreen } from "../caption_control";
+import { syncCompanion } from "../companion";
 import { syncFmsLog } from "../log_sync";
 import { emptyAllianceScore, mapLiveScore, mapResultScore, defaultGameConfig } from "./score_mappers";
 import { fetchGameConfig } from "./game_config";
@@ -836,6 +837,15 @@ export class AudienceDisplayManager {
     // Keep the external live-captions overlay positioned for this screen.
     // No-op unless the operator enabled it; deduped inside.
     syncCaptionScreen(this.screen);
+
+    // Drive Bitfocus Companion (button presses + variable feed). No-op unless
+    // enabled; edge-detects transitions so the 2s heartbeat never re-fires.
+    syncCompanion({
+      screen: this.screen,
+      fmsMatchState: this.currentMatchState,
+      match: this.match,
+      results: this.results,
+    });
   }
 
   selectProfile(id: string) {

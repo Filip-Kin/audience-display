@@ -4,11 +4,13 @@ import type { ProfileDefinition } from "./types";
 import defaultProfile from "./default";
 import wrcProfile from "./wrc";
 import rainbowRumbleProfile from "./rainbow-rumble";
+import marcProfile from "./marc";
 
 const registry: Record<string, ProfileDefinition> = {
   [defaultProfile.id]: defaultProfile,
   [wrcProfile.id]: wrcProfile,
   [rainbowRumbleProfile.id]: rainbowRumbleProfile,
+  [marcProfile.id]: marcProfile,
 };
 
 export const DEFAULT_PROFILE_ID = defaultProfile.id;

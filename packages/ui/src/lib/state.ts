@@ -116,8 +116,11 @@ export const state = writable(defaultState, (set) => {
         }
       }
       if (message.type === "sound") {
-        console.log("Playing sound:", message.data);
-        if (message.data === "matchReady" && !get(settings).matchReadySound) {
+        // Only the display plays audio. The config pages (/, /bitfocus) share this
+        // store + socket for state, but must stay silent.
+        if (!location.pathname.startsWith("/display")) {
+          // ignore sounds off the display route
+        } else if (message.data === "matchReady" && !get(settings).matchReadySound) {
           console.log("Match ready sound is disabled in settings.");
         } else {
           playSound(message.data);

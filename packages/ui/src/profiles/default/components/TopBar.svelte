@@ -16,7 +16,7 @@
 </script>
 
 <header
-	class="absolute top-0 left-0 right-0 grid items-center px-6 gap-6 {atBottom ? 'border-t-2' : 'border-b-2'} border-accentWarn h-[70px] grid-cols-[1fr_auto_1fr] {transparent ? 'bg-transparent' : 'bg-[oklch(0_0_0/0.55)]'}"
+	class="absolute top-0 left-0 right-0 grid items-center px-6 gap-6 {atBottom ? 'border-t-2' : 'border-b-2'} border-scorebarAccent h-[70px] grid-cols-[1fr_auto_1fr] {transparent ? 'bg-transparent' : 'bg-[oklch(0_0_0/0.55)]'}"
 >
 	<div class="flex items-center gap-3 justify-start">
 		<Logo class="object-contain size-12" />

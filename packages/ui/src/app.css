@@ -25,6 +25,9 @@
     --redAlliance:  oklch(0.60 0.235 25);
     --blueAlliance: oklch(0.53 0.24 258);
     --accentWarn:   oklch(0.88 0.19 92);
+    /* Accent for the score-bar bars/borders; profiles override (e.g. MARC -> white
+       so a red accent doesn't blend with the red alliance). Falls back to accent. */
+    --scoreBarAccent: var(--accentWarn);
     --background:   oklch(0.13 0.012 250);
     --surface:      oklch(0.18 0.014 250);
     --text:         oklch(0.98 0.005 250);
@@ -81,6 +84,7 @@ body { font-family: var(--font-body); }
 .bg-redAlliance   { background-color: var(--redAlliance); }
 .bg-blueAlliance  { background-color: var(--blueAlliance); }
 .bg-accentWarn    { background-color: var(--accentWarn); }
+.bg-scorebarAccent { background-color: var(--scoreBarAccent); }
 .bg-bannerAccent  { background-color: var(--bannerAccent); }
 .bg-background    { background-color: var(--background); }
 .bg-surface       { background-color: var(--surface); }
@@ -102,6 +106,7 @@ body { font-family: var(--font-body); }
 .border-redAlliance   { border-color: var(--redAlliance); }
 .border-blueAlliance  { border-color: var(--blueAlliance); }
 .border-accentWarn    { border-color: var(--accentWarn); }
+.border-scorebarAccent { border-color: var(--scoreBarAccent); }
 .border-rule          { border-color: var(--rule); }
 .border-rule-strong   { border-color: var(--rule-strong); }
 

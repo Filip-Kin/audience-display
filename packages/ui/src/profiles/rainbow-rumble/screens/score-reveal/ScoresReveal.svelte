@@ -237,7 +237,7 @@
 				<div class="overflow-hidden rounded-[var(--rr-r)] shadow-[0_12px_40px_oklch(0_0_0/0.6)]">
 					<div class="bg-black px-6 pt-4 pb-3">
 						<div class="text-white text-[28px] leading-tight">{eventLabel}</div>
-						<div class="rr-display text-[36px] leading-tight" style="color: var(--rr-accent);">{matchLabel}</div>
+						<div class="rr-display text-[36px] leading-tight max-w-[34rem] mx-auto" style="color: var(--rr-accent); text-wrap: balance;">{matchLabel}</div>
 					</div>
 					<div class="flex" class:flex-row-reverse={$settings.invert}>
 						<div class="bg-blueAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3">

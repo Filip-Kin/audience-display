@@ -30,10 +30,52 @@
 	let fmsMsg = "";
 	let camMsg = "";
 
+	// Editable vMix HTTP-API URL (persisted server-side to settings.json).
+	let vmixUrlInput = "";
+	let vmixUrlTouched = false;
+	let busyUrl = false;
+	let urlMsg = "";
+	async function saveVmixUrl() {
+		busyUrl = true;
+		urlMsg = "";
+		try {
+			const r = await (
+				await fetch("/api/vmix/url", {
+					method: "POST",
+					headers: { "content-type": "application/json" },
+					body: JSON.stringify({ url: vmixUrlInput }),
+				})
+			).json();
+			urlMsg = r.ok ? "Saved." : `Error: ${r.error}`;
+			vmixUrlTouched = false;
+			await refresh();
+		} catch (e) {
+			urlMsg = `Error: ${e}`;
+		}
+		busyUrl = false;
+	}
+
+	// Host addresses so operators know what URL to open the UI at from another
+	// machine on the venue network.
+	let hostIps: { name: string; address: string }[] = [];
+	let hostPort = 3001;
+	async function loadHostIps() {
+		try {
+			const r = await (await fetch("/api/host/ips")).json();
+			if (r.ok) {
+				hostIps = r.ips;
+				hostPort = r.port;
+			}
+		} catch {
+			// non-fatal; the box may not expose this
+		}
+	}
+
 	async function refresh() {
 		loadingStatus = true;
 		try {
 			status = await (await fetch("/api/vmix/status")).json();
+			if (status && !vmixUrlTouched) vmixUrlInput = status.url;
 			if (status && !cameraKey && status.inputs.length) {
 				// Default to the first non-FMS, non-composite input as the camera.
 				const cam = status.inputs.find(
@@ -47,7 +89,10 @@
 		loadingStatus = false;
 	}
 
-	onMount(refresh);
+	onMount(() => {
+		refresh();
+		loadHostIps();
+	});
 
 	async function setupFms() {
 		busyFms = true;
@@ -92,12 +137,30 @@
 	<div class="max-w-3xl mx-auto space-y-8">
 		<header class="flex items-center justify-between">
 			<h1 class="text-2xl font-bold">Audience Display</h1>
-			<a
-				href="/display"
-				class="rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500"
-				>Open Display</a
-			>
+			<div class="flex items-center gap-3">
+				<a
+					href="/bitfocus"
+					class="rounded bg-gray-700 px-4 py-2 font-semibold text-white hover:bg-gray-600"
+					>Bitfocus</a
+				>
+				<a
+					href="/display"
+					class="rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500"
+					>Open Display</a
+				>
+			</div>
 		</header>
+
+		{#if hostIps.length}
+			<section class="rounded-lg bg-gray-800 p-4 text-sm">
+				<span class="text-gray-400">Open this UI from another machine at:</span>
+				<ul class="mt-1 flex flex-col gap-1 font-mono text-gray-100">
+					{#each hostIps as ip (ip.address)}
+						<li>http://{ip.address}:{hostPort}<span class="text-gray-500"> ({ip.name})</span></li>
+					{/each}
+				</ul>
+			</section>
+		{/if}
 
 		<section class="rounded-lg bg-gray-800 p-6 space-y-5">
 			<div class="flex items-center justify-between">
@@ -107,6 +170,25 @@
 					on:click={refresh}
 					disabled={loadingStatus}>{loadingStatus ? "Checking…" : "Refresh"}</button
 				>
+			</div>
+
+			<div class="flex flex-wrap items-end gap-3">
+				<label class="flex flex-col gap-1 text-sm">
+					<span class="text-gray-400">vMix HTTP-API URL</span>
+					<input
+						type="text"
+						bind:value={vmixUrlInput}
+						on:input={() => (vmixUrlTouched = true)}
+						placeholder="http://127.0.0.1:8088"
+						class="w-72 rounded bg-gray-700 px-3 py-2 font-mono text-white"
+					/>
+				</label>
+				<button
+					class="rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+					on:click={saveVmixUrl}
+					disabled={busyUrl || !vmixUrlInput}>{busyUrl ? "Saving…" : "Save URL"}</button
+				>
+				{#if urlMsg}<span class="text-sm text-gray-300">{urlMsg}</span>{/if}
 			</div>
 
 			{#if status && !status.reachable}
@@ -141,6 +223,16 @@
 					{/if}
 				</div>
 				{#if fmsMsg}<p class="text-sm text-gray-300">{fmsMsg}</p>{/if}
+					<div class="rounded bg-amber-950/40 border border-amber-800/50 p-3 text-sm text-amber-100/90">
+						<span class="font-semibold">Audio tip:</span> if you play a low keep-alive tone to
+						stop the broadcast audio from being flagged as silent, add an audio plugin to the FMS
+						input in vMix (Input → Audio Settings → plugins) to keep it off-air: a
+						<span class="font-semibold">high-pass EQ</span> above the tone (or a
+						<span class="font-semibold">narrow notch</span> at its frequency) for a pure tone, or a
+						<span class="font-semibold">noise gate</span> if it is intermittent. vMix can only
+						enable a plugin via its API, not add/tune one, so set it up here once; then it can be
+						toggled with <span class="font-mono">AudioPluginOn</span>.
+					</div>
 			</div>
 
 			<!-- Action 2: alliance-selection camera composite -->

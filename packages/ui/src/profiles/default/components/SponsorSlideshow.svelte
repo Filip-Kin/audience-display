@@ -23,7 +23,14 @@
 		const deck = sponsorDeck($activeProfile.assets.sponsors, showBracket);
 		const qr = $activeProfile.assets.feedbackQr;
 		if (qr) deck.push({ kind: "feedback", src: qr.src, label: qr.label });
-		if (!deck.length) deck.push({ kind: "sponsor" });
+		if (!deck.length) {
+			// Sponsorless profile (e.g. MARC): rotate the event + livestream logos
+			// instead of the empty "Event Sponsors" placeholder.
+			const a = $activeProfile.assets;
+			if (a.event) deck.push({ kind: "sponsor", sponsor: { src: a.event } });
+			if (a.livestream) deck.push({ kind: "sponsor", sponsor: { src: a.livestream } });
+			if (!deck.length) deck.push({ kind: "sponsor" });
+		}
 		return deck;
 	})();
 </script>

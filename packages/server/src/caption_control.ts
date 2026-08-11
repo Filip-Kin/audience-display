@@ -33,7 +33,10 @@ function mergeSettings(patch: Record<string, unknown>): void {
   }
 }
 
-let enabled = false;
+// Default ON: the WRC feedback was captions covering the match info, and the
+// most likely cause was this simply never being switched on. A venue can still
+// turn it off in Settings (persists to settings.json captionControl:false).
+let enabled = true;
 // Where the display's score bar sits. Captions go on the OPPOSITE edge on the
 // score-bar screens so they never cover it. Advanced (settings.json only).
 let scorebarAtTop = false;

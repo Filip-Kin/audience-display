@@ -22,6 +22,11 @@ export type FitTwoLinesParams = {
 const LINE_HEIGHT = 1.15;
 
 export function fitTwoLines(node: HTMLElement, params: FitTwoLinesParams) {
+	// Hidden until the first fit completes, so the text is never painted at the
+	// wrong (unshrunk) size and then visibly resized. The parent reserves a fixed
+	// height, so hiding the text causes no layout shift.
+	node.style.visibility = "hidden";
+
 	function apply({ max, min, maxHeight }: FitTwoLinesParams) {
 		node.style.lineHeight = String(LINE_HEIGHT);
 		node.style.overflowWrap = "break-word";
@@ -42,10 +47,23 @@ export function fitTwoLines(node: HTMLElement, params: FitTwoLinesParams) {
 		node.style.display = "-webkit-box";
 		node.style.setProperty("-webkit-box-orient", "vertical");
 		node.style.setProperty("-webkit-line-clamp", "2");
+		node.style.visibility = "visible";
 	}
 
-	apply(params);
+	// The `display` web font has different metrics than the fallback, so fitting
+	// before it loads sizes against the wrong glyphs and then re-fits (the visible
+	// "resize" flash). Wait for the font, then fit once against the real metrics.
+	function run(p: FitTwoLinesParams) {
+		const fonts = typeof document !== "undefined" ? (document as Document).fonts : undefined;
+		if (fonts && fonts.status !== "loaded") {
+			fonts.ready.then(() => apply(p)).catch(() => apply(p));
+		} else {
+			apply(p);
+		}
+	}
+
+	run(params);
 	return {
-		update: apply,
+		update: run,
 	};
 }

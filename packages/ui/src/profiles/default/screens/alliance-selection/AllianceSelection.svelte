@@ -259,16 +259,16 @@
 					{/each}
 				</div>
 
-				<!-- Sponsor logos: Pit Podcast + FAMNM side by side -->
+				<!-- Livestream partner + event logo, both profile-driven. -->
 				<div class="anim-right flex items-center justify-center gap-10 flex-1 mt-1 p-4">
-					<img
-						src="/pitpodcast.png"
-						alt="Pit Podcast"
+					<Logo
+						type="livestream"
+						alt="livestream partner"
 						class="object-contain max-h-[180px] max-w-[45%] w-auto"
 					/>
-					<img
-						src="/famnm.png"
-						alt="FAMNM"
+					<Logo
+						type="event"
+						alt="event logo"
 						class="object-contain max-h-[180px] max-w-[45%] w-auto"
 					/>
 				</div>

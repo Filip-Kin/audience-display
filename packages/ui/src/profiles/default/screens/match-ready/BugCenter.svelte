@@ -65,7 +65,7 @@
 <div
 	class="relative z-10 flex flex-col items-center justify-center {underReview
 		? 'bg-accentWarn gap-1.5 px-4 py-2'
-		: 'bg-[oklch(0_0_0/0.88)] px-6 pt-1 pb-3.5'} border-l-[6px] border-r-[6px] border-accentWarn w-72"
+		: 'bg-[oklch(0_0_0/0.88)] px-6 pt-1 pb-3.5'} border-l-[6px] border-r-[6px] border-scorebarAccent w-72"
 >
 	{#if underReview}
 		<!-- Official-FMS style: the whole timer square becomes the review card. -->

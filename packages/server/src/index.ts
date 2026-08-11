@@ -3,9 +3,18 @@ import { ProfileSelector } from "./profile_selector";
 import { checkForUpdate } from "./auto_update";
 import { initFmsLogger, setFmsLoggingEnabled } from "./fms_logger";
 import { initCaptionControl, setCaptionControlEnabled } from "./caption_control";
-import { initVmix, vmixStatus, ensureFmsInput, setupAllianceCamera } from "./vmix";
+import {
+  initCompanion,
+  getCompanionConfig,
+  setCompanionConfig,
+  testPress,
+  COMPANION_EVENTS,
+  COMPANION_VARIABLES,
+} from "./companion";
+import { initVmix, vmixStatus, ensureFmsInput, setupAllianceCamera, setVmixUrl } from "./vmix";
 import { initLogSync, syncFmsLog } from "./log_sync";
 import { existsSync } from "fs";
+import { networkInterfaces } from "os";
 import { join } from "path";
 import zipFile from "../../../ui-dist.zip" with { type: "file" };
 import { file } from "bun";
@@ -28,8 +37,31 @@ await checkForUpdate();
 // captures every frame from the first handshake on.
 initFmsLogger(RESOLVED_FMS_URL);
 initCaptionControl();
+initCompanion();
 initVmix();
 initLogSync();
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
+
+/** Non-internal IPv4 addresses, so the landing page can tell the operator what
+ *  URL to open the UI at from another machine on the venue network. */
+function hostIps(): { name: string; address: string }[] {
+  // Skip container/virtual interfaces (docker bridges, veth, VPN tun/tap) so the
+  // list stays the machine's real NICs (+ tailscale, which is legitimately useful).
+  const skip = /^(docker|br-|veth|virbr|vmnet|as\d|tap|tun|lo)/;
+  const out: { name: string; address: string }[] = [];
+  for (const [name, addrs] of Object.entries(networkInterfaces())) {
+    if (skip.test(name)) continue;
+    for (const a of addrs ?? []) {
+      if (a.family === "IPv4" && !a.internal) out.push({ name, address: a.address });
+    }
+  }
+  return out;
+}
 
 if (process.execPath.endsWith(".exe") && !process.execPath.endsWith("bun.exe")) {
   // Extract the embedded UI in-process (fflate) instead of shelling out to
@@ -62,6 +94,11 @@ const server = Bun.serve({
         if (url.pathname === "/api/vmix/status" && request.method === "GET") {
           return json(await vmixStatus());
         }
+        if (url.pathname === "/api/vmix/url" && request.method === "POST") {
+          const body = (await request.json().catch(() => ({}))) as { url?: string };
+          if (!body.url) return json({ ok: false, error: "url required" }, 400);
+          return json({ ok: true, url: setVmixUrl(String(body.url)) });
+        }
         if (url.pathname === "/api/vmix/setup-fms" && request.method === "POST") {
           const body = (await request.json().catch(() => ({}))) as { displayUrl?: string };
           return json({ ok: true, ...(await ensureFmsInput(body.displayUrl)) });
@@ -86,8 +123,51 @@ const server = Bun.serve({
       return json({ ok: false, error: "unknown vmix endpoint" }, 404);
     }
 
+    // Bitfocus Companion config + test. Fail soft, never take the display down.
+    if (url.pathname.startsWith("/api/companion/")) {
+      try {
+        if (url.pathname === "/api/companion/config" && request.method === "GET") {
+          return json({
+            ok: true,
+            config: getCompanionConfig(),
+            events: COMPANION_EVENTS,
+            variables: COMPANION_VARIABLES,
+          });
+        }
+        if (url.pathname === "/api/companion/config" && request.method === "POST") {
+          const body = await request.json().catch(() => ({}));
+          return json({ ok: true, config: setCompanionConfig(body) });
+        }
+        if (url.pathname === "/api/companion/test" && request.method === "POST") {
+          const body = (await request.json().catch(() => ({}))) as {
+            address?: string;
+            page?: number;
+            row?: number;
+            column?: number;
+          };
+          if (!body.address) return json({ ok: false, error: "address required" }, 400);
+          return json(
+            await testPress(String(body.address), {
+              page: Number(body.page) || 0,
+              row: Number(body.row) || 0,
+              column: Number(body.column) || 0,
+            })
+          );
+        }
+      } catch (e) {
+        return json({ ok: false, error: String(e) }, 500);
+      }
+      return json({ ok: false, error: "unknown companion endpoint" }, 404);
+    }
+
+    if (url.pathname === "/api/host/ips" && request.method === "GET") {
+      return json({ ok: true, ips: hostIps(), port: server.port });
+    }
+
     const rel =
-      url.pathname === "/" || url.pathname.startsWith("/display")
+      url.pathname === "/" ||
+      url.pathname.startsWith("/display") ||
+      url.pathname === "/bitfocus"
         ? "index.html"
         : url.pathname.replace(/^\/+/, "");
     const filePath = join("./.temp/dist", rel);
