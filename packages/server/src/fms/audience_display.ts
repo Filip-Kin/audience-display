@@ -35,6 +35,7 @@ import { getTeamName } from "../team_name";
 import { logRest, isFmsLoggingEnabled } from "../fms_logger";
 import { isCaptionControlEnabled, syncCaptionScreen } from "../caption_control";
 import { syncCompanion } from "../companion";
+import { getRealAlliances } from "../playoff_config";
 import { syncFmsLog } from "../log_sync";
 import { emptyAllianceScore, mapLiveScore, mapResultScore, defaultGameConfig } from "./score_mappers";
 import { fetchGameConfig } from "./game_config";
@@ -824,6 +825,7 @@ export class AudienceDisplayManager {
           pickTimerType: this.pickTimerType,
           rankData: this.rankData,
           bracket: this.bracket,
+          playoffRealAlliances: getRealAlliances(),
           firstPlayoffMatchTime: this.firstPlayoffMatchTime,
           gameConfig: this.gameConfig,
           activeProfileId: this.profileSelector?.get() ?? null,

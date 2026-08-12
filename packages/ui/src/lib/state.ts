@@ -22,6 +22,7 @@ const defaultState: AudienceDisplayState = {
   pickTimerType: "pick",
   rankData: [],
   bracket: null,
+  playoffRealAlliances: 8,
   firstPlayoffMatchTime: null,
   gameConfig: null,
   activeProfileId: null,

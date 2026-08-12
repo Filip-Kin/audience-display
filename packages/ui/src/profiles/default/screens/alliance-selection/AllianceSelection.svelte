@@ -55,13 +55,18 @@
 	$: rankRows = Math.max(1, Math.ceil($state.ranking.length / 7));
 	$: slotsPerAlliance = Math.max(2, Math.min(4, $state.allianceSize ?? 3));
 
-	// Once all 8 alliances have at least one team (captain slot filled), stop
+	// Real alliance count: a small event backfills the 8-alliance bracket with
+	// fillers (seeds beyond this count), so the ceremony only shows/awaits the
+	// real alliances. 8 (default) = a normal full field.
+	$: realAllianceCount = Math.max(2, Math.min(8, $state.playoffRealAlliances ?? 8));
+
+	// Once all real alliances have at least one team (captain slot filled), stop
 	// highlighting potential captains.
 	$: allCaptainsFilled =
-		$state.alliances.length >= 8 &&
+		$state.alliances.length >= realAllianceCount &&
 		$state.alliances.every((a) => a.teams.length > 0);
 
-	$: paddedAlliances = Array.from({ length: 8 }, (_, i) => {
+	$: paddedAlliances = Array.from({ length: realAllianceCount }, (_, i) => {
 		const num = i + 1;
 		const existing = $state.alliances.find((a) => a.allianceNumber === num);
 		return (

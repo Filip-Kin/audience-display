@@ -1,9 +1,15 @@
 <script lang="ts">
+	import { state } from "@lib/state";
 	import type { BracketData, AudienceBracketAlliance } from "lib";
 
 	export let bracket: BracketData;
 
-	$: alliances = [...bracket.alliances].sort((a, b) => a.allianceNumber - b.allianceNumber);
+	// Hide filler alliances (seeds beyond the real count) so this list matches the
+	// collapsed bracket. 8 (default) shows everyone, so normal events are unchanged.
+	$: realCount = $state.playoffRealAlliances ?? 8;
+	$: alliances = [...bracket.alliances]
+		.filter((a) => a.allianceNumber <= realCount)
+		.sort((a, b) => a.allianceNumber - b.allianceNumber);
 
 	// Double elim: two losses and you're out. Ties have no winner, so they
 	// count against nobody. (Finals results live outside this list.)

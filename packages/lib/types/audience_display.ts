@@ -143,6 +143,11 @@ export type AudienceDisplayState = {
   /** Full qualification standings for the rankings screen (from GetQualificationRankData). */
   rankData: QualRanking[];
   bracket: BracketData | null;
+  /** Number of REAL playoff alliances. A small event backfills the standard
+   *  8-alliance bracket with filler alliances (seeds beyond this count) that
+   *  forfeit 1-0; the bracket + alliance-selection screens collapse those away.
+   *  8 (default) = no fillers, standard bracket. */
+  playoffRealAlliances: number;
   /** Scheduled start of playoff match 1 (ISO), for the bracket screen's pre-playoff countdown. */
   firstPlayoffMatchTime: string | null;
   gameConfig: GameConfig | null;

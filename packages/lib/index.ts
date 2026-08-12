@@ -45,3 +45,6 @@ export type {
   AudienceBracketAlliance,
   AudienceDoubleElimMatch,
 } from "./types/bracket";
+
+export { collapseBracket } from "./collapse_bracket";
+export type { CollapsedBracket, CollapsedNode } from "./collapse_bracket";

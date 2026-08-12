@@ -133,7 +133,9 @@ function defaultConfig(): CompanionConfig {
   return {
     enabled: true,
     variablesEnabled: true,
-    liveScores: true,
+    // Off by default: score variables refresh only at the reveal, not live, so a
+    // busy match doesn't spam Companion. Operators can opt into live scores.
+    liveScores: false,
     sinks: [
       {
         id: "local",
@@ -154,7 +156,7 @@ export function initCompanion(): void {
     config = {
       enabled: !!raw.enabled,
       variablesEnabled: raw.variablesEnabled !== false,
-      liveScores: raw.liveScores !== false,
+      liveScores: raw.liveScores === true,
       sinks: raw.sinks.map(normalizeSink),
     };
   }
@@ -192,7 +194,7 @@ export function setCompanionConfig(next: unknown): CompanionConfig {
   config = {
     enabled: !!n.enabled,
     variablesEnabled: n.variablesEnabled !== false,
-    liveScores: n.liveScores !== false,
+    liveScores: n.liveScores === true,
     sinks: Array.isArray(n.sinks) ? n.sinks.map(normalizeSink) : [],
   };
   mergeSettings({ companion: config });

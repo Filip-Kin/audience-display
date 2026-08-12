@@ -24,10 +24,10 @@
 		const qr = $activeProfile.assets.feedbackQr;
 		if (qr) deck.push({ kind: "feedback", src: qr.src, label: qr.label });
 		if (!deck.length) {
-			// Sponsorless profile (e.g. MARC): rotate the event + livestream logos
-			// instead of the empty "Event Sponsors" placeholder.
+			// Sponsorless profile (e.g. MARC): show just the livestream (Pit Podcast)
+			// logo, NOT the event logo - these screens already show the event logo in
+			// their top bar, so repeating it in the carousel looks redundant.
 			const a = $activeProfile.assets;
-			if (a.event) deck.push({ kind: "sponsor", sponsor: { src: a.event } });
 			if (a.livestream) deck.push({ kind: "sponsor", sponsor: { src: a.livestream } });
 			if (!deck.length) deck.push({ kind: "sponsor" });
 		}

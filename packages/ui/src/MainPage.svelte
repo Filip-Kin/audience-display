@@ -55,6 +55,41 @@
 		busyUrl = false;
 	}
 
+	// Editable real playoff-alliance count. A small event backfills the standard
+	// 8-alliance bracket with fillers (seeds beyond this count); the bracket +
+	// alliance-selection screens collapse those foregone 1-0 matches away. 8 = normal.
+	let realAlliances = 8;
+	let realAlliancesTouched = false;
+	let busyAlliances = false;
+	let allianceMsg = "";
+	async function saveRealAlliances() {
+		busyAlliances = true;
+		allianceMsg = "";
+		try {
+			const r = await (
+				await fetch("/api/playoff/alliances", {
+					method: "POST",
+					headers: { "content-type": "application/json" },
+					body: JSON.stringify({ realAlliances }),
+				})
+			).json();
+			allianceMsg = r.ok ? "Saved." : `Error: ${r.error}`;
+			if (r.ok) realAlliances = r.realAlliances;
+			realAlliancesTouched = false;
+		} catch (e) {
+			allianceMsg = `Error: ${e}`;
+		}
+		busyAlliances = false;
+	}
+	async function loadRealAlliances() {
+		try {
+			const r = await (await fetch("/api/playoff/alliances")).json();
+			if (r.ok && !realAlliancesTouched) realAlliances = r.realAlliances;
+		} catch {
+			// non-fatal
+		}
+	}
+
 	// Host addresses so operators know what URL to open the UI at from another
 	// machine on the venue network.
 	let hostIps: { name: string; address: string }[] = [];
@@ -92,6 +127,7 @@
 	onMount(() => {
 		refresh();
 		loadHostIps();
+		loadRealAlliances();
 	});
 
 	async function setupFms() {
@@ -161,6 +197,37 @@
 				</ul>
 			</section>
 		{/if}
+
+		<section class="rounded-lg bg-gray-800 p-6 space-y-4">
+			<h2 class="text-lg font-semibold">Playoff Bracket</h2>
+			<p class="text-sm text-gray-400">
+				How many alliances are REAL. A small event runs the standard 8-alliance
+				bracket and backfills the empty seats with filler alliances (the seeds
+				beyond this number) whose matches are foregone 1-0 forfeits. The bracket
+				and alliance-selection screens then collapse those away and show only the
+				real matches. Leave at 8 for a normal event.
+			</p>
+			<div class="flex flex-wrap items-end gap-3">
+				<label class="flex flex-col gap-1 text-sm">
+					<span class="text-gray-400">Real alliances</span>
+					<select
+						bind:value={realAlliances}
+						on:change={() => (realAlliancesTouched = true)}
+						class="w-36 rounded bg-gray-700 px-3 py-2 text-white"
+					>
+						{#each [8, 7, 6, 5, 4, 3, 2] as n}
+							<option value={n}>{n}{n === 8 ? " (normal)" : ""}</option>
+						{/each}
+					</select>
+				</label>
+				<button
+					class="rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+					on:click={saveRealAlliances}
+					disabled={busyAlliances}>{busyAlliances ? "Saving…" : "Save"}</button
+				>
+				{#if allianceMsg}<span class="text-sm text-gray-300">{allianceMsg}</span>{/if}
+			</div>
+		</section>
 
 		<section class="rounded-lg bg-gray-800 p-6 space-y-5">
 			<div class="flex items-center justify-between">

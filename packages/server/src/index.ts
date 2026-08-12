@@ -12,6 +12,7 @@ import {
   COMPANION_VARIABLES,
 } from "./companion";
 import { initVmix, vmixStatus, ensureFmsInput, setupAllianceCamera, setVmixUrl } from "./vmix";
+import { initPlayoffConfig, getRealAlliances, setRealAlliances } from "./playoff_config";
 import { initLogSync, syncFmsLog } from "./log_sync";
 import { existsSync } from "fs";
 import { networkInterfaces } from "os";
@@ -39,6 +40,7 @@ initFmsLogger(RESOLVED_FMS_URL);
 initCaptionControl();
 initCompanion();
 initVmix();
+initPlayoffConfig();
 initLogSync();
 
 const json = (body: unknown, status = 200) =>
@@ -121,6 +123,23 @@ const server = Bun.serve({
         return json({ ok: false, error: String(e) }, 500);
       }
       return json({ ok: false, error: "unknown vmix endpoint" }, 404);
+    }
+
+    // Playoff config: how many alliances are REAL (the rest are collapsed-away
+    // fillers). Fail soft with JSON like the vMix routes.
+    if (url.pathname.startsWith("/api/playoff/")) {
+      const json = (body: unknown, status = 200) =>
+        new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+      if (url.pathname === "/api/playoff/alliances" && request.method === "GET") {
+        return json({ ok: true, realAlliances: getRealAlliances() });
+      }
+      if (url.pathname === "/api/playoff/alliances" && request.method === "POST") {
+        const body = (await request.json().catch(() => ({}))) as { realAlliances?: number };
+        if (typeof body.realAlliances !== "number")
+          return json({ ok: false, error: "realAlliances (number) required" }, 400);
+        return json({ ok: true, realAlliances: setRealAlliances(body.realAlliances) });
+      }
+      return json({ ok: false, error: "unknown playoff endpoint" }, 404);
     }
 
     // Bitfocus Companion config + test. Fail soft, never take the display down.
