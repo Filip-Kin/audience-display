@@ -115,8 +115,14 @@
 		try {
 			audioContext = new AudioContext();
 
-			// Create silent oscillator
+			// Low-frequency keep-alive tone: unlocks autoplay and stops vMix's
+			// silence detector from flagging the FMS input as dead air. Pinned to
+			// 31 Hz (sub-bass) so it sits below all program audio and can be
+			// high-passed out cleanly downstream instead of needing a surgical
+			// notch. Default OscillatorNode frequency is 440 Hz, right in the
+			// vocal range — do not rely on the default.
 			const osc = audioContext.createOscillator();
+			osc.frequency.value = 31;
 			const gain = audioContext.createGain();
 			gain.gain.value = 0.001;
 

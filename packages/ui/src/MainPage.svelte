@@ -291,12 +291,13 @@
 				</div>
 				{#if fmsMsg}<p class="text-sm text-gray-300">{fmsMsg}</p>{/if}
 					<div class="rounded bg-amber-950/40 border border-amber-800/50 p-3 text-sm text-amber-100/90">
-						<span class="font-semibold">Audio tip:</span> if you play a low keep-alive tone to
-						stop the broadcast audio from being flagged as silent, add an audio plugin to the FMS
-						input in vMix (Input → Audio Settings → plugins) to keep it off-air: a
-						<span class="font-semibold">high-pass EQ</span> above the tone (or a
-						<span class="font-semibold">narrow notch</span> at its frequency) for a pure tone, or a
-						<span class="font-semibold">noise gate</span> if it is intermittent. vMix can only
+						<span class="font-semibold">Audio tip:</span> the display plays a 31 Hz sub-bass
+						keep-alive tone to unlock audio and stop the broadcast audio from being flagged as
+						silent. To keep it off-air, add an audio plugin to the FMS input in vMix (Input →
+						Audio Settings → plugins): a
+						<span class="font-semibold">high-pass EQ</span> around 50 Hz clears it out with no
+						effect on program audio (or a <span class="font-semibold">narrow notch</span> at
+						31 Hz), or a <span class="font-semibold">noise gate</span> if it is intermittent. vMix can only
 						enable a plugin via its API, not add/tune one, so set it up here once; then it can be
 						toggled with <span class="font-mono">AudioPluginOn</span>.
 					</div>
