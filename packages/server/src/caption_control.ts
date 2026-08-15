@@ -66,13 +66,16 @@ export function setCaptionControlEnabled(on: boolean): void {
 /**
  * live-captions position preset for a screen.
  * 0 = bottom (default). 4 = just under a top bar. 5 = just over a bottom bar.
- * Only the LIVE-match score-bar screens sit opposite the score bar; the
- * waiting-for-scores (match-end) and scores-ready screens show the gear/waiting
- * layout (no score bar), so their captions sit at the bottom like everything else.
+ * The score bar is up for the whole match AND through the match-end hold (final
+ * scores stay on the bar until scores post), so captions sit opposite it on every
+ * `match-*` screen except the preview (team lineup, no bar). Only when the display
+ * switches to the scores-ready / waiting-for-scores gear screen (no score bar) do
+ * captions drop back to the bottom like everything else. Excluding match-end here
+ * used to make the captions jump to the bottom the instant the match ended, over
+ * the still-visible score bar.
  */
 function screenToPosition(screen: Screen): number {
-  const isScoreBar =
-    screen.startsWith("match-") && screen !== "match-preview" && screen !== "match-end";
+  const isScoreBar = screen.startsWith("match-") && screen !== "match-preview";
   if (isScoreBar) return scorebarAtTop ? 5 : 4;
   return 0;
 }
