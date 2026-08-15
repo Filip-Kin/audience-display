@@ -143,6 +143,10 @@
 	}
 
 	onMount(async () => {
+		// The display is the ONLY kiosk route: opt into the fixed 1920x1080 scaled
+		// canvas (see app.css `html.kiosk`). The config pages (/, /bitfocus) stay a
+		// normal scrollable full-width document without this class.
+		document.documentElement.classList.add("kiosk");
 		const success = await tryPlaySilentAudio();
 		if (success) {
 			audioUnlocked.set(true);
@@ -171,6 +175,7 @@
 	}, 2000);
 
 	onDestroy(() => {
+		document.documentElement.classList.remove("kiosk");
 		clearTransitionTimers();
 		if (healTimer) clearInterval(healTimer);
 	});

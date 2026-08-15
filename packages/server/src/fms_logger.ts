@@ -16,10 +16,21 @@ import pkg from "../../../package.json";
 const isCompiledExe =
   process.execPath.endsWith(".exe") && !process.execPath.endsWith("bun.exe");
 
-/** OS-appropriate appdata dir for the program (next to nothing volatile). */
+/** OS-appropriate appdata dir for the program (next to nothing volatile).
+ *
+ * On Windows this MUST resolve to the SAME folder on every launch, or persisted
+ * settings (Bitfocus config, vMix URL, captions, team names) appear to reset.
+ * The auto-updater relaunches the exe detached via cmd.exe, and that child does
+ * not always inherit %APPDATA%; if it were missing we used to fall through to
+ * `<exeDir>/appdata` - a DIFFERENT folder - so the post-update process read an
+ * empty settings.json. Reconstruct the canonical Roaming path from the home dir
+ * (USERPROFILE, effectively always present) when APPDATA is absent so the path
+ * never drifts. This is the exact same location as %APPDATA%\audience-display,
+ * so existing settings are picked up unchanged. */
 export function appDataDir(): string {
-  if (process.platform === "win32" && process.env.APPDATA) {
-    return join(process.env.APPDATA, "audience-display");
+  if (process.platform === "win32") {
+    const roaming = process.env.APPDATA || join(homedir(), "AppData", "Roaming");
+    return join(roaming, "audience-display");
   }
   if (isCompiledExe) return join(dirname(process.execPath), "appdata");
   const base = process.env.XDG_DATA_HOME ?? join(homedir(), ".local", "share");

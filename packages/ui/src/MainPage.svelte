@@ -169,7 +169,7 @@
 	}
 </script>
 
-<div class="min-h-full bg-gray-900 text-gray-100 p-8">
+<div class="min-h-screen bg-gray-900 text-gray-100 p-8">
 	<div class="max-w-3xl mx-auto space-y-8">
 		<header class="flex items-center justify-between">
 			<h1 class="text-2xl font-bold">Audience Display</h1>

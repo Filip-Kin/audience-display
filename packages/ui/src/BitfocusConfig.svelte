@@ -162,7 +162,7 @@
 
 </script>
 
-<div class="h-full overflow-y-auto bg-gray-900 text-gray-100 p-8">
+<div class="min-h-screen bg-gray-900 text-gray-100 p-8">
 	<div class="max-w-4xl mx-auto space-y-6">
 		<header class="flex items-center justify-between">
 			<h1 class="text-2xl font-bold">Bitfocus Companion</h1>

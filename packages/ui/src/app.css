@@ -56,21 +56,29 @@
     color: var(--text);
 }
 
-html, body { height: 100%; overflow: hidden; }
 html, body { background: transparent; color: var(--text); }
 body { font-family: var(--font-body); }
 
-/* Resolution independence: the whole UI is authored at a fixed 1920x1080 and
+/* Config pages (/, /bitfocus) are a normal, scrollable, full-width document:
+   they fill the viewport width on any monitor (incl. ultrawide) and scroll when
+   their content is taller than the screen. The kiosk /display route opts INTO
+   the fixed scaled canvas below by adding `.kiosk` to <html> (see ScreenRouter). */
+html, body { height: auto; min-height: 100%; }
+#app { width: 100%; min-height: 100vh; }
+
+/* Kiosk display (/display): the whole UI is authored at a fixed 1920x1080 and
    scaled to fill the real viewport, so 1080p / 1440p / 4K render identically.
    The transform also makes #app the containing block for the screens'
    position:fixed roots (they then fill #app, not the raw viewport).
    --app-scale is set from JS (App.svelte) = min(innerW/1920, innerH/1080). */
-#app {
+html.kiosk, html.kiosk body { height: 100%; min-height: 0; overflow: hidden; }
+html.kiosk #app {
     position: absolute;
     top: 0;
     left: 0;
     width: 1920px;
     height: 1080px;
+    min-height: 0;
     transform-origin: top left;
     transform: scale(var(--app-scale, 1));
 }
