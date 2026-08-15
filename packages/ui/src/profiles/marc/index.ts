@@ -43,6 +43,18 @@ const profile: ProfileDefinition = {
     // Pit Podcast is the broadcaster; keep it in the dedicated livestream slot.
     livestream: "/pitpodcast.png",
   },
+  // Custom MARC coin-flip victory videos (a metal MARC medallion spins, lands
+  // on the winning alliance's colour, and on its last rotation the Michigan
+  // logo swaps to "<COLOR> ALLIANCE WINS"). 1920x1080 / 60fps / 7s.
+  animations: {
+    victoryRed: "/animations/marc/redwins.mp4",
+    victoryBlue: "/animations/marc/bluewins.mp4",
+    // Tie: externally-supplied clip (flashes both alliance faces, lands on a
+    // "TIE" card). 1024x576 / 24fps, so lower-res than the red/blue clips.
+    victoryTie: "/animations/marc/tie.mp4",
+    // First frame of the victory videos; covers the buffering gap.
+    cover: "/animations/marc/first-frame.png",
+  },
   // Override-only: omitted screens fall back to the default profile.
   screens: {},
 };
