@@ -18,8 +18,10 @@ import defaultProfile from "../default";
 const profile: ProfileDefinition = {
   id: "marc",
   name: "MARC (Pit Podcast)",
-  // eventName omitted -> uses the live FMS event name. Set a string here to
-  // force the on-screen title if FMS reports an odd name.
+  // Force the on-screen title to "MARC": the real FMS at the venue still
+  // reports "Rainbow Rumble" as its event name, so pin it here rather than
+  // trust the live FMS name (same as WRC pins its own title).
+  eventName: "MARC",
   // TBA-style event code so the avatar store serves the 2026marc event scope
   // (incl. the custom 9992/9993 avatars for the second 503 / 1502 entries).
   eventCode: "2026marc",
