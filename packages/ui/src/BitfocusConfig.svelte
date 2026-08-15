@@ -113,9 +113,15 @@
 			const buttons: Record<string, { page: number; row: number; column: number }> = {};
 			for (const e of events) {
 				const b = s.grid[e.id];
-				if (b && b.page.trim() !== "" && Number(b.page) >= 1) {
+				// The page/row/column inputs are type="number", so bind:value yields a
+				// NUMBER (or null when empty), not the string the EditButton type claims.
+				// Coerce with String() before trimming - calling .trim() on a number
+				// threw inside this reactive path and halted the whole page (auto-save
+				// AND Add Sink stopped working the moment a button number was entered).
+				const pageStr = String(b?.page ?? "").trim();
+				if (pageStr !== "" && Number(pageStr) >= 1) {
 					buttons[e.id] = {
-						page: Number(b.page),
+						page: Number(pageStr),
 						row: Number(b.row) || 0,
 						column: Number(b.column) || 0,
 					};
