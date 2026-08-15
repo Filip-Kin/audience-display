@@ -80,6 +80,10 @@
 				};
 			});
 			if (!sinks.length) sinks = [newSink("Local")];
+			// Baseline the dirty check to the loaded config so hydration itself
+			// doesn't trigger a save, then arm auto-save for real user edits.
+			lastSavedPayload = buildPayload();
+			hydrated = true;
 		} finally {
 			loading = false;
 		}
@@ -102,8 +106,9 @@
 		sinks = sinks; // trigger reactivity
 	}
 
-	async function save() {
-		saveMsg = "Saving…";
+	// Serialize the current form into the exact payload the server persists. Kept
+	// separate so the auto-save watcher can diff it and skip no-op writes.
+	function buildPayload(): string {
 		const outSinks = sinks.map((s) => {
 			const buttons: Record<string, { page: number; row: number; column: number }> = {};
 			for (const e of events) {
@@ -118,15 +123,51 @@
 			}
 			return { id: s.id, label: s.label, address: s.address.trim(), enabled: s.enabled, buttons };
 		});
+		return JSON.stringify({ enabled, variablesEnabled, liveScores, sinks: outSinks });
+	}
+
+	// Auto-save: there is no Save button (it used to sit at the bottom of a long
+	// page nobody could reach - the reason configs never persisted). Any change
+	// schedules a debounced POST; a dirty check skips redundant writes (incl. the
+	// initial hydration). `hydrated` gates it so we never save before the load
+	// populates the form, and only after a SUCCESSFUL load (never overwrite the
+	// saved config with defaults on a failed fetch).
+	let hydrated = false;
+	let lastSavedPayload = "";
+	let saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+	$: if (hydrated) queueAutoSave(enabled, variablesEnabled, liveScores, sinks);
+
+	// Args are unused - they exist so Svelte tracks these deps and re-runs on any
+	// change (incl. nested sink/button-grid edits, which invalidate `sinks`).
+	function queueAutoSave(..._deps: unknown[]): void {
+		const payload = buildPayload();
+		if (payload === lastSavedPayload) return;
+		if (saveTimer) clearTimeout(saveTimer);
+		saveMsg = "Saving…";
+		saveTimer = setTimeout(() => {
+			saveTimer = null;
+			void save();
+		}, 600);
+	}
+
+	async function save(): Promise<void> {
+		const payload = buildPayload();
+		saveMsg = "Saving…";
 		try {
 			const r = await (
 				await fetch("/api/companion/config", {
 					method: "POST",
 					headers: { "content-type": "application/json" },
-					body: JSON.stringify({ enabled, variablesEnabled, liveScores, sinks: outSinks }),
+					body: payload,
 				})
 			).json();
-			saveMsg = r.ok ? "Saved." : `Error: ${r.error}`;
+			if (r.ok) {
+				lastSavedPayload = payload;
+				saveMsg = "All changes saved";
+			} else {
+				saveMsg = `Error: ${r.error}`;
+			}
 		} catch (e) {
 			saveMsg = `Error: ${e}`;
 		}
@@ -166,10 +207,15 @@
 	<div class="max-w-4xl mx-auto space-y-6">
 		<header class="flex items-center justify-between">
 			<h1 class="text-2xl font-bold">Bitfocus Companion</h1>
-			<a
-				href="/"
-				class="rounded bg-gray-700 px-4 py-2 font-semibold text-white hover:bg-gray-600">Back</a
-			>
+			<div class="flex items-center gap-4">
+				<span class="text-sm text-gray-400" class:text-red-400={saveMsg.startsWith("Error")}>
+					{saveMsg || "Changes save automatically"}
+				</span>
+				<a
+					href="/"
+					class="rounded bg-gray-700 px-4 py-2 font-semibold text-white hover:bg-gray-600">Back</a
+				>
+			</div>
 		</header>
 
 		{#if loading}
@@ -363,13 +409,11 @@
 				</div>
 			</section>
 
-			<div class="flex items-center gap-4">
-				<button
-					class="rounded bg-blue-600 px-5 py-2 font-semibold text-white hover:bg-blue-500"
-					on:click={save}>Save</button
-				>
-				{#if saveMsg}<span class="text-sm text-gray-300">{saveMsg}</span>{/if}
-			</div>
+			<p class="text-sm text-gray-500" class:text-red-400={saveMsg.startsWith("Error")}>
+				{saveMsg
+					? saveMsg
+					: "Changes save automatically - no need to hit a Save button."}
+			</p>
 		{/if}
 	</div>
 </div>
