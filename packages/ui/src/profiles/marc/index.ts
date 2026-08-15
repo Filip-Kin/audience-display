@@ -35,6 +35,10 @@ const profile: ProfileDefinition = {
     // The scorebar accent bars/borders would blend with the red alliance if they
     // were the red accent, so keep them white there.
     scoreBarAccent: "white",
+    // The MARC red reads with poor contrast for the match-number TEXT on the dark
+    // top bar / results screen, so render that text white. (The red accent still
+    // drives the breakdown header, shift/bug highlights, etc.)
+    matchLabel: "white",
   },
   assets: {
     // Center logo on the score-reveal screen. DROP THE FILE at

@@ -20,6 +20,12 @@ export type ProfileTheme = {
    * the accent color would blend with the red/blue alliance on the bar.
    */
   scoreBarAccent?: string;
+  /**
+   * Color of the MATCH-LABEL text (the match number/name in the top bar and on
+   * the results/reveal screen). Defaults to `accentWarn`. Set it (e.g. to white)
+   * when a dark accent reads with poor contrast on the dark bars.
+   */
+  matchLabel?: string;
 };
 
 export type SponsorLogo = {

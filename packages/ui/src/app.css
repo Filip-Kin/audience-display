@@ -105,6 +105,9 @@ html.kiosk #app {
 .text-redAlliance   { color: var(--redAlliance); }
 .text-blueAlliance  { color: var(--blueAlliance); }
 .text-accentWarn    { color: var(--accentWarn); }
+/* Match-label text: a profile can override --matchLabel (e.g. white on MARC where
+   the red accent has poor contrast); otherwise it inherits the gold accent. */
+.text-matchLabel    { color: var(--matchLabel, var(--accentWarn)); }
 .text-text          { color: var(--text); }
 .text-dim           { color: var(--text-dim); }
 .text-faint         { color: var(--text-faint); }

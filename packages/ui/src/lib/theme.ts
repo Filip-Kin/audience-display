@@ -10,6 +10,7 @@ const VAR_MAP: Record<keyof ProfileTheme, string> = {
   surface: "--surface",
   text: "--text",
   scoreBarAccent: "--scoreBarAccent",
+  matchLabel: "--matchLabel",
 };
 
 export function applyTheme(theme: ProfileTheme): void {

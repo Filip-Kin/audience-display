@@ -58,7 +58,7 @@
 	</div>
 	<div
 		bind:this={labelEl}
-		class="display text-accentWarn font-bold leading-[1.1] mt-1 mx-auto"
+		class="display text-matchLabel font-bold leading-[1.1] mt-1 mx-auto"
 		style="font-size: {matchLabelSize};{matchLabelMaxWidth
 			? ` max-width: ${matchLabelMaxWidth}; text-wrap: balance;`
 			: ''}"

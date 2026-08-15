@@ -25,7 +25,7 @@
 		</div>
 	</div>
 
-	<div class="display text-accentWarn whitespace-nowrap text-[36px] leading-none px-6 tracking-[0.02em]">
+	<div class="display text-matchLabel whitespace-nowrap text-[36px] leading-none px-6 tracking-[0.02em]">
 		{matchLabel}
 	</div>
 
