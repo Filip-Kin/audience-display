@@ -26,8 +26,12 @@
 		return Math.max(0, Math.min(1, fuelCount / energizedThreshold));
 	})();
 
-	// White while filling toward Energized; yellow once Energized is achieved.
-	$: arcColor = energizedAchieved ? "var(--accentWarn)" : "white";
+	// White while filling toward Energized; the score-bar accent once Energized is
+	// achieved. Uses --scoreBarAccent (not --accentWarn) so it can't vanish into a
+	// same-coloured alliance side: default/WRC keep gold (scoreBarAccent falls back
+	// to accentWarn), MARC's red accent becomes white here like the other score-bar
+	// accent bars.
+	$: arcColor = energizedAchieved ? "var(--scoreBarAccent)" : "white";
 </script>
 
 <div class="flex flex-col items-center gap-1">
