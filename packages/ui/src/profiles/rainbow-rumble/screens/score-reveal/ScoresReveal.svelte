@@ -166,6 +166,13 @@
 	$: tiebreaker = results?.tiebreaker;
 	$: breakdownIsPlayoff = results?.details.matchType === "sf" || results?.details.matchType === "f";
 
+	// In playoffs the alliances are numbered, so label the score halves
+	// "Alliance N" (from details.redAlliance/blueAlliance) instead of Red/Blue.
+	$: revealIsPlayoff =
+		!!results && results.details.matchType !== "q" && results.details.matchType !== "t";
+	$: blueRevealLabel = revealIsPlayoff ? results?.details.blueAlliance || "Blue" : "Blue";
+	$: redRevealLabel = revealIsPlayoff ? results?.details.redAlliance || "Red" : "Red";
+
 	// Event champion: a finals alliance just clinched the best-of-3 (seriesWins only
 	// exists on finals results). Confetti falls on that alliance's side of the screen.
 	// If the data ever claims BOTH clinched (stale/staged series state), trust the
@@ -241,11 +248,11 @@
 					</div>
 					<div class="flex" class:flex-row-reverse={$settings.invert}>
 						<div class="bg-blueAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3">
-							<span class="text-white font-bold text-[30px]">Blue</span>
+							<span class="text-white font-bold text-[30px]">{blueRevealLabel}</span>
 							<span class="text-white font-bold tabular-nums text-[88px] leading-none pt-2">{results?.score.blue.score}</span>
 						</div>
 						<div class="bg-redAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3">
-							<span class="text-white font-bold text-[30px]">Red</span>
+							<span class="text-white font-bold text-[30px]">{redRevealLabel}</span>
 							<span class="text-white font-bold tabular-nums text-[88px] leading-none pt-2">{results?.score.red.score}</span>
 						</div>
 					</div>

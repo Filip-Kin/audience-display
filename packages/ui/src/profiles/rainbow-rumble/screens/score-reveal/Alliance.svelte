@@ -125,7 +125,7 @@
 						<div class="size-[46px] flex items-center justify-center flex-none">
 							<Avatar avatar={team.avatar} team={team.number} alt="Team {team.number}" class="size-[42px] object-contain" />
 						</div>
-						<span class="rr-display text-[40px] leading-[0.9]">{team.number}</span>
+						<span class="rr-display text-[40px] leading-[0.9]">{team.number}{#if team.designation}<span class="text-[24px] opacity-70"> ({team.designation})</span>{/if}</span>
 					</div>
 					<div class="flex-1 flex items-center gap-2 bg-white text-[oklch(0.16_0_0)] px-3.5 py-[5px]">
 						<!-- Long names drop a size instead of truncating, like the shared TeamCard -->

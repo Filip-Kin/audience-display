@@ -5,6 +5,7 @@
 	import FuelGauge from "./FuelGauge.svelte";
 	import Avatar from "@lib/components/Avatar.svelte";
 	import { settings } from "@lib/settings";
+	import { state } from "@lib/state";
 
 	export let side: "left" | "right";
 	export let color: "red" | "blue";
@@ -17,6 +18,14 @@
 	$: bgVar = color === "red" ? "var(--redAlliance)" : "var(--blueAlliance)";
 	$: isLeft = side === "left";
 	$: isEndingPulse = hubActive && endingPulse;
+
+	// In playoffs, label the bar with the alliance name ("Alliance N", from
+	// match details) instead of the colour word; quals keep Red/Blue.
+	$: details = $state.match?.details;
+	$: barIsPlayoff = !!details && details.matchType !== "q" && details.matchType !== "t";
+	$: allianceLabel =
+		(barIsPlayoff && details?.[color === "red" ? "redAlliance" : "blueAlliance"]) ||
+		(color === "red" ? "Red" : "Blue");
 
 	// Each half gets its own conic rainbow underglow, phase-offset 180deg and at
 	// different speeds so the two sides never sync up. It shows only while this
@@ -93,7 +102,7 @@
 		<!-- Alliance name + score, outboard -->
 		<div class="flex flex-col items-center justify-center" style="order: {isLeft ? 1 : 3};">
 			<div class="uppercase text-white text-lg font-black tracking-[0.22em]">
-				{color === "red" ? "Red" : "Blue"}
+				{allianceLabel}
 			</div>
 			<div class="rr-display tabular-nums text-white text-[140px] leading-[0.88] tracking-[-0.03em] mt-0.5 min-w-[3ch] text-center">
 				{Math.round($displayScore)}
