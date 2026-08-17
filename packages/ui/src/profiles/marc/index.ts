@@ -26,19 +26,13 @@ const profile: ProfileDefinition = {
   // (incl. the custom 9992/9993 avatars for the second 503 / 1502 entries).
   eventCode: "2026marc",
   theme: {
-    // Stock default red/blue shutter, but the accent (match name, top-bar trim,
-    // breakdown header) is the MARC logo red instead of the default gold. Lifted
-    // from the logo's #910B0A so it reads as text on the dark screens.
+    // Stock default theme: the accent (accentWarn) is the FRC attention YELLOW,
+    // which is what every element carrying it is meant to be - under-review card,
+    // yellow cards, highlighted labels, warning states, dots, underlines. MARC's
+    // red identity comes from the red alliance colour, the logo and the victory
+    // videos, NOT the accent. (An earlier MARC-red accentWarn forced a chain of
+    // white overrides - matchLabel/scoreBarAccent/accentText - all removed now.)
     ...defaultProfile.theme,
-    // Brighter MARC red for the accent (match name, breakdown header, etc.).
-    accentWarn: "oklch(0.63 0.245 25)",
-    // The scorebar accent bars/borders would blend with the red alliance if they
-    // were the red accent, so keep them white there.
-    scoreBarAccent: "white",
-    // The MARC red reads with poor contrast for the match-number TEXT on the dark
-    // top bar / results screen, so render that text white. (The red accent still
-    // drives the breakdown header, shift/bug highlights, etc.)
-    matchLabel: "white",
   },
   assets: {
     // Center logo on the score-reveal screen. DROP THE FILE at

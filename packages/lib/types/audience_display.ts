@@ -77,6 +77,9 @@ export type Team = {
   /** Qualification rank; absent for playoff/finals teams (the wire DTOs carry no rank there). */
   rank?: number;
   avatar?: string;
+  /** Optional alternate designation shown next to the number, e.g. "1502B" for a
+   *  team playing under a B-team label. Set per team in customADTeams.json. */
+  designation?: string;
   card: FMSMatchResultsTeam["cardCarryStatus"];
   rankChange?: FMSMatchResultsTeam["teamRankChange"];
   isCaptain?: boolean;

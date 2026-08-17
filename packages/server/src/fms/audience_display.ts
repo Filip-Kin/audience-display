@@ -31,7 +31,7 @@ import {
   type FMSRankingTeam,
 } from "lib/types/FMS_API_audience";
 import type { AllianceSelection, QualRanking, Team } from "lib/types/audience_display";
-import { getTeamName } from "../team_name";
+import { getTeamName, getTeamDesignation } from "../team_name";
 import { logRest, isFmsLoggingEnabled } from "../fms_logger";
 import { isCaptionControlEnabled, syncCaptionScreen } from "../caption_control";
 import { syncCompanion } from "../companion";
@@ -1021,6 +1021,7 @@ export class AudienceDisplayManager {
         number: t.teamNumber,
         rank: t.teamRank,
         avatar: t.avatar,
+        designation: getTeamDesignation(t.teamNumber),
         card: t.carryingCard ? "Yellow" : "None",
       });
     }
@@ -1038,6 +1039,7 @@ export class AudienceDisplayManager {
         name: getTeamName(t.teamNumber, t.teamName ?? ""),
         number: t.teamNumber,
         avatar: t.avatar,
+        designation: getTeamDesignation(t.teamNumber),
         card: alliance.carryingCard ? "Yellow" : "None",
       });
     }
@@ -1207,6 +1209,7 @@ export class AudienceDisplayManager {
         number: t.teamNumber,
         rank: t.teamRank,
         avatar: t.avatar,
+        designation: getTeamDesignation(t.teamNumber),
         card: t.cardEffectiveStatus,
         rankChange: t.teamRankChange ?? "NoChange",
       });
@@ -1226,6 +1229,7 @@ export class AudienceDisplayManager {
         name: getTeamName(t.teamNumber, t.teamName ?? ""),
         number: t.teamNumber,
         avatar: t.avatar,
+        designation: getTeamDesignation(t.teamNumber),
         card: alliance.cardEffectiveStatus,
       });
     }

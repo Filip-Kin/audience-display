@@ -3,6 +3,7 @@
 	import { tweened } from "svelte/motion";
 	import Avatar from "@lib/components/Avatar.svelte";
 	import { settings } from "@lib/settings";
+	import { state } from "@lib/state";
 	import { cubicOut } from "svelte/easing";
 	import FuelGauge from "./FuelGauge.svelte";
 
@@ -16,6 +17,14 @@
 
 	$: bgVar = color === "red" ? "var(--redAlliance)" : "var(--blueAlliance)";
 	$: isLeft = side === "left";
+
+	// In playoffs, label the bar with the alliance name ("Alliance N", from
+	// match details) instead of the colour word; quals keep RED/BLUE.
+	$: details = $state.match?.details;
+	$: barIsPlayoff = !!details && details.matchType !== "q" && details.matchType !== "t";
+	$: allianceLabel =
+		(barIsPlayoff && details?.[color === "red" ? "redAlliance" : "blueAlliance"]) ||
+		(color === "red" ? "RED" : "BLUE");
 	$: isEndingPulse = hubActive && endingPulse;
 
 	const displayScore = tweened(0, { duration: 600, easing: cubicOut });
@@ -59,7 +68,7 @@
 	<!-- Alliance name + score -->
 	<div class="flex flex-col items-center justify-center" style="order: 2;">
 		<div class="uppercase text-white text-lg font-black tracking-[0.22em]">
-			{color === "red" ? "RED" : "BLUE"}
+			{allianceLabel}
 		</div>
 		<div class="display tabular-nums text-white text-[140px] leading-[0.88] tracking-[-0.03em] mt-0.5 min-w-[3ch] text-center">
 			{Math.round($displayScore)}

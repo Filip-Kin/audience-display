@@ -7,7 +7,10 @@ mkdirSync(appDataDir(), { recursive: true });
 
 interface TeamEntry {
     number: number;
-    name: string;
+    name?: string;
+    /** Alternate designation shown next to the team number on preview/results,
+     *  e.g. "1502B". Optional; an entry can set name, designation, or both. */
+    designation?: string;
 }
 
 let cachedTeams: TeamEntry[] = [];
@@ -42,4 +45,12 @@ export function getTeamName(teamNumber: number, defaultName: string): string {
     const customTeams = getCustomTeams();
     const match = customTeams.find(t => t.number === teamNumber);
     return match?.name ?? defaultName;
+}
+
+/** Optional alternate designation (e.g. "1502B") to show next to a team number,
+ *  from the same customADTeams.json entry. Undefined when none is set. */
+export function getTeamDesignation(teamNumber: number): string | undefined {
+    const customTeams = getCustomTeams();
+    const match = customTeams.find(t => t.number === teamNumber);
+    return match?.designation || undefined;
 }

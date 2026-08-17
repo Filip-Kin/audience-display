@@ -56,7 +56,7 @@
 		<!-- text-align: inherit overrides .team-num's centering so the number flushes
 		     to the same side (left/right) as the name; px-2 matches the name padding. -->
 		<div class="display team-num leading-[0.9] text-[oklch(0.14_0_0)] px-2" style="font-size: {numFont}px; text-align: inherit;">
-			{team.number}
+			{team.number}{#if team.designation}<span class="opacity-55" style="font-size: 0.42em;"> ({team.designation})</span>{/if}
 		</div>
 		<div class="mt-1 px-2 flex flex-col justify-center overflow-hidden" style="height: {nameBoxH}px;">
 			<div

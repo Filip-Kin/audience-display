@@ -164,6 +164,14 @@
 		? matchName(results.details.matchNumber, matchCount, results.details.matchType) ?? ""
 		: "";
 
+	// In playoffs alliances are numbered, so label the score halves "Alliance N"
+	// (from details.redAlliance/blueAlliance, e.g. "Alliance 4") instead of the
+	// colour word. Quals have no alliance name, so keep "Red"/"Blue".
+	$: revealIsPlayoff =
+		!!results && results.details.matchType !== "q" && results.details.matchType !== "t";
+	$: blueRevealLabel = revealIsPlayoff ? results?.details.blueAlliance || "Blue" : "Blue";
+	$: redRevealLabel = revealIsPlayoff ? results?.details.redAlliance || "Red" : "Red";
+
 	$: redScore = results?.score.red;
 	$: blueScore = results?.score.blue;
 	$: highScoreVisible = !!(redScore?.isHighScore || blueScore?.isHighScore);
@@ -220,20 +228,6 @@
 	on:transitioned={() => dispatcher("transitioned")}
 />
 
-<!-- Top title bar. z-20 keeps a long (wrapped) match name above the corner
-     sponsor boxes; matchLabelMaxWidth wraps long playoff names to two lines. -->
-{#if results && ready}
-	<div class="fixed z-20 flex w-full justify-center">
-		<div
-			class="mt-8"
-			in:fly={{ y: -50, duration: 200 }}
-			out:fade={{ duration: 100 }}
-		>
-			<MatchEventHeader {eventLabel} {matchLabel} matchLabelMaxWidth="40rem" />
-		</div>
-	</div>
-{/if}
-
 <div class="fixed z-10 grid grid-cols-[.36fr_.28fr_.36fr] w-full h-full p-8 gap-8" class:flex-row-reverse={$settings.invert}>
 	{#if results && ready}
 		<!-- Cell 1: left column. Sponsors carousel when the profile has sponsors;
@@ -251,23 +245,30 @@
 			</div>
 		</div>
 
-		<!-- Cell 2: center match results, spans 2 rows -->
-		<div class="flex flex-col row-span-2 pt-32">
-			<div class="max-w-3xl text-center text-6xl mx-auto w-full" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>
-				<div class="overflow-hidden shadow-[0_12px_40px_oklch(0_0_0/0.6)]">
-					<div class="flex" class:flex-row-reverse={$settings.invert}>
-						<div class="bg-blueAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
-							<span class="text-white font-bold">Blue</span>
-							<span class="text-8xl font-bold pt-2">{results?.score.blue.score}</span>
-						</div>
-						<div class="bg-redAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
-							<span class="text-white font-bold">Red</span>
-							<span class="text-8xl font-bold pt-2">{results?.score.red.score}</span>
+		<!-- Cell 2: center match results, spans 2 rows. The match-name box and the
+		     score box share this column (max-w-3xl), so they are the same width and a
+		     2-line match name pushes the scores DOWN instead of overlapping them (the
+		     old fixed-overlay header did overlap on a 2-line wrap). -->
+		<div class="flex flex-col row-span-2 pt-8 items-center">
+			<div class="max-w-3xl w-full mx-auto flex flex-col gap-5 text-center text-6xl" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>
+				<MatchEventHeader {eventLabel} {matchLabel} fullWidth />
+
+				<div>
+					<div class="overflow-hidden shadow-[0_12px_40px_oklch(0_0_0/0.6)]">
+						<div class="flex" class:flex-row-reverse={$settings.invert}>
+							<div class="bg-blueAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
+								<span class="text-white font-bold">{blueRevealLabel}</span>
+								<span class="text-8xl font-bold pt-2">{results?.score.blue.score}</span>
+							</div>
+							<div class="bg-redAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
+								<span class="text-white font-bold">{redRevealLabel}</span>
+								<span class="text-8xl font-bold pt-2">{results?.score.red.score}</span>
+							</div>
 						</div>
 					</div>
-				</div>
 
-				<EventHighScoreBanner visible={highScoreVisible} />
+					<EventHighScoreBanner visible={highScoreVisible} />
+				</div>
 			</div>
 
 			<div class="flex flex-col items-center">
