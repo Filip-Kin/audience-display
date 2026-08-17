@@ -36,11 +36,15 @@
 	}
 </script>
 
+<!-- Offsets are `%` (of the scaled #app canvas, which is the containing block for
+     these fixed elements), NOT `vw`: at a non-1080p display `vw` is the real
+     viewport and the diagonal seam drifts off-centre. `%` tracks the 1920x1080
+     canvas so the seam is centred at any resolution. -->
 <div
 	class="w-full h-full fixed -skew-x-12 flex flex-row justify-end"
-	style="background: {leftColor}; right: {$shutterSpring}vw;"
+	style="background: {leftColor}; right: {$shutterSpring}%;"
 ></div>
 <div
 	class="w-full h-full fixed -skew-x-12 flex flex-row justify-start"
-	style="background: {rightColor}; left: {$shutterSpring}vw;"
+	style="background: {rightColor}; left: {$shutterSpring}%;"
 ></div>

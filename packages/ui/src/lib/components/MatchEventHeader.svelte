@@ -60,10 +60,12 @@
 	<div class="text-[28px] tracking-[0.03em] text-white font-normal leading-[1.2]">
 		{eventLabel}
 	</div>
+	<!-- pre-line honours the explicit line break in playoff match names so they
+	     read as two clean lines here too (preview, waiting-for-scores). -->
 	<div
 		bind:this={labelEl}
 		class="display text-matchLabel font-bold leading-[1.1] mt-1 mx-auto"
-		style="font-size: {matchLabelSize};{matchLabelMaxWidth
+		style="white-space: pre-line; font-size: {matchLabelSize};{matchLabelMaxWidth
 			? ` max-width: ${matchLabelMaxWidth}; text-wrap: balance;`
 			: fullWidth
 				? ' text-wrap: balance;'

@@ -1,19 +1,23 @@
 import type { MatchType } from "lib";
 
+// Playoff names are two short lines (bracket, then round + match): the "\n" is an
+// explicit break rendered where the label uses `white-space: pre-line`, so a name
+// never wraps to three lines or breaks on a hyphen. A middle dot (not a hyphen)
+// joins round + match on the second line.
 const bracket = {
-  1: "Upper Bracket - Round 1 - Match 1",
-  2: "Upper Bracket - Round 1 - Match 2",
-  3: "Upper Bracket - Round 1 - Match 3",
-  4: "Upper Bracket - Round 1 - Match 4",
-  5: "Lower Bracket - Round 2 - Match 5",
-  6: "Lower Bracket - Round 2 - Match 6",
-  7: "Upper Bracket - Round 2 - Match 7",
-  8: "Upper Bracket - Round 2 - Match 8",
-  9: "Lower Bracket - Round 3 - Match 9",
-  10: "Lower Bracket - Round 3 - Match 10",
-  11: "Upper Bracket - Round 4 - Match 11",
-  12: "Lower Bracket - Round 4 - Match 12",
-  13: "Lower Bracket - Round 5 - Match 13",
+  1: "Upper Bracket\nRound 1 · Match 1",
+  2: "Upper Bracket\nRound 1 · Match 2",
+  3: "Upper Bracket\nRound 1 · Match 3",
+  4: "Upper Bracket\nRound 1 · Match 4",
+  5: "Lower Bracket\nRound 2 · Match 5",
+  6: "Lower Bracket\nRound 2 · Match 6",
+  7: "Upper Bracket\nRound 2 · Match 7",
+  8: "Upper Bracket\nRound 2 · Match 8",
+  9: "Lower Bracket\nRound 3 · Match 9",
+  10: "Lower Bracket\nRound 3 · Match 10",
+  11: "Upper Bracket\nRound 4 · Match 11",
+  12: "Lower Bracket\nRound 4 · Match 12",
+  13: "Lower Bracket\nRound 5 · Match 13",
   14: "Final 1",
   15: "Final 2",
   16: "Final Tiebreaker",

@@ -92,7 +92,7 @@
 
 	$: leftEnding = leftHubActive && inClosingWindow && goesInactiveNext(phase, leftColor, leftHubActive, advantageColor);
 	$: rightEnding = rightHubActive && inClosingWindow && goesInactiveNext(phase, rightColor, rightHubActive, advantageColor);
-	$: matchOver = $state.screen === "match-end";
+	$: matchOver = $state.screen === "match-end" || ($state.match?.matchOver ?? false);
 	// #endregion
 
 	$: top = $settings.top;

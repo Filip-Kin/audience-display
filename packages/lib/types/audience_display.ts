@@ -102,6 +102,12 @@ export type MatchState = {
    *  results post. Drives the waiting-for-scores banner (the live flag is too
    *  transient - refs often release it at the buzzer). */
   underReviewLatched: boolean;
+  /** The match has ended (FMS reached WaitingForCommit / matchEnd) and is awaiting
+   *  scores. Tracked as its own flag so the score bar shows the match-over state
+   *  (frozen scores, "Match Under Review") even if a stray live-screen command
+   *  leaves $state.screen on a match-play screen instead of "match-end". Cleared
+   *  when the next match prestarts or starts. */
+  matchOver: boolean;
   tiebreaker?: PlayoffTiebreakType;
   score: {
     red: AllianceScore;

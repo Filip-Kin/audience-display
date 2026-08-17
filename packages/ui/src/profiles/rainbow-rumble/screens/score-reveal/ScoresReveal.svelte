@@ -235,16 +235,19 @@
 			</div>
 		</div>
 
-		<!-- Cell 2: center match results, spans 2 rows -->
-		<div class="flex flex-col row-span-2">
-			<div class="max-w-3xl text-center mx-auto w-full" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>
+		<!-- Cell 2: center match results, spans both rows. Fixed row tracks
+		     [card | breakdown fills | logo pinned bottom] so the high-score banner
+		     and breakdown size can't shove the logo around. -->
+		<div class="grid grid-rows-[auto_minmax(0,1fr)_auto] row-span-2 min-h-0 gap-3">
+			<div class="max-w-3xl mx-auto w-full" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>
 				<!-- Event/match header and score totals share one card: the outer
 				     radius rounds the top of the black box and the bottom of the
 				     score halves. -->
 				<div class="overflow-hidden rounded-[var(--rr-r)] shadow-[0_12px_40px_oklch(0_0_0/0.6)]">
-					<div class="bg-black px-6 pt-4 pb-3">
+					<div class="bg-black px-6 pt-4 pb-3 text-center">
 						<div class="text-white text-[28px] leading-tight">{eventLabel}</div>
-						<div class="rr-display text-[36px] leading-tight max-w-[34rem] mx-auto" style="color: var(--rr-accent); text-wrap: balance;">{matchLabel}</div>
+						<!-- pre-line honours the explicit line break in playoff names -->
+						<div class="rr-display text-[36px] leading-[1.1] mt-0.5" style="color: var(--rr-accent); white-space: pre-line;">{matchLabel}</div>
 					</div>
 					<div class="flex" class:flex-row-reverse={$settings.invert}>
 						<div class="bg-blueAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3">
@@ -261,25 +264,26 @@
 				<EventHighScoreBanner visible={highScoreVisible} />
 			</div>
 
-			<div class="flex flex-col items-center">
+			<div class="min-h-0 flex items-start justify-center">
 				{#if leftBreakdownScore && rightBreakdownScore}
 					<!-- |global: the screen exit unmounts the OUTER if-block; Svelte 4
 					     transitions are local by default and would not fire from here. -->
 					<div
-						class="rr-breakdown w-full max-w-3xl mt-2.5"
+						class="rr-breakdown w-full max-w-3xl"
 						in:fly|global={{ y: 200, duration: 400 }}
 						out:fade|global={{ duration: 150 }}
 					>
 						<RrScoreBreakdown leftScore={leftBreakdownScore} rightScore={rightBreakdownScore} {tiebreaker} isPlayoff={breakdownIsPlayoff} />
 					</div>
 				{/if}
+			</div>
 
-				<div
-					in:fly={{ y: 200, duration: 500 }}
-					out:fly={{ y: -400, duration: 200 }}
-				>
-					<Logo alt="logo" class="h-[300px] mt-[26px] object-contain" />
-				</div>
+			<div
+				class="flex items-end justify-center min-h-0"
+				in:fly={{ y: 200, duration: 500 }}
+				out:fly={{ y: -400, duration: 200 }}
+			>
+				<Logo alt="logo" class="max-h-[300px] max-w-full object-contain" />
 			</div>
 		</div>
 

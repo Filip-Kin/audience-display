@@ -52,7 +52,7 @@
 
 	$: advancementText =
 		advancement === null ? "" :
-		advancement.kind === "advances" ? `Advances to ${advancement.bracket} Bracket - Match ${advancement.matchNumber}` :
+		advancement.kind === "advances" ? `Advances to ${advancement.bracket} Bracket · Match ${advancement.matchNumber}` :
 		advancement.kind === "finals" ? "Advances to Finals" :
 		"Eliminated";
 

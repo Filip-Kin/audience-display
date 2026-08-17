@@ -123,6 +123,7 @@ function defaultMatchState(matchNumber: number): MatchState {
     hubActive: "None",
     underReview: false,
     underReviewLatched: false,
+    matchOver: false,
     score: {
       red: emptyAllianceScore(),
       blue: emptyAllianceScore(),
@@ -264,6 +265,7 @@ function demoResultsState(): MatchState {
     hubActive: "None",
     underReview: false,
     underReviewLatched: false,
+    matchOver: false,
     score: {
       red: demoScore({
         score: 142,
@@ -525,6 +527,7 @@ export class AudienceDisplayManager {
           this.match.hubActive = "None";
           this.match.underReview = false;
           this.match.underReviewLatched = false;
+          this.match.matchOver = false;
           this.cachedAdvantage = { red: null, blue: null };
 
           const matchPreview = await this.getMatchPreview(this.currentLevel, current.matchNumber);
@@ -689,7 +692,12 @@ export class AudienceDisplayManager {
     });
 
     this.fmsConnection.on("matchReady", () => this.playSound("matchReady"));
-    this.fmsConnection.on("matchStart", () => this.playSound("matchStart"));
+    this.fmsConnection.on("matchStart", () => {
+      this.playSound("matchStart");
+      // A new match is live; clear the match-over latch so the scorebar shows the
+      // running clock, not the previous match's "MATCH OVER" state.
+      this.match.matchOver = false;
+    });
     this.fmsConnection.on("autoEnd", () => this.playSound("autoEnd"));
     this.fmsConnection.on("teleopStart", () => this.playSound("teleopStart"));
     this.fmsConnection.on("endgameWarning", () => this.playSound("endgameWarning"));
@@ -699,6 +707,9 @@ export class AudienceDisplayManager {
       this.screenCommandSeq++;
       this.cancelScoreRevealFlip();
       this.screen = "match-end";
+      // Latch match-over so the scorebar shows the match-over state even if a
+      // stray live-screen command later leaves the screen on a match-play value.
+      this.match.matchOver = true;
       this.broadcastState();
     });
     this.fmsConnection.on("matchAbort", () => this.playSound("matchAbort"));

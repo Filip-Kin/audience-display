@@ -13,7 +13,6 @@
 	import MatchUnderReviewOverlay from "./MatchUnderReviewOverlay.svelte";
 	import Logo from "@lib/components/Logo.svelte";
 	import Shutter from "@lib/components/Shutter.svelte";
-	import MatchEventHeader from "@lib/components/MatchEventHeader.svelte";
 	import { packUrl } from "@lib/animation_pack.js";
 	import { get } from "svelte/store";
 	import { audioUnlocked, volumes } from "@lib/audio";
@@ -228,50 +227,61 @@
 	on:transitioned={() => dispatcher("transitioned")}
 />
 
-<div class="fixed z-10 grid grid-cols-[.36fr_.28fr_.36fr] w-full h-full p-8 gap-8" class:flex-row-reverse={$settings.invert}>
+<!-- Results layout: three equal columns, each a full-height flex column, so
+     variable content (high-score banner, advancement banners, breakdown size)
+     stays inside its own column and never pushes another element around. No
+     absolute positioning, no JS-measured sizing.
+       left   = event sponsors / event logo (top)  + one alliance card (fills rest)
+       center = match name + scores (one card), breakdown, event logo (pinned bottom)
+       right  = livestream partner (top)            + the other alliance card
+     Blue sits on the left of the score card and in the left alliance slot unless
+     $settings.invert flips both. -->
+<div class="fixed z-10 grid grid-cols-3 w-full h-full p-8 gap-8">
 	{#if results && ready}
-		<!-- Cell 1: left column. Sponsors carousel when the profile has sponsors;
-		     otherwise the event logo (no "Event Sponsors" heading). -->
-		<div>
-			{#if hasSponsors}
-				<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Event Sponsors</h2>
-			{/if}
-			<div class="h-60 flex items-center justify-center rounded-2xl {hasSponsors ? 'bg-[oklch(0_0_0/0.35)] p-6' : ''}" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}>
+		<!-- LEFT column -->
+		<div class="flex flex-col min-h-0 gap-8">
+			<div class="shrink-0" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}>
 				{#if hasSponsors}
-					<SponsorCarousel />
+					<h2 class="text-3xl text-center font-bold mb-3" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Event Sponsors</h2>
+					<div class="h-52 flex items-center justify-center rounded-2xl bg-[oklch(0_0_0/0.35)] p-6">
+						<SponsorCarousel />
+					</div>
 				{:else}
-					<Logo type="event" alt="event logo" class="max-h-full max-w-full mx-auto object-contain" />
+					<div class="h-52 flex items-center justify-center">
+						<Logo type="event" alt="event logo" class="max-h-full max-w-full mx-auto object-contain" />
+					</div>
 				{/if}
+			</div>
+			<div class="min-h-0 flex-1" in:fly={{ x: -100, duration: 200, delay: 100 }} out:fade={{ duration: 100 }}>
+				<Alliance {ready} alliance={$settings.invert ? "red" : "blue"} invert={$settings.invert} />
 			</div>
 		</div>
 
-		<!-- Cell 2: center match results, spans 2 rows. The match-name box and the
-		     score box share this column (max-w-3xl), so they are the same width and a
-		     2-line match name pushes the scores DOWN instead of overlapping them (the
-		     old fixed-overlay header did overlap on a 2-line wrap). -->
-		<div class="flex flex-col row-span-2 pt-8 items-center">
-			<div class="max-w-3xl w-full mx-auto flex flex-col gap-5 text-center text-6xl" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>
-				<MatchEventHeader {eventLabel} {matchLabel} fullWidth />
-
-				<div>
-					<div class="overflow-hidden shadow-[0_12px_40px_oklch(0_0_0/0.6)]">
-						<div class="flex" class:flex-row-reverse={$settings.invert}>
-							<div class="bg-blueAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
-								<span class="text-white font-bold">{blueRevealLabel}</span>
-								<span class="text-8xl font-bold pt-2">{results?.score.blue.score}</span>
-							</div>
-							<div class="bg-redAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3 text-3xl">
-								<span class="text-white font-bold">{redRevealLabel}</span>
-								<span class="text-8xl font-bold pt-2">{results?.score.red.score}</span>
-							</div>
+		<!-- CENTER column: rows = [scores card | breakdown (fills) | logo (pinned bottom)] -->
+		<div class="grid grid-rows-[auto_minmax(0,1fr)_auto] min-h-0 gap-4">
+			<div in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>
+				<!-- Match name and score totals share ONE card: the black header rounds
+				     the top, the blue/red halves round the bottom. No gap between them. -->
+				<div class="overflow-hidden rounded-lg shadow-[0_12px_40px_oklch(0_0_0/0.6)]">
+					<div class="bg-black px-6 pt-4 pb-3 text-center">
+						<div class="text-[26px] text-white font-normal leading-tight">{eventLabel}</div>
+						<div class="display text-matchLabel font-bold text-[40px] leading-[1.12] mt-0.5" style="white-space: pre-line;">{matchLabel}</div>
+					</div>
+					<div class="flex" class:flex-row-reverse={$settings.invert}>
+						<div class="bg-blueAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3">
+							<span class="text-white font-bold text-[30px]">{blueRevealLabel}</span>
+							<span class="text-white font-bold tabular-nums text-[92px] leading-none pt-1">{results?.score.blue.score}</span>
+						</div>
+						<div class="bg-redAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3">
+							<span class="text-white font-bold text-[30px]">{redRevealLabel}</span>
+							<span class="text-white font-bold tabular-nums text-[92px] leading-none pt-1">{results?.score.red.score}</span>
 						</div>
 					</div>
-
-					<EventHighScoreBanner visible={highScoreVisible} />
 				</div>
+				<EventHighScoreBanner visible={highScoreVisible} />
 			</div>
 
-			<div class="flex flex-col items-center">
+			<div class="min-h-0 flex items-start justify-center">
 				{#if leftBreakdownScore && rightBreakdownScore}
 					<!-- |global: the screen exit unmounts the OUTER if-block; Svelte 4
 					     transitions are local by default and would not fire from here. -->
@@ -279,41 +289,30 @@
 						<ScoreBreakdown leftScore={leftBreakdownScore} rightScore={rightBreakdownScore} {tiebreaker} />
 					</div>
 				{/if}
-
-				{#if hasSponsors}
-					<!-- pt-8 (padding) not mt-8 on the child: a margin on a transformed
-					     element's child resolves differently with vs without the fly's
-					     transform, which snapped the logo ~5px when the transition ended.
-					     will-change keeps it composited so it doesn't re-snap either. -->
-					<div
-						class="pt-8 will-change-transform"
-						in:fly={{ y: 200, duration: 500 }}
-						out:fly={{ y: -400, duration: 200 }}
-					>
-						<Logo alt="logo" class="h-96 object-contain" />
-					</div>
-				{/if}
 			</div>
-		</div>
 
-		<!-- Cell 3: right column, livestream partner from the profile's asset. -->
-		<div>
 			{#if hasSponsors}
-				<h2 class="text-4xl text-center font-bold mb-4" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Livestream Partner</h2>
+				<div class="flex items-end justify-center min-h-0" in:fly={{ y: 200, duration: 500 }} out:fly={{ y: -400, duration: 200 }}>
+					<Logo alt="logo" class="max-h-[300px] max-w-full object-contain" />
+				</div>
+			{:else}
+				<div></div>
 			{/if}
-			<div class="h-60 flex items-center justify-center rounded-2xl {hasSponsors ? 'bg-[oklch(0_0_0/0.35)] p-6' : ''}" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}>
-				<Logo type="livestream" alt="livestream partner" class="max-h-full mx-auto self-center object-contain" />
+		</div>
+
+		<!-- RIGHT column -->
+		<div class="flex flex-col min-h-0 gap-8">
+			<div class="shrink-0" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}>
+				{#if hasSponsors}
+					<h2 class="text-3xl text-center font-bold mb-3" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Livestream Partner</h2>
+				{/if}
+				<div class="h-52 flex items-center justify-center rounded-2xl {hasSponsors ? 'bg-[oklch(0_0_0/0.35)] p-6' : ''}">
+					<Logo type="livestream" alt="livestream partner" class="max-h-full max-w-full mx-auto self-center object-contain" />
+				</div>
 			</div>
-		</div>
-
-		<!-- Bottom-left: alliance card (blue or red depending on invert) -->
-		<div in:fly={{ x: -100, duration: 200, delay: 100 }} out:fade={{ duration: 100 }}>
-			<Alliance {ready} alliance={$settings.invert ? "red" : "blue"} invert={$settings.invert} />
-		</div>
-
-		<!-- Bottom-right: alliance card -->
-		<div in:fly={{ x: 100, duration: 200, delay: 100 }} out:fade={{ duration: 100 }}>
-			<Alliance {ready} alliance={$settings.invert ? "blue" : "red"} invert={!$settings.invert} />
+			<div class="min-h-0 flex-1" in:fly={{ x: 100, duration: 200, delay: 100 }} out:fade={{ duration: 100 }}>
+				<Alliance {ready} alliance={$settings.invert ? "blue" : "red"} invert={!$settings.invert} />
+			</div>
 		</div>
 	{/if}
 </div>

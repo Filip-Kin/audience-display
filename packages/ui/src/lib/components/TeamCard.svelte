@@ -31,7 +31,10 @@
 		</div>
 
 		{#if small}
-			<div class="bg-white text-black p-2 text-4xl h-16 line-clamp-2">
+			<!-- Fixed height, but the font is small enough that a two-line name (e.g.
+			     "Tractor Technicians" in a narrow 2-column reveal card) fits without
+			     the second line being clipped. -->
+			<div class="bg-white text-black px-2.5 py-2 text-[26px] leading-[1.15] h-16 line-clamp-2">
 				{team.name}
 			</div>
 		{:else}
