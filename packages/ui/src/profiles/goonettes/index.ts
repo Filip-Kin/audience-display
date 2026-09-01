@@ -39,8 +39,8 @@ const profile: ProfileDefinition = {
     // (leftColor = leftIsRed ? primary : secondary), so on match preview the
     // sides follow $settings.invert. Pick two purples that work either way
     // round rather than relying on a fixed left/right assignment.
-    primary: "oklch(0.40 0.143 301)", // #562E87
-    secondary: "oklch(0.30 0.132 318)", // #470A57
+    primary: "oklch(0.43 0.20 303)", // brighter (#681DA7), 2.04:1 vs redAlliance
+    secondary: "oklch(0.35 0.19 318)", // brighter (#600078), 2.19:1 vs blueAlliance
     // Panels: stock lightness, hue moved off blue-grey into the brand purple
     // family, chroma kept low so it reads as a tint and not a colour.
     background: "oklch(0.13 0.018 305)",

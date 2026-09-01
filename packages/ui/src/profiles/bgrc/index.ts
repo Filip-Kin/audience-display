@@ -34,8 +34,8 @@ const profile: ProfileDefinition = {
     // Shutter halves. Right half is the exact 2834 brand purple; left half is a
     // purple-tinted graphite that echoes the mark's grey gears. Both stay
     // darker than redAlliance/blueAlliance so score boxes and team cards pop.
-    primary: "oklch(0.38 0.132 308.1)", // #562877 exactly
-    secondary: "oklch(0.30 0.014 308.1)", // #302C33 graphite
+    primary: "oklch(0.42 0.19 308)", // 2834 purple, brighter (#6A1B9A), 2.11:1 vs redAlliance
+    secondary: "oklch(0.36 0.03 308)", // graphite, lifted (#413949), 2.02:1 vs blueAlliance
     // Alliance colours and accentWarn stay stock. accentWarn is the FRC
     // attention yellow (under-review, cards, warnings); re-colouring it to a
     // brand colour forced a chain of white overrides on MARC. Leave it.

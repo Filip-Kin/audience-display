@@ -8,6 +8,10 @@
 
 	export let settingsOpen: boolean;
 
+	function close() {
+		settingsOpen = false;
+	}
+
 	const profiles = listProfiles();
 	// Baked at build time via vite `define` (from root package.json). Shown in the
 	// dialog header so the running build is identifiable at a glance.
@@ -55,12 +59,35 @@
 	$: if (victoryPreview) victoryPreview.volume = $volumes.victoryVideo;
 </script>
 
+<svelte:window on:keydown={(e) => settingsOpen && e.key === "Escape" && close()} />
+
 {#if settingsOpen}
-	<div class="absolute top-0 left-0 w-full h-full bg-gray-900/50 z-10">
-		<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-lg p-6 text-black w-2xl max-h-[960px] overflow-y-auto">
-			<div class="flex items-baseline justify-between mb-4">
+	<!-- Backdrop closes the dialog; the panel stops the click so a click inside
+	     never reaches it. role="presentation" because the backdrop is decoration
+	     and Escape covers the keyboard path. -->
+	<div
+		class="absolute top-0 left-0 w-full h-full bg-gray-900/50 z-10"
+		role="presentation"
+		on:click|self={close}
+	>
+		<div
+			class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-lg p-6 text-black w-2xl max-h-[960px] overflow-y-auto"
+			role="dialog"
+			aria-modal="true"
+			aria-label="Settings"
+		>
+			<div class="flex items-baseline justify-between mb-4 gap-4">
 				<h2 class="text-xl font-bold">Settings</h2>
-				<span class="text-sm text-gray-500 tabular-nums">v{appVersion}</span>
+				<div class="flex items-baseline gap-3">
+					<span class="text-sm text-gray-500 tabular-nums">v{appVersion}</span>
+					<button
+						class="text-gray-500 hover:text-black text-2xl leading-none px-2 -my-1 rounded"
+						aria-label="Close settings"
+						on:click={close}
+					>
+						&times;
+					</button>
+				</div>
 			</div>
 
 			<div class="grid grid-cols-1 gap-6">
@@ -195,8 +222,6 @@
 					{/each}
 				</div>
 			</div>
-
-			<button class="mt-6 bg-blue-500 text-white rounded px-4 py-2 w-full" on:click={() => (settingsOpen = false)}> Close </button>
 		</div>
 	</div>
 {/if}

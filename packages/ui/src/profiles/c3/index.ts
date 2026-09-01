@@ -38,9 +38,9 @@ const profile: ProfileDefinition = {
   theme: {
     ...defaultProfile.theme,
     // Shutter, red side: graphite. The grey ink of the logo, taken dark.
-    primary: "oklch(0.30 0.012 340)",
+    primary: "oklch(0.37 0.04 340)", // graphite, lifted (#4E3746), 2.40:1 vs redAlliance
     // Shutter, blue side: deep plum. The pink ink, taken dark.
-    secondary: "oklch(0.36 0.14 358)",
+    secondary: "oklch(0.40 0.19 358)", // plum, brighter (#8D0047), 1.74:1 vs blueAlliance
     // Page black and card surface warmed off the stock blue-black onto the pink
     // hue axis, so the whole screen sits in the brand's temperature.
     background: "oklch(0.13 0.012 350)",

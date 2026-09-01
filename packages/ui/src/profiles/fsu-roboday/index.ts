@@ -28,8 +28,8 @@ const profile: ProfileDefinition = {
     // Shutter halves in two Ferris Crimson tones (WRC does the same with navy).
     // Both stay well below redAlliance/blueAlliance lightness so score boxes,
     // team cards and RP badges pop off them.
-    primary: "oklch(0.40 0.16 21)", // deep Ferris Crimson
-    secondary: "oklch(0.26 0.10 21)", // near-black crimson
+    primary: "oklch(0.42 0.19 22)", // Ferris Crimson, brighter (1.97:1 vs redAlliance)
+    secondary: "oklch(0.32 0.16 21)", // deep crimson, lifted off near-black (2.31:1 vs blueAlliance)
     // Red alliance untouched. A 4-degree hue rotation (#EC133D vs #EC172D) is
     // not visible on a projector, and the alliance colours are the one thing on
     // screen that must never be a brand decision.

@@ -34,14 +34,26 @@ const profile: ProfileDefinition = {
     ...defaultProfile.theme,
     // Shutter halves. Both kept well below the alliance colours in lightness so
     // score boxes, team cards and RP badges pop off them.
-    primary: "oklch(0.40 0.11 148)", // deep Rexi green  (#0A5722)
-    secondary: "oklch(0.35 0.09 248)", // deep GRG blue   (#053D67)
+    primary: "oklch(0.45 0.17 150)", // Rexi green, brighter (#006D13)
+    secondary: "oklch(0.42 0.15 245)", // GRG blue, brighter (#005098)
     // Alliance colours stay stock. GRG's palette has no red at all, and the
     // alliance red/blue are the one thing on screen that must never be a brand
     // decision.
     redAlliance: "oklch(0.60 0.235 25)",
     blueAlliance: "oklch(0.53 0.24 258)",
+    // accentWarn STAYS the FRC attention yellow: it paints yellow/red cards,
+    // the MATCH UNDER REVIEW banner and the warning pill, which are referee
+    // semantics rather than branding.
     accentWarn: "oklch(0.88 0.19 92)",
+    // The event's accent is the bright teal off Rexi's disc (#54CCCC), taken
+    // lighter so it clears 3:1 on both alliance colours: 3.23:1 on red, 3.94:1
+    // on blue, 6.50:1 on the blue shutter half. matchLabel colours the match
+    // number in the top bar and on the results screen; scoreBarAccent colours
+    // the score-bar trim, the shift bar and the fuel-gauge arc. Both default to
+    // accentWarn, so setting them is how a profile gets a brand accent without
+    // touching the card colours.
+    matchLabel: "oklch(0.88 0.11 190)",
+    scoreBarAccent: "oklch(0.88 0.11 190)",
     // Near-black with a faint green cast, sitting between the default's blue-cast
     // black and the site's flat #121212.
     background: "oklch(0.15 0.008 150)", // #090C09
