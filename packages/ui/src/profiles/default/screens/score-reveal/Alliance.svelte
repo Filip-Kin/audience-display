@@ -59,7 +59,7 @@
 	// Neutral gray for every advancement/elimination label so nothing clashes with the rest of the screen.
 	$: advancementClass = advancement === null ? "" : "bg-[oklch(0.40_0.01_255)] text-white";
 
-	const bannerStyle = "h-16 flex flex-row bg-bannerAccent gap-4 items-center text-[oklch(0.18_0.04_60)] text-5xl font-bold justify-center";
+	const bannerStyle = "h-16 flex flex-row bg-bannerAccent gap-4 items-center text-white text-5xl font-bold justify-center";
 </script>
 
 {#if results && ready}

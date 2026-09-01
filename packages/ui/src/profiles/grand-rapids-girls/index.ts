@@ -34,8 +34,12 @@ const profile: ProfileDefinition = {
     ...defaultProfile.theme,
     // Shutter halves. Both kept well below the alliance colours in lightness so
     // score boxes, team cards and RP badges pop off them.
-    primary: "oklch(0.45 0.17 150)", // Rexi green, brighter (#006D13)
-    secondary: "oklch(0.42 0.15 245)", // GRG blue, brighter (#005098)
+    // Two-tone green (Filip picked option C, 2026-09-01). Both halves sit in
+    // the Rexi green family rather than splitting green against blue, so the
+    // shutter reads as one colour and the alliance red/blue stay the only
+    // saturated red and blue on screen.
+    primary: "oklch(0.52 0.19 150)", // bright Rexi green (#00841F)
+    secondary: "oklch(0.37 0.14 160)", // deep green (#005423)
     // Alliance colours stay stock. GRG's palette has no red at all, and the
     // alliance red/blue are the one thing on screen that must never be a brand
     // decision.
@@ -64,7 +68,7 @@ const profile: ProfileDefinition = {
     // Centre logo on the score-reveal, and the mask for the glint sweep on
     // scores-ready. MUST have alpha (see Assets below): the source art is a
     // JPEG with no alpha, which would make the glint sweep a plain rectangle.
-    event: "/grand-rapids-girls/logo.png",
+    event: "/grand-rapids-girls/logo.svg",
     // Order = the order the sponsors page lists them, corporates first, then the
     // host/sponsoring teams. Confirm the real 2026 tier order with Wendy.
     sponsors: [
