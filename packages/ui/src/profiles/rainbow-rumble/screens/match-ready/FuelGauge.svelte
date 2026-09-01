@@ -27,7 +27,7 @@
 	})();
 
 	// White while filling toward Energized; gold once Energized is achieved.
-	$: arcColor = energizedAchieved ? "var(--rr-gold)" : "white";
+	$: arcColor = energizedAchieved ? "var(--scoreBarAccent)" : "white";
 </script>
 
 <div class="flex flex-col items-center gap-1">

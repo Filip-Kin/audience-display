@@ -5,12 +5,22 @@ import defaultProfile from "./default";
 import wrcProfile from "./wrc";
 import rainbowRumbleProfile from "./rainbow-rumble";
 import marcProfile from "./marc";
+import fsuRobodayProfile from "./fsu-roboday";
+import grandRapidsGirlsProfile from "./grand-rapids-girls";
+import goonettesProfile from "./goonettes";
+import bgrcProfile from "./bgrc";
+import c3Profile from "./c3";
 
 const registry: Record<string, ProfileDefinition> = {
   [defaultProfile.id]: defaultProfile,
   [wrcProfile.id]: wrcProfile,
   [rainbowRumbleProfile.id]: rainbowRumbleProfile,
   [marcProfile.id]: marcProfile,
+  [fsuRobodayProfile.id]: fsuRobodayProfile,
+  [grandRapidsGirlsProfile.id]: grandRapidsGirlsProfile,
+  [goonettesProfile.id]: goonettesProfile,
+  [bgrcProfile.id]: bgrcProfile,
+  [c3Profile.id]: c3Profile,
 };
 
 export const DEFAULT_PROFILE_ID = defaultProfile.id;

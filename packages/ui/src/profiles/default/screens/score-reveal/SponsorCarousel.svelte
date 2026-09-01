@@ -2,6 +2,7 @@
 	import { activeProfile } from "@lib/state";
 	import { resultsSponsors } from "@lib/sponsors";
 	import SlideRotator from "@lib/components/SlideRotator.svelte";
+	import Logo from "@lib/components/Logo.svelte";
 
 	// The livestream partner sits out: it has its dedicated spot on this screen.
 	$: sponsors = resultsSponsors($activeProfile.assets);
@@ -21,5 +22,5 @@
 		</div>
 	</SlideRotator>
 {:else}
-	<img src="/logo.png" class="h-full mx-auto object-contain" alt="event logo" />
+	<Logo type="event" class="h-full mx-auto object-contain" alt="event logo" />
 {/if}

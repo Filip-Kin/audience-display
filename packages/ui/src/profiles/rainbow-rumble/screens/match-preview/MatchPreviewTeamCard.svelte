@@ -29,9 +29,12 @@
 			: (compact ? "96px 1fr" : "120px 1fr");
 
 	$: hasCard = team.card === "Yellow" || team.card === "Red";
+	// Referee semantics, not branding: these are fixed literals so a profile that
+	// re-themes accentWarn or redAlliance cannot recolour a card. Matches the
+	// default ScoreBarHalf, which already hardcodes the same yellow.
 	$: cardClass = team.card === "Yellow"
-		? "bg-accentWarn border border-yellow-900"
-		: "bg-redAlliance border border-red-900";
+		? "bg-[oklch(0.88_0.19_92)] border border-yellow-900"
+		: "bg-[oklch(0.5_0.21_29)] border border-red-900";
 </script>
 
 <!-- WRC/default card layout (large avatar) with RR rounding + shadow. -->

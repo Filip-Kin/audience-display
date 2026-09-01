@@ -130,7 +130,7 @@
 	.rr-header > :global(div) {
 		border-radius: var(--rr-r);
 	}
-	.rr-header :global(.text-accentWarn) {
+	.rr-header :global(.text-matchLabel) {
 		color: var(--rr-accent);
 	}
 </style>

@@ -36,6 +36,9 @@
 	// of a sponsor carousel, drop the "Event Sponsors" heading, and hide the
 	// redundant big center logo (so the event logo only appears in that box).
 	$: hasSponsors = resultsSponsors($activeProfile.assets).length > 0;
+	// Four of the five 2026 offseason profiles have no broadcaster. Without this
+	// the reveal painted a "Livestream Partner" heading over an empty box.
+	$: hasLivestream = !!$activeProfile.assets.livestream;
 	let canPlay = false;
 	let started = false;
 	let unsubAudio: (() => void) | undefined;
@@ -302,14 +305,16 @@
 
 		<!-- RIGHT column -->
 		<div class="flex flex-col min-h-0 gap-8">
-			<div class="shrink-0" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}>
-				{#if hasSponsors}
-					<h2 class="text-3xl text-center font-bold mb-3" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Livestream Partner</h2>
-				{/if}
-				<div class="h-52 flex items-center justify-center rounded-2xl {hasSponsors ? 'bg-[oklch(0_0_0/0.35)] p-6' : ''}">
-					<Logo type="livestream" alt="livestream partner" class="max-h-full max-w-full mx-auto self-center object-contain" />
+			{#if hasLivestream}
+				<div class="shrink-0" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}>
+					{#if hasSponsors}
+						<h2 class="text-3xl text-center font-bold mb-3" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Livestream Partner</h2>
+					{/if}
+					<div class="h-52 flex items-center justify-center rounded-2xl {hasSponsors ? 'bg-[oklch(0_0_0/0.35)] p-6' : ''}">
+						<Logo type="livestream" alt="livestream partner" class="max-h-full max-w-full mx-auto self-center object-contain" />
+					</div>
 				</div>
-			</div>
+			{/if}
 			<div class="min-h-0 flex-1" in:fly={{ x: 100, duration: 200, delay: 100 }} out:fade={{ duration: 100 }}>
 				<Alliance {ready} alliance={$settings.invert ? "blue" : "red"} invert={!$settings.invert} />
 			</div>

@@ -48,7 +48,7 @@
 		<div class="flex justify-center gap-2 h-24 flex-wrap">
 			{#each earned as badge, i (badge.alt + i + "e")}
 				<div
-					class="size-20 p-2 flex items-center justify-center text-white shadow-[0_4px_14px_oklch(0_0_0/0.5)] {alliance === 'red'
+					class="size-20 p-2 flex items-center justify-center text-white border border-[oklch(1_0_0/0.35)] shadow-[0_4px_14px_oklch(0_0_0/0.5)] {alliance === 'red'
 						? 'bg-redAlliance'
 						: 'bg-blueAlliance'}"
 					title={badge.alt}

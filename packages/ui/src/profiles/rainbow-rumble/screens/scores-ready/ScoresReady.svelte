@@ -133,7 +133,7 @@
 						<div class="text-white text-[28px] leading-[1.2] tracking-[0.03em]">
 							{eventLabel}
 						</div>
-						<div class="rr-display text-[46px] leading-[1.1] mt-1.5" style="color: var(--rr-accent);">
+						<div class="rr-display text-[46px] leading-[1.1] mt-1.5" style="color: var(--rr-accent); white-space: pre-line;">
 							{matchLabel}
 						</div>
 					</div>

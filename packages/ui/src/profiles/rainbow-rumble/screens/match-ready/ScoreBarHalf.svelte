@@ -79,7 +79,7 @@
 				<div class="overflow-hidden rounded-[var(--rr-r-chip)]">
 					<div
 						class="flex items-stretch {isLeft ? '' : 'flex-row-reverse'} {team.card === 'Yellow'
-							? 'bg-accentWarn text-black'
+							? 'bg-[oklch(0.88_0.19_92)] text-black'
 							: team.card === 'Red'
 								? 'bg-[oklch(0.5_0.21_29)] text-white'
 								: 'bg-[oklch(0_0_0/0.36)] text-white'}"
