@@ -264,17 +264,14 @@
 					{/each}
 				</div>
 
-				<!-- Livestream partner + event logo, both profile-driven. -->
-				<div class="anim-right flex items-center justify-center gap-10 flex-1 mt-1 p-4">
+				<!-- Livestream partner only. The event logo already sits in this
+				     screen's own header (line 117), so carrying it again down here
+				     just doubled it up. -->
+				<div class="anim-right flex items-center justify-center flex-1 mt-1 p-4">
 					<Logo
 						type="livestream"
 						alt="livestream partner"
-						class="object-contain max-h-[180px] max-w-[45%] w-auto"
-					/>
-					<Logo
-						type="event"
-						alt="event logo"
-						class="object-contain max-h-[180px] max-w-[45%] w-auto"
+						class="object-contain max-h-[180px] max-w-[70%] w-auto"
 					/>
 				</div>
 			</div>

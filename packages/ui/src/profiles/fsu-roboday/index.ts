@@ -54,7 +54,23 @@ const profile: ProfileDefinition = {
     // Ferris State is the only sponsor we can evidence. The white wordmark reads
     // on the dark background bare, so no white card (light omitted, NOT true:
     // a white logo on a white card disappears).
-    sponsors: [{ src: "/fsu-roboday/ferris-wordmark-white.png" }],
+    // Host first, then the two event sponsors Filip confirmed (2026-09-05).
+    // None of the three needs `light`: all are reversed art that reads on the
+    // crimson shutter, so no white cards on this profile.
+    sponsors: [
+      // Ferris State is also carried by the event logo, but the bulldog is the
+      // athletics mascot mark, not the university wordmark. The deck is where
+      // the institution is named, so the wordmark stays. One line to drop.
+      { src: "/fsu-roboday/ferris-wordmark-white.png" },
+      // Reused from the Rainbow Rumble deck: 1500x750, already reversed.
+      { src: "/fsu-roboday/ctre.png" },
+      // Filip supplied the full-colour lockup (purple wordmark, red fox). It
+      // shipped on a baked white background, so the background was flood-filled
+      // from the border and dropped; keying every white pixel would have punched
+      // holes through the counters in A, d, y, a and R. Dark ink, so it takes
+      // the white card.
+      { src: "/fsu-roboday/andymark.png", light: true },
+    ],
     // Pit Podcast is broadcasting the event, so it takes the dedicated
     // livestream slot on the reveal and alliance-selection screens.
     livestream: "/pitpodcast.png",

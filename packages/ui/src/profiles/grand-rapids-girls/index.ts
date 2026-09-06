@@ -71,14 +71,22 @@ const profile: ProfileDefinition = {
     event: "/grand-rapids-girls/logo.svg",
     // Order = the order the sponsors page lists them, corporates first, then the
     // host/sponsoring teams. Confirm the real 2026 tier order with Wendy.
+    // Filip's list (2026-09-05): three event sponsors, then one slide carrying
+    // all three host teams together so they read as a group rather than three
+    // separate rotations. The State Bar of Michigan entry was dropped: it came
+    // off the event site during research and Filip does not recognise it.
     sponsors: [
+      // Navy ink on transparent (white background flood-filled off the supplied
+      // 1200px file), so it takes the white card.
       { src: "/grand-rapids-girls/plasan.png", light: true },
+      // Gold gradient wordmark, already reversed-friendly, reads bare on green.
       { src: "/grand-rapids-girls/anzen-unmanned.png" },
+      // Orange script, reads bare.
       { src: "/grand-rapids-girls/casa-calvo.png" },
-      { src: "/grand-rapids-girls/state-bar-michigan.png", light: true },
-      { src: "/grand-rapids-girls/team-3875-red-storm.png", light: true },
-      { src: "/grand-rapids-girls/team-4003-trisonics.png" },
-      { src: "/grand-rapids-girls/team-4967-that-one-team.png" },
+      // 3875 Red Storm, 4003 TriSonics and 4967 That ONE Team on one slide.
+      // 4967's mark is block lettering on a flat tile, so it was upscaled 4x
+      // with NEAREST rather than a smooth filter, which would blur the blocks.
+      { src: "/grand-rapids-girls/host-teams.png", light: true },
     ],
     // Pit Podcast is broadcasting the event, so it takes the dedicated
     // livestream slot on the reveal and alliance-selection screens.
