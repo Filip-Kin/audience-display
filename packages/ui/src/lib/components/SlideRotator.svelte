@@ -8,7 +8,7 @@
 	export let fadeMs = 600;
 	export let showDots = false;
 	/** Active-dot fill (a color or gradient). */
-	export let dotAccent = "var(--accentWarn)";
+	export let dotAccent = "var(--accent)";
 	/**
 	 * Slide to open on. Lets a short-lived screen start mid-deck so the tail of a
 	 * long deck still gets airtime. Read once at init; later changes are ignored

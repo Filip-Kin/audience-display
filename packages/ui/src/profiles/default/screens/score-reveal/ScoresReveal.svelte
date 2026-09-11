@@ -2,7 +2,7 @@
 	import { fade, fly } from "svelte/transition";
 	import { state, activeProfile, eventDisplayName } from "@lib/state";
 	import { createEventDispatcher, onMount, onDestroy } from "svelte";
-	import { matchName } from "@lib/matchNamer";
+	import { matchNameParts } from "@lib/matchNamer";
 	import { settings } from "@lib/settings";
 	import Alliance from "./Alliance.svelte";
 	import ScoreBreakdown from "@lib/components/ScoreBreakdown.svelte";
@@ -162,9 +162,9 @@
 	}
 
 	$: eventLabel = $eventDisplayName;
-	$: matchLabel = results
-		? matchName(results.details.matchNumber, matchCount, results.details.matchType) ?? ""
-		: "";
+	$: matchParts = results
+		? matchNameParts(results.details.matchNumber, matchCount, results.details.matchType)
+		: [];
 
 	// In playoffs alliances are numbered, so label the score halves "Alliance N"
 	// (from details.redAlliance/blueAlliance, e.g. "Alliance 4") instead of the
@@ -268,7 +268,10 @@
 				<div class="overflow-hidden rounded-lg shadow-[0_12px_40px_oklch(0_0_0/0.6)]">
 					<div class="bg-black px-6 pt-4 pb-3 text-center">
 						<div class="text-[26px] text-white font-normal leading-tight">{eventLabel}</div>
-						<div class="display text-matchLabel font-bold text-[40px] leading-[1.12] mt-0.5" style="white-space: pre-line;">{matchLabel}</div>
+						<!-- Narrow centre card: one segment per line. -->
+						<div class="display text-matchLabel font-bold text-[40px] leading-[1.12] mt-0.5">
+							{#each matchParts as part}<div>{part}</div>{/each}
+						</div>
 					</div>
 					<div class="flex" class:flex-row-reverse={$settings.invert}>
 						<div class="bg-blueAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3">

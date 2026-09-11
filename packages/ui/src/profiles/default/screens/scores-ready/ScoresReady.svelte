@@ -4,7 +4,7 @@
 	import { settings } from "@lib/settings";
 	import { createEventDispatcher } from "svelte";
 	import { get } from "svelte/store";
-	import { matchName } from "@lib/matchNamer";
+	import { matchNameParts } from "@lib/matchNamer";
 	import Logo from "@lib/components/Logo.svelte";
 	import Whistle from "../../../../assets/whistle.svg";
 	import Shutter from "@lib/components/Shutter.svelte";
@@ -26,15 +26,15 @@
 	const liveFlow =
 		get(state).screen !== "scores-ready" || get(previousScreen).startsWith("match-");
 	$: committed = $state.screen === "scores-ready";
-	$: liveMatchLabel = $state.match
-		? matchName($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType) ?? ""
-		: "";
-	$: resultsMatchLabel = $state.results
-		? matchName($state.results.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.results.details.matchType) ?? ""
-		: "";
-	let matchLabel = "";
-	$: if (!liveFlow) matchLabel = resultsMatchLabel;
-	else if (!committed || !matchLabel) matchLabel = liveMatchLabel;
+	$: liveMatchParts = $state.match
+		? matchNameParts($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType)
+		: [];
+	$: resultsMatchParts = $state.results
+		? matchNameParts($state.results.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.results.details.matchType)
+		: [];
+	let matchParts: string[] = [];
+	$: if (!liveFlow) matchParts = resultsMatchParts;
+	else if (!committed || !matchParts.length) matchParts = liveMatchParts;
 </script>
 
 <Shutter
@@ -61,7 +61,7 @@
 		{#if $state.match}
 			{#if ready && !exit}
 				<div in:fly={{ y: -50, duration: 100 }} out:fly={{ y: -400, duration: 400 }}>
-					<MatchEventHeader {eventLabel} {matchLabel} />
+					<MatchEventHeader {eventLabel} {matchParts} />
 				</div>
 			{/if}
 		{/if}

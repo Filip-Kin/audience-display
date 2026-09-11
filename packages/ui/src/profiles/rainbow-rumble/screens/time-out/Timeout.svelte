@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { state, eventDisplayName, activeProfile } from "@lib/state";
-	import { matchName } from "@lib/matchNamer";
+	import { matchNameParts } from "@lib/matchNamer";
 	import { fitTwoLines } from "@lib/fitText";
 	import { createEventDispatcher, onMount } from "svelte";
 	import Logo from "@lib/components/Logo.svelte";
@@ -39,19 +39,16 @@
 
 	$: resumesIn = $state.match?.timer ?? 0;
 	$: nextMatch = $state.match;
-	$: nextMatchLabel = nextMatch
-		? matchName(
+	// Narrow card, same as the default profile's: stack one segment per line, and
+	// fall through to the shrink-to-fit path for a single-segment name.
+	$: labelLines = nextMatch
+		? matchNameParts(
 				nextMatch.details.matchNumber,
 				$state.eventDetails?.matchCount ?? 0,
 				nextMatch.details.matchType
-			) ?? ""
-		: "";
-	// "Upper Bracket - Round 2 - Match 8" reads better stacked than wrapped:
-	// first segment on line one, the rest joined so it never exceeds two lines.
-	$: labelSegments = nextMatchLabel.includes(" - ") ? nextMatchLabel.split(" - ") : null;
-	$: labelLines = labelSegments
-		? [labelSegments[0], labelSegments.slice(1).join(" · ")]
-		: null;
+			)
+		: [];
+	$: nextMatchLabel = labelLines.join(" ");
 	$: nextRedTeams = nextMatch?.teams.red ?? [];
 	$: nextBlueTeams = nextMatch?.teams.blue ?? [];
 	$: nextRedAlliance = nextMatch?.details.redAlliance;
@@ -125,7 +122,7 @@
 					<!-- Match label: playoff names stack onto two lines; single-segment
 					     names shrink-to-fit instead -->
 					<div class="h-[150px] flex flex-col items-center justify-center">
-						{#if labelLines}
+						{#if labelLines.length > 1}
 							<div class="rr-display text-[var(--rr-accent)] text-center text-[64px] leading-[1.05]">
 								{#each labelLines as line}
 									<div>{line}</div>

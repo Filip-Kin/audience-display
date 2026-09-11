@@ -22,7 +22,7 @@
 {#if ready}
 	<div class="fixed inset-0 bg-background overflow-hidden" class:exiting>
 		<!-- Header: just the event name, like the official background screen -->
-		<header class="anim-top flex items-center gap-[22px] border-b-4 border-accentWarn px-14 pt-7 pb-[18px]">
+		<header class="anim-top flex items-center gap-[22px] border-b-4 border-accent px-14 pt-7 pb-[18px]">
 			<Logo class="object-contain size-[150px]" />
 			<div class="display text-white text-[72px] leading-none tracking-[0.02em]">
 				{$eventDisplayName} 2026
@@ -34,7 +34,7 @@
 			<!-- Left: sponsor slideshow -->
 			<div class="anim-left flex flex-col min-h-0 gap-3.5">
 				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
-					<span class="bg-accentWarn size-2"></span>
+					<span class="bg-accent size-2"></span>
 					Sponsors
 					<div class="flex-1 h-0.5 bg-[var(--rule)]"></div>
 				</div>
@@ -45,7 +45,7 @@
 			<!-- Right: Rebuilt game logo -->
 			<div class="anim-right flex flex-col min-h-0 gap-3.5">
 				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
-					<span class="bg-accentWarn size-2"></span>
+					<span class="bg-accent size-2"></span>
 					2026 Season
 					<div class="flex-1 h-0.5 bg-[var(--rule)]"></div>
 				</div>

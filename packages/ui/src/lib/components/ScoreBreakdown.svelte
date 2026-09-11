@@ -53,7 +53,7 @@
 	</div>
 	{#if tiebreakLabel}
 		<div
-			class="bg-accentWarn text-black px-2 py-2 text-2xl text-center uppercase tracking-wider"
+			class="bg-accent text-black px-2 py-2 text-2xl text-center uppercase tracking-wider"
 			in:fade={{ duration: 250 }}
 		>
 			{tiebreakLabel}

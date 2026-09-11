@@ -6,6 +6,7 @@ const VAR_MAP: Record<keyof ProfileTheme, string> = {
   redAlliance: "--redAlliance",
   blueAlliance: "--blueAlliance",
   accentWarn: "--accentWarn",
+  accent: "--accent",
   background: "--background",
   surface: "--surface",
   text: "--text",
@@ -74,16 +75,26 @@ function warnAboutTheme(theme: ProfileTheme): void {
   ratio(theme.primary, theme.redAlliance, 3, "primary shutter vs redAlliance");
   ratio(theme.secondary, theme.blueAlliance, 3, "secondary shutter vs blueAlliance");
 
-  // accentWarn draws the fuel-gauge arc and the score-bar trim straight on the
-  // alliance halves. scoreBarAccent is the escape hatch when it does not clear.
-  const barAccent = theme.scoreBarAccent ?? theme.accentWarn;
+  // The chrome accent draws the fuel-gauge arc and the score-bar trim straight on
+  // the alliance halves. scoreBarAccent is the escape hatch when it does not clear.
+  const accent = theme.accent ?? theme.accentWarn;
+  const barAccent = theme.scoreBarAccent ?? accent;
   ratio(barAccent, theme.redAlliance, 3, "score-bar accent on redAlliance");
   ratio(barAccent, theme.blueAlliance, 3, "score-bar accent on blueAlliance");
 
-  // accentWarn is also a light background under hardcoded dark ink at ~14 sites.
-  const accentL = /^oklch\(\s*([\d.]+)/.exec(theme.accentWarn.trim());
-  if (accentL && parseFloat(accentL[1]) < 0.75) {
-    say(`accentWarn is dark (L ${accentL[1]}); it is the FRC attention yellow and carries dark ink`);
+  // Both accents are light backgrounds under near-black ink at ~14 sites, so a
+  // dark one buys the chain of white overrides MARC once had.
+  for (const [name, value] of [["accent", accent], ["accentWarn", theme.accentWarn]] as const) {
+    const L = /^oklch\(\s*([\d.]+)/.exec(value.trim());
+    if (L && parseFloat(L[1]) < 0.75) say(`${name} is dark (L ${L[1]}); it carries dark ink`);
+  }
+  // accentWarn is field semantics, not branding: it paints MATCH UNDER REVIEW and
+  // the alliance-pick clock warning. Check the hue rather than the exact string so
+  // an equivalent spelling of the same yellow doesn't cry wolf. Warn, never block -
+  // an operator may have a reason, but drifting off the FRC yellow is a mistake.
+  const warnH = /^oklch\(\s*[\d.]+\s+[\d.]+\s+([\d.]+)/.exec(theme.accentWarn.trim());
+  if (warnH && Math.abs(parseFloat(warnH[1]) - 92) > 12) {
+    say(`accentWarn is hue ${warnH[1]}, not the FRC attention yellow; it paints MATCH UNDER REVIEW`);
   }
 }
 

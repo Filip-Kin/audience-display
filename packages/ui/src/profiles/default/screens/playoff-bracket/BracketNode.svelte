@@ -36,7 +36,7 @@
 		class="uppercase tracking-wider truncate {compact
 			? 'text-[11px] px-1.5 py-0.5'
 			: 'text-[15px] px-3 py-1'} {match.isNextMatch
-			? 'bg-accentWarn text-[oklch(0.18_0.04_60)] font-black'
+			? 'bg-accent text-accentInk font-black'
 			: 'bg-[oklch(0.32_0.01_250)] text-text/80'}"
 	>
 		{match.shortName ?? "Finals"}

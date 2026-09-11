@@ -78,19 +78,19 @@
 	{#if arrowSide === "left" || arrowSide === "both"}
 		<svg
 			width="18" height="22" viewBox="0 0 18 22"
-			class="absolute top-1.5 left-1.5 drop-shadow-[0_0_5px_oklch(0.86_0.18_92/0.9)]"
+			class="absolute top-1.5 left-1.5 arrow-glow"
 			style={pulseLeft ? ARROW_PULSE : ""}
 		>
-			<path d="M 18 0 L 0 11 L 18 22 Z" fill="var(--accentWarn)" />
+			<path d="M 18 0 L 0 11 L 18 22 Z" fill="var(--accent)" />
 		</svg>
 	{/if}
 	{#if arrowSide === "right" || arrowSide === "both"}
 		<svg
 			width="18" height="22" viewBox="0 0 18 22"
-			class="absolute top-1.5 right-1.5 drop-shadow-[0_0_5px_oklch(0.86_0.18_92/0.9)]"
+			class="absolute top-1.5 right-1.5 arrow-glow"
 			style={pulseRight ? ARROW_PULSE : ""}
 		>
-			<path d="M 0 0 L 18 11 L 0 22 Z" fill="var(--accentWarn)" />
+			<path d="M 0 0 L 18 11 L 0 22 Z" fill="var(--accent)" />
 		</svg>
 	{/if}
 
@@ -105,7 +105,7 @@
 
 	<!-- Phase label: fixed height so the timer never shifts up/down when the
 	     label is empty (PreMatch) or changes between phases. -->
-	<div class="h-7 flex items-center justify-center whitespace-nowrap uppercase font-black tracking-[0.1em] leading-none {phaseLabel === 'TRANSITION SHIFT' ? 'text-[19px]' : 'text-[23px]'} {highlightLabel ? 'text-accentWarn' : 'text-white'}">
+	<div class="h-7 flex items-center justify-center whitespace-nowrap uppercase font-black tracking-[0.1em] leading-none {phaseLabel === 'TRANSITION SHIFT' ? 'text-[19px]' : 'text-[23px]'} {highlightLabel ? 'text-accent' : 'text-white'}">
 		{phaseLabel}
 	</div>
 

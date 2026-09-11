@@ -1,7 +1,7 @@
 {
   "name": "@rainbow-rumble/audience-display",
   "private": true,
-  "version": "26.5.5",
+  "version": "26.6.0",
   "workspaces": [
     "packages/*"
   ],

@@ -27,10 +27,10 @@
 	})();
 
 	// White while filling toward Energized; the score-bar accent once Energized is
-	// achieved. Uses --scoreBarAccent (not --accentWarn) so it can't vanish into a
+	// achieved. Uses --scoreBarAccent (not --accent) so it can't vanish into a
 	// same-coloured alliance side: default/WRC keep gold (scoreBarAccent falls back
-	// to accentWarn), MARC's red accent becomes white here like the other score-bar
-	// accent bars.
+	// to accent, which itself falls back to accentWarn), GRG picks it up as teal,
+	// MARC's red accent becomes white here like the other score-bar accent bars.
 	$: arcColor = energizedAchieved ? "var(--scoreBarAccent)" : "white";
 </script>
 

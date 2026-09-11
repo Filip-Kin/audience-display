@@ -78,7 +78,7 @@
 {#if ready}
 	<div class="fixed inset-0 bg-background overflow-hidden" class:exiting>
 		<!-- Header -->
-		<header class="anim-top flex items-center justify-between border-b-4 border-accentWarn px-14 pt-7 pb-[18px]">
+		<header class="anim-top flex items-center justify-between border-b-4 border-accent px-14 pt-7 pb-[18px]">
 			<div class="flex items-center gap-[22px]">
 				<Logo class="object-contain size-[150px]" />
 				<div>
@@ -91,20 +91,20 @@
 				</div>
 			</div>
 			{#if breakActive}
-				<div class="bg-accentWarn flex items-center gap-5 px-9 py-3.5">
-					<div class="uppercase text-[16px] font-black tracking-[0.2em] text-[oklch(0.18_0.04_60)]">
+				<div class="bg-accent flex items-center gap-5 px-9 py-3.5">
+					<div class="uppercase text-[16px] font-black tracking-[0.2em] text-accentInk">
 						Break
 					</div>
-					<div class="display tabular-nums text-[92px] leading-[0.9] text-[oklch(0.14_0.04_60)]">
+					<div class="display tabular-nums text-[92px] leading-[0.9] text-accentInk-deep">
 						{formatCountdown(breakSeconds)}
 					</div>
 				</div>
 			{:else if showCountdown}
-				<div class="bg-accentWarn flex items-center gap-5 px-9 py-3.5">
-					<div class="uppercase text-[16px] font-black tracking-[0.2em] text-[oklch(0.18_0.04_60)]">
+				<div class="bg-accent flex items-center gap-5 px-9 py-3.5">
+					<div class="uppercase text-[16px] font-black tracking-[0.2em] text-accentInk">
 						First Match<br />at {startClock}
 					</div>
-					<div class="display tabular-nums text-[92px] leading-[0.9] text-[oklch(0.14_0.04_60)]">
+					<div class="display tabular-nums text-[92px] leading-[0.9] text-accentInk-deep">
 						{countdown}
 					</div>
 				</div>

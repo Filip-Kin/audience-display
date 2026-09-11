@@ -5,7 +5,7 @@
 	import { settings } from "@lib/settings";
 	import { createEventDispatcher, onDestroy } from "svelte";
 	import { get } from "svelte/store";
-	import { matchName } from "@lib/matchNamer";
+	import { matchNameParts } from "@lib/matchNamer";
 	import Shutter from "@lib/components/Shutter.svelte";
 	import Logo from "@lib/components/Logo.svelte";
 	import SponsorCarousel from "../score-reveal/SponsorCarousel.svelte";
@@ -27,15 +27,15 @@
 	// else it's a repost/re-show, so name the loaded results instead.
 	const liveFlow =
 		get(state).screen !== "scores-ready" || get(previousScreen).startsWith("match-");
-	$: liveMatchLabel = $state.match
-		? matchName($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType) ?? ""
-		: "";
-	$: resultsMatchLabel = $state.results
-		? matchName($state.results.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.results.details.matchType) ?? ""
-		: "";
-	let matchLabel = "";
-	$: if (!liveFlow) matchLabel = resultsMatchLabel;
-	else if (!committed || !matchLabel) matchLabel = liveMatchLabel;
+	$: liveMatchParts = $state.match
+		? matchNameParts($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType)
+		: [];
+	$: resultsMatchParts = $state.results
+		? matchNameParts($state.results.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.results.details.matchType)
+		: [];
+	let matchParts: string[] = [];
+	$: if (!liveFlow) matchParts = resultsMatchParts;
+	else if (!committed || !matchParts.length) matchParts = liveMatchParts;
 
 	// This component is mounted for both "match-end" (awaiting scores, logo spins)
 	// and "scores-ready" (scores committed, spin frozen + glint). The router keeps
@@ -133,8 +133,11 @@
 						<div class="text-white text-[28px] leading-[1.2] tracking-[0.03em]">
 							{eventLabel}
 						</div>
-						<div class="rr-display text-[46px] leading-[1.1] mt-1.5" style="color: var(--rr-accent); white-space: pre-line;">
-							{matchLabel}
+						<!-- Narrow box: one segment per line ("Qualification" / "1 of 30"). -->
+						<div class="rr-display text-[46px] leading-[1.1] mt-1.5" style="color: var(--rr-accent);">
+							{#each matchParts as part}
+								<div>{part}</div>
+							{/each}
 						</div>
 					</div>
 				</div>

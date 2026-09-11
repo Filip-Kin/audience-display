@@ -14,8 +14,9 @@ import defaultProfile from "../default";
  *    sampled from the Rexi logo art. Re-check with the organisers before print.
  *  - Shutter halves are Rexi green + GRG blue instead of the stock red/blue, so
  *    the only saturated red and blue on screen belong to the alliances.
- *  - accentWarn stays the stock FRC attention yellow. The MARC lesson: recolour
- *    it to a brand colour and you buy a chain of white overrides.
+ *  - The brand accent is `accent` (teal). `accentWarn` stays the stock FRC
+ *    attention yellow, because it is referee semantics. The MARC lesson still
+ *    holds for both: a dark accent buys a chain of white overrides.
  */
 const profile: ProfileDefinition = {
   id: "grand-rapids-girls",
@@ -45,19 +46,22 @@ const profile: ProfileDefinition = {
     // decision.
     redAlliance: "oklch(0.60 0.235 25)",
     blueAlliance: "oklch(0.53 0.24 258)",
-    // accentWarn STAYS the FRC attention yellow: it paints yellow/red cards,
-    // the MATCH UNDER REVIEW banner and the warning pill, which are referee
-    // semantics rather than branding.
+    // accentWarn STAYS the FRC attention yellow. It is referee semantics: the
+    // MATCH UNDER REVIEW card in the score bar, the same banner on the reveal,
+    // and the alliance-pick clock warning. Yellow/red team cards are hardcoded
+    // and were never on this token.
     accentWarn: "oklch(0.88 0.19 92)",
     // The event's accent is the bright teal off Rexi's disc (#54CCCC), taken
     // lighter so it clears 3:1 on both alliance colours: 3.23:1 on red, 3.94:1
-    // on blue, 6.50:1 on the blue shutter half. matchLabel colours the match
-    // number in the top bar and on the results screen; scoreBarAccent colours
-    // the score-bar trim, the shift bar and the fuel-gauge arc. Both default to
-    // accentWarn, so setting them is how a profile gets a brand accent without
-    // touching the card colours.
-    matchLabel: "oklch(0.88 0.11 190)",
-    scoreBarAccent: "oklch(0.88 0.11 190)",
+    // on blue, 6.50:1 on the blue shutter half.
+    //
+    // Before 2026-09-11 this was set on matchLabel and scoreBarAccent only, so
+    // the match number and the score-bar trim went teal while every screen
+    // header, section bar, bullet and highlight stayed gold - they all read
+    // accentWarn, which could not be moved without repainting MATCH UNDER
+    // REVIEW. Splitting accent out of accentWarn is what fixed that; matchLabel
+    // and scoreBarAccent now inherit from accent and no longer need setting.
+    accent: "oklch(0.88 0.11 190)",
     // Near-black with a faint green cast, sitting between the default's blue-cast
     // black and the site's flat #121212.
     background: "oklch(0.15 0.008 150)", // #090C09

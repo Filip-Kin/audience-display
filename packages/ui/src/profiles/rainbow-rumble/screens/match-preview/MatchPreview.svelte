@@ -2,7 +2,7 @@
 	import { state, eventDisplayName, activeProfile } from "@lib/state";
 	import { settings } from "@lib/settings";
 	import { createEventDispatcher, onMount } from "svelte";
-	import { matchName } from "@lib/matchNamer";
+	import { matchNameParts } from "@lib/matchNamer";
 	import Logo from "@lib/components/Logo.svelte";
 	import Shutter from "@lib/components/Shutter.svelte";
 	import MatchEventHeader from "@lib/components/MatchEventHeader.svelte";
@@ -40,9 +40,9 @@
 		? (leftIsRed ? $state.match?.details.blueAlliance : $state.match?.details.redAlliance) ?? (leftIsRed ? "BLUE ALLIANCE" : "RED ALLIANCE")
 		: (leftIsRed ? "BLUE ALLIANCE" : "RED ALLIANCE");
 
-	$: matchLabel = $state.match
-		? matchName($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType) ?? ""
-		: "";
+	$: matchParts = $state.match
+		? matchNameParts($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType)
+		: [];
 	$: eventLabel = $eventDisplayName;
 
 	$: compact = leftTeams.length > 3 || rightTeams.length > 3;
@@ -60,7 +60,7 @@
 		<!-- Centered header -->
 		{#if ready}
 			<div class="rr-header absolute left-0 right-0 flex justify-center top-7 z-10">
-				<MatchEventHeader {eventLabel} {matchLabel} matchLabelSize="69px" />
+				<MatchEventHeader {eventLabel} {matchParts} matchLabelSize="69px" />
 			</div>
 		{/if}
 

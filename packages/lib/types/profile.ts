@@ -10,7 +10,21 @@ export type ProfileTheme = {
   secondary: string;
   redAlliance: string;
   blueAlliance: string;
+  /**
+   * REFEREE attention colour: the MATCH UNDER REVIEW card in the score bar, the
+   * same banner on the reveal, and the alliance-pick clock warning. This is the
+   * FRC attention yellow and a profile should leave it alone - it is field
+   * semantics, not branding. To give a profile a brand accent, set `accent`.
+   */
   accentWarn: string;
+  /**
+   * CHROME accent: screen headers and their rules, section bars, bullets, the
+   * up-next match name, the bracket's current-match highlight, confetti. Falls
+   * back to `accentWarn`, so a profile that sets neither looks stock.
+   *
+   * Must be LIGHT (L >= 0.75). It carries near-black ink at ~14 sites.
+   */
+  accent?: string;
   background: string;
   surface: string;
   text: string;

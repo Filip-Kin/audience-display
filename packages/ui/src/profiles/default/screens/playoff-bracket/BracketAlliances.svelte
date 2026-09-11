@@ -51,7 +51,7 @@
 							class="display tabular-nums flex items-center justify-center flex-1 min-w-0 h-full text-[52px] leading-none"
 							style="
 								background: oklch(0.16 0 0);
-								color: var(--accentWarn);
+								color: var(--accent);
 							"
 						>
 							{teamNumber}

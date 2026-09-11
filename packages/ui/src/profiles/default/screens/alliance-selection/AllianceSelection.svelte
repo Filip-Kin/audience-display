@@ -112,7 +112,7 @@
 	     spotlight (see below), which fills the whole screen EXCEPT the box. -->
 	<div class="fixed inset-0 overflow-hidden" class:exiting>
 		<!-- Header -->
-		<header class="anim-top flex items-center justify-between border-b-4 border-accentWarn px-14 pt-7 pb-[18px]">
+		<header class="anim-top flex items-center justify-between border-b-4 border-accent px-14 pt-7 pb-[18px]">
 			<div class="flex items-center gap-[22px]">
 				<Logo class="object-contain size-[120px]" />
 				<div>
@@ -142,7 +142,7 @@
 			<div class="grid grid-rows-[auto_auto_minmax(0,1fr)] gap-3.5 min-h-0">
 				<!-- Section label -->
 				<div class="anim-left flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
-					<span class="bg-accentWarn size-2"></span>
+					<span class="bg-accent size-2"></span>
 					Available Teams
 					<div class="flex-1 h-0.5 bg-[var(--rule)]"></div>
 				</div>
@@ -160,7 +160,7 @@
 							class="grid items-stretch overflow-hidden grid-cols-[44px_1fr] relative {declined ? 'struck' : ''} {declined && captain ? 'struck-dark' : ''}"
 							style="
 								background: {captain
-									? 'var(--accentWarn)'
+									? 'var(--accent)'
 									: declined
 										? 'oklch(0.18 0.012 250)'
 										: 'white'};
@@ -171,11 +171,11 @@
 								class="flex items-center justify-center font-black text-[20px]"
 								style="
 									background: {captain
-										? 'oklch(0.18 0.04 60)'
+										? 'var(--accentInk)'
 										: declined
 											? 'oklch(0.26 0.012 250)'
 											: 'oklch(0.16 0 0)'};
-									color: {!captain ? 'white' : 'var(--accentWarn)'};
+									color: {!captain ? 'white' : 'var(--accent)'};
 									font-family: var(--font-mono);
 								"
 							>
@@ -211,7 +211,7 @@
 			<!-- RIGHT: alliances + sponsor -->
 			<div class="flex flex-col min-h-0 gap-3.5">
 				<div class="anim-right flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
-					<span class="bg-accentWarn size-2"></span>
+					<span class="bg-accent size-2"></span>
 					Alliances
 					<div class="flex-1 h-0.5 bg-[var(--rule)]"></div>
 				</div>
@@ -226,7 +226,7 @@
 							class="grid items-stretch grid-cols-[48px_1fr] text-[oklch(0.14_0_0)]"
 							class:ad-pulse={isCurrent}
 							style="
-								background: {isCurrent ? 'var(--accentWarn)' : 'white'};
+								background: {isCurrent ? 'var(--accent)' : 'white'};
 								border: {isCurrent ? '3px solid white' : '2px solid transparent'};
 							"
 						>
@@ -234,8 +234,8 @@
 							<div
 								class="flex items-center justify-center font-black text-[26px]"
 								style="
-									background: {isCurrent ? 'oklch(0.18 0.04 60)' : 'oklch(0.32 0.01 250)'};
-									color: {isCurrent ? 'var(--accentWarn)' : 'white'};
+									background: {isCurrent ? 'var(--accentInk)' : 'oklch(0.32 0.01 250)'};
+									color: {isCurrent ? 'var(--accent)' : 'white'};
 								"
 							>
 								{alliance.allianceNumber}
@@ -251,7 +251,7 @@
 										class="display tabular-nums flex items-center justify-center flex-1 min-w-0 h-12 text-[34px] leading-none"
 										style="
 											background: oklch(0.16 0 0);
-											color: var(--accentWarn);
+											color: var(--accent);
 											visibility: {empty ? 'hidden' : 'visible'};
 										"
 									>
@@ -290,7 +290,7 @@
 			background: oklch(0 0 0 / 0.6);
 		}
 		50% {
-			background: var(--accentWarn);
+			background: var(--accent);
 		}
 	}
 
@@ -307,9 +307,9 @@
 		opacity: 0.85;
 	}
 
-	/* Declined potential captain: thick dark strike reads on the accent (yellow) chip. */
+	/* Declined potential captain: thick dark strike reads on the accent chip, whatever colour the profile makes it. */
 	.struck-dark::after {
-		background: oklch(0.18 0.04 60);
+		background: var(--accentInk);
 		opacity: 1;
 		height: 5px;
 	}

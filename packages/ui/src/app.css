@@ -24,15 +24,27 @@
     --secondary:    oklch(0.53 0.24 258);
     --redAlliance:  oklch(0.60 0.235 25);
     --blueAlliance: oklch(0.53 0.24 258);
+    /* Two different jobs, split so a brand accent can't repaint a referee signal.
+       --accentWarn is REFEREE: the MATCH UNDER REVIEW card and the alliance-pick
+       clock warning. It is the FRC attention yellow and a profile should leave it
+       alone. --accent is CHROME: screen headers, section bars, bullets, the
+       up-next match name, highlights, confetti. It falls back to --accentWarn, so
+       a profile that sets neither looks exactly as it always did. */
     --accentWarn:   oklch(0.88 0.19 92);
+    --accent:       var(--accentWarn);
     /* Accent for the score-bar bars/borders; profiles override (e.g. MARC -> white
        so a red accent doesn't blend with the red alliance). Falls back to accent. */
-    --scoreBarAccent: var(--accentWarn);
+    --scoreBarAccent: var(--accent);
     --background:   oklch(0.13 0.012 250);
     --surface:      oklch(0.18 0.014 250);
     --text:         oklch(0.98 0.005 250);
 
     /* Design-system constants (not overridden per profile). */
+    --accentInk:      oklch(0.18 0 0);
+    --accentInk-deep: oklch(0.14 0 0);
+    /* Accent darkened for accent-coloured text on a LIGHT row (the rankings RP
+       number). Tracks whatever --accent is instead of being a literal amber. */
+    --accent-deep:    color-mix(in oklab, var(--accent), black 42%);
     --surface-2:    oklch(0.24 0.014 250);
     --text-dim:     oklch(0.72 0.012 250);
     --text-faint:   oklch(0.48 0.012 250);
@@ -92,6 +104,8 @@ html.kiosk #app {
 .bg-redAlliance   { background-color: var(--redAlliance); }
 .bg-blueAlliance  { background-color: var(--blueAlliance); }
 .bg-accentWarn    { background-color: var(--accentWarn); }
+.bg-accent        { background-color: var(--accent); }
+.bg-accentInk     { background-color: var(--accentInk); }
 .bg-scorebarAccent { background-color: var(--scoreBarAccent); }
 .bg-bannerAccent  { background-color: var(--bannerAccent); }
 .bg-background    { background-color: var(--background); }
@@ -105,9 +119,13 @@ html.kiosk #app {
 .text-redAlliance   { color: var(--redAlliance); }
 .text-blueAlliance  { color: var(--blueAlliance); }
 .text-accentWarn    { color: var(--accentWarn); }
+.text-accent        { color: var(--accent); }
+.text-accent-deep   { color: var(--accent-deep); }
+.text-accentInk     { color: var(--accentInk); }
+.text-accentInk-deep { color: var(--accentInk-deep); }
 /* Match-label text: a profile can override --matchLabel (e.g. white on MARC where
    the red accent has poor contrast); otherwise it inherits the gold accent. */
-.text-matchLabel    { color: var(--matchLabel, var(--accentWarn)); }
+.text-matchLabel    { color: var(--matchLabel, var(--accent)); }
 .text-text          { color: var(--text); }
 .text-dim           { color: var(--text-dim); }
 .text-faint         { color: var(--text-faint); }
@@ -117,6 +135,7 @@ html.kiosk #app {
 .border-redAlliance   { border-color: var(--redAlliance); }
 .border-blueAlliance  { border-color: var(--blueAlliance); }
 .border-accentWarn    { border-color: var(--accentWarn); }
+.border-accent        { border-color: var(--accent); }
 .border-scorebarAccent { border-color: var(--scoreBarAccent); }
 .border-rule          { border-color: var(--rule); }
 .border-rule-strong   { border-color: var(--rule-strong); }
@@ -367,3 +386,7 @@ html.kiosk #app {
 @keyframes bracket-card-in { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: none; } }
 @keyframes bracket-line-in { from { opacity: 0; } to { opacity: 1; } }
 /* #endregion */
+
+/* Hub active-corner arrows on the score bar: the glow follows the accent rather
+   than the literal gold it used to hardcode. */
+.arrow-glow { filter: drop-shadow(0 0 5px color-mix(in oklab, var(--accent), transparent 10%)); }

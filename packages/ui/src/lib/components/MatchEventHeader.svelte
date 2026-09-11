@@ -2,7 +2,8 @@
 	import { onMount } from "svelte";
 
 	export let eventLabel: string = "";
-	export let matchLabel: string = "";
+	/** Match-name segments from matchNameParts(); rendered one per line. */
+	export let matchParts: string[] = [];
 	/** Match-name font size; defaults to the standard header size. */
 	export let matchLabelSize: string = "46px";
 	/** Cap the match-name width so long names (playoff bracket labels) wrap to a
@@ -43,7 +44,7 @@
 
 	// Re-fit before paint whenever the label/cap changes, and once the display web
 	// font loads (its metrics change line widths).
-	$: void matchLabel, void matchLabelMaxWidth, labelEl && fitBox();
+	$: void matchParts, void matchLabelMaxWidth, labelEl && fitBox();
 	onMount(() => {
 		fitBox();
 		if (typeof document !== "undefined" && document.fonts)
@@ -60,17 +61,25 @@
 	<div class="text-[28px] tracking-[0.03em] text-white font-normal leading-[1.2]">
 		{eventLabel}
 	</div>
-	<!-- pre-line honours the explicit line break in playoff match names so they
-	     read as two clean lines here too (preview, waiting-for-scores). -->
+	<!-- This box is narrow, so it stacks the name one segment per line:
+	     "Qualification" / "1 of 30", "Upper Bracket" / "Round 1 · Match 1". A wide
+	     box (the top bars) calls matchName() and takes the joined one-line form
+	     instead. Each segment is its own line box, so a long one still wraps
+	     inside itself rather than running under the corner sponsor boxes. -->
 	<div
 		bind:this={labelEl}
 		class="display text-matchLabel font-bold leading-[1.1] mt-1 mx-auto"
-		style="white-space: pre-line; font-size: {matchLabelSize};{matchLabelMaxWidth
+		style="font-size: {matchLabelSize};{matchLabelMaxWidth
 			? ` max-width: ${matchLabelMaxWidth}; text-wrap: balance;`
 			: fullWidth
 				? ' text-wrap: balance;'
 				: ''}"
 	>
-		{matchLabel}
+		<!-- w-fit: fitBox() measures the line rects to hug the black box to the real
+		     longest line. A full-width block child would report the container width
+		     instead and the box would never hug. -->
+		{#each matchParts as part}
+			<div class="w-fit mx-auto">{part}</div>
+		{/each}
 	</div>
 </div>

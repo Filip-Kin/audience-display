@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { state, eventDisplayName } from "@lib/state";
-	import { matchName } from "@lib/matchNamer";
+	import { matchNameParts } from "@lib/matchNamer";
 	import { fitTwoLines } from "@lib/fitText";
 	import { createEventDispatcher, onMount } from "svelte";
 	import Logo from "@lib/components/Logo.svelte";
@@ -28,15 +28,17 @@
 
 	$: resumesIn = $state.match?.timer ?? 0;
 	$: nextMatch = $state.match;
-	$: nextMatchLabel = nextMatch
-		? matchName(
+	// This card is narrow, so it takes the stacked form: "Upper Bracket" / "Round 2
+	// · Match 8", "Qualification" / "1 of 30". A single-segment name ("Test Match",
+	// "Final 1") has nothing to stack and goes to the shrink-to-fit path instead.
+	$: labelLines = nextMatch
+		? matchNameParts(
 				nextMatch.details.matchNumber,
 				$state.eventDetails?.matchCount ?? 0,
 				nextMatch.details.matchType
-			) ?? ""
-		: "";
-	// "Upper Bracket - Round 2 - Match 8" reads better stacked than wrapped.
-	$: labelLines = nextMatchLabel.includes(" - ") ? nextMatchLabel.split(" - ") : null;
+			)
+		: [];
+	$: nextMatchLabel = labelLines.join(" ");
 	$: nextRedTeams = nextMatch?.teams.red ?? [];
 	$: nextBlueTeams = nextMatch?.teams.blue ?? [];
 	$: nextRedAlliance = nextMatch?.details.redAlliance;
@@ -46,7 +48,7 @@
 {#if ready}
 	<div class="fixed inset-0 bg-background overflow-hidden" class:exiting>
 		<!-- Header -->
-		<header class="anim-top flex items-center justify-between border-b-4 border-accentWarn px-14 pt-7 pb-[18px]">
+		<header class="anim-top flex items-center justify-between border-b-4 border-accent px-14 pt-7 pb-[18px]">
 			<div class="flex items-center gap-[22px]">
 				<Logo class="object-contain size-[150px]" />
 				<div>
@@ -60,11 +62,11 @@
 			</div>
 
 			<!-- Resumes-in timer pill -->
-			<div class="bg-accentWarn flex items-center gap-5 px-9 py-3.5">
-				<div class="uppercase text-[16px] font-black tracking-[0.2em] text-[oklch(0.18_0.04_60)]">
+			<div class="bg-accent flex items-center gap-5 px-9 py-3.5">
+				<div class="uppercase text-[16px] font-black tracking-[0.2em] text-accentInk">
 					Resumes In
 				</div>
-				<div class="display tabular-nums text-[92px] leading-[0.9] text-[oklch(0.14_0.04_60)]">
+				<div class="display tabular-nums text-[92px] leading-[0.9] text-accentInk-deep">
 					{mmss(resumesIn)}
 				</div>
 			</div>
@@ -75,7 +77,7 @@
 			<!-- Left: slideshow -->
 			<div class="anim-left flex flex-col min-h-0 gap-3.5">
 				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
-					<span class="bg-accentWarn size-2"></span>
+					<span class="bg-accent size-2"></span>
 					Sponsors
 					<div class="flex-1 h-0.5 bg-[var(--rule)]"></div>
 				</div>
@@ -86,24 +88,25 @@
 			<!-- Right: Up Next card -->
 			<div class="anim-right flex flex-col min-h-0 gap-3.5">
 				<div class="flex items-center uppercase gap-3 text-sm tracking-[0.22em] text-dim font-black">
-					<span class="bg-accentWarn size-2"></span>
+					<span class="bg-accent size-2"></span>
 					Up Next
 					<div class="flex-1 h-0.5 bg-[var(--rule)]"></div>
 				</div>
 
 				<div class="flex flex-col flex-1 bg-[oklch(0_0_0/0.55)] border-2 border-white p-6 gap-[18px]">
-					<!-- Match label: playoff names stack one segment per line ("Upper Bracket /
-					     Round 2 / Match 8"); single-segment names shrink-to-fit instead -->
+					<!-- Multi-segment names stack one per line ("Qualification" / "1 of 30",
+					     "Upper Bracket" / "Round 2 · Match 8"). A single-segment name has
+					     nothing to stack, so it shrinks to fit instead. -->
 					<div class="h-[190px] flex flex-col items-center justify-center">
-						{#if labelLines}
-							<div class="display text-accentWarn text-center text-[54px] leading-[1.1]">
+						{#if labelLines.length > 1}
+							<div class="display text-accent text-center text-[54px] leading-[1.1]">
 								{#each labelLines as line}
 									<div>{line}</div>
 								{/each}
 							</div>
 						{:else}
 							<div
-								class="display text-accentWarn text-center w-full"
+								class="display text-accent text-center w-full"
 								use:fitTwoLines={{ max: 80, min: 34, maxHeight: 190, text: nextMatchLabel }}
 							>
 								{nextMatchLabel}

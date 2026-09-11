@@ -2,7 +2,7 @@
 	import { fade, fly } from "svelte/transition";
 	import { state, activeProfile, eventDisplayName } from "@lib/state";
 	import { createEventDispatcher, onMount, onDestroy } from "svelte";
-	import { matchName } from "@lib/matchNamer";
+	import { matchNameParts } from "@lib/matchNamer";
 	import { settings } from "@lib/settings";
 	import Alliance from "./Alliance.svelte";
 	import RrScoreBreakdown from "./RrScoreBreakdown.svelte";
@@ -154,9 +154,9 @@
 	}
 
 	$: eventLabel = $eventDisplayName;
-	$: matchLabel = results
-		? matchName(results.details.matchNumber, matchCount, results.details.matchType) ?? ""
-		: "";
+	$: matchParts = results
+		? matchNameParts(results.details.matchNumber, matchCount, results.details.matchType)
+		: [];
 
 	$: redScore = results?.score.red;
 	$: blueScore = results?.score.blue;
@@ -247,7 +247,9 @@
 					<div class="bg-black px-6 pt-4 pb-3 text-center">
 						<div class="text-white text-[28px] leading-tight">{eventLabel}</div>
 						<!-- pre-line honours the explicit line break in playoff names -->
-						<div class="rr-display text-[36px] leading-[1.1] mt-0.5" style="color: var(--rr-accent); white-space: pre-line;">{matchLabel}</div>
+						<div class="rr-display text-[36px] leading-[1.1] mt-0.5" style="color: var(--rr-accent);">
+							{#each matchParts as part}<div>{part}</div>{/each}
+						</div>
 					</div>
 					<div class="flex" class:flex-row-reverse={$settings.invert}>
 						<div class="bg-blueAlliance w-1/2 text-center flex flex-col justify-center pb-6 pt-3">

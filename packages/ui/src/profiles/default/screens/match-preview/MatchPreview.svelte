@@ -2,7 +2,7 @@
 	import { state, eventDisplayName, activeProfile } from "@lib/state";
 	import { settings } from "@lib/settings";
 	import { createEventDispatcher, onMount } from "svelte";
-	import { matchName } from "@lib/matchNamer";
+	import { matchNameParts } from "@lib/matchNamer";
 	import Logo from "@lib/components/Logo.svelte";
 	import Shutter from "@lib/components/Shutter.svelte";
 	import MatchEventHeader from "@lib/components/MatchEventHeader.svelte";
@@ -40,9 +40,9 @@
 		? (leftIsRed ? $state.match?.details.blueAlliance : $state.match?.details.redAlliance) ?? (leftIsRed ? "BLUE ALLIANCE" : "RED ALLIANCE")
 		: (leftIsRed ? "BLUE ALLIANCE" : "RED ALLIANCE");
 
-	$: matchLabel = $state.match
-		? matchName($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType) ?? ""
-		: "";
+	$: matchParts = $state.match
+		? matchNameParts($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType)
+		: [];
 	$: eventLabel = $eventDisplayName;
 
 	$: compact = leftTeams.length > 3 || rightTeams.length > 3;
@@ -57,16 +57,19 @@
 			rightColor={leftIsRed ? "var(--secondary)" : "var(--primary)"}
 		/>
 
-		<!-- Centered header -->
+		<!-- Header then body in ONE column, so the gap below the black match-title
+		     box is a real gap rather than the difference between two hardcoded tops.
+		     The title box is two lines for a qual or playoff name and one for a
+		     "Final 1", and the old fixed top-[…] body could not react to that: at
+		     two lines the alliance bars ran right up under the box. -->
 		{#if ready}
-			<div class="absolute left-0 right-0 flex justify-center top-7 z-10">
-				<MatchEventHeader {eventLabel} {matchLabel} matchLabelSize="69px" />
-			</div>
-		{/if}
+			<div class="absolute inset-0 flex flex-col pt-7 px-[60px] pb-[60px] gap-6 z-10">
+				<div class="flex justify-center shrink-0">
+					<MatchEventHeader {eventLabel} {matchParts} matchLabelSize="69px" />
+				</div>
 
-		{#if ready}
-			<!-- Body grid: left lineup | VS | right lineup -->
-			<div class="absolute grid items-center top-[130px] left-[60px] right-[60px] bottom-[60px] grid-cols-[1fr_auto_1fr] gap-10 z-10">
+				<!-- Body grid: left lineup | VS | right lineup -->
+				<div class="grid items-center flex-1 min-h-0 grid-cols-[1fr_auto_1fr] gap-10">
 				<!-- Left alliance -->
 				<div class="flex flex-col items-stretch" style="gap: {cardGap}px;">
 					<div
@@ -92,7 +95,7 @@
 					<div class="display text-white text-[200px] leading-[0.8] tracking-[0.08em] font-black [transform:scaleX(0.66)]">
 						VS
 					</div>
-					<div class="bg-accentWarn h-2 w-40"></div>
+					<div class="bg-accent h-2 w-40"></div>
                     <Logo class="size-64" />
 				</div>
 
@@ -114,6 +117,7 @@
 							<MatchPreviewTeamCard {team} alliance={leftIsRed ? "blue" : "red"} invert={true} {compact} {index} showRank={!isPlayoff && !!team.rank} />
 						</svelte:fragment>
 					</AllianceSection>
+				</div>
 				</div>
 			</div>
 		{/if}

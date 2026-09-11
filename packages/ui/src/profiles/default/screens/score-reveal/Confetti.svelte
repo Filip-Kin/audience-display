@@ -29,7 +29,7 @@
 		const allianceColor =
 			styles.getPropertyValue(color === "red" ? "--redAlliance" : "--blueAlliance").trim() ||
 			(color === "red" ? "#e0393c" : "#3960e0");
-		const gold = styles.getPropertyValue("--accentWarn").trim() || "#f2cf3e";
+		const gold = styles.getPropertyValue("--accent").trim() || "#f2cf3e";
 		const palette = [allianceColor, allianceColor, "#ffffff", gold];
 
 		const resize = () => {
