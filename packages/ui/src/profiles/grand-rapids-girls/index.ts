@@ -26,9 +26,9 @@ const profile: ProfileDefinition = {
   eventName: "Grand Rapids Girls Robotics",
   // Schedule-screen QR target (replaces the game logo panel on that screen).
   eventInfoUrl: "https://girlsrobotics.org/event-agenda/",
-  // GUESS. TBA has 2022miwyo through 2025miwyo; 2026miwyo 404s today. This only
-  // scopes avatar-store uploads, it is not sent to TBA, so a wrong code costs
-  // nothing but a mismatched avatar namespace. Confirm before uploading avatars.
+  // CONFIRMED 2026-09-11: TBA created 2026miwyo
+  // (thebluealliance.com/event/2026miwyo). Was a guess extrapolated from
+  // 2022miwyo-2025miwyo. Scopes avatar-store uploads.
   eventCode: "2026miwyo",
   theme: {
     ...defaultProfile.theme,
@@ -69,20 +69,35 @@ const profile: ProfileDefinition = {
     // scores-ready. MUST have alpha (see Assets below): the source art is a
     // JPEG with no alpha, which would make the glint sweep a plain rectangle.
     event: "/grand-rapids-girls/logo.svg",
-    // Order = the order the sponsors page lists them, corporates first, then the
-    // host/sponsoring teams. Confirm the real 2026 tier order with Wendy.
-    // Filip's list (2026-09-05): three event sponsors, then one slide carrying
-    // all three host teams together so they read as a group rather than three
-    // separate rotations. The State Bar of Michigan entry was dropped: it came
-    // off the event site during research and Filip does not recognise it.
+    // Order follows the 2026 shirt back (Trista's file, via Alexandra
+    // 2026-09-11), which is the authoritative sponsor list for this year:
+    // Albers/Cramer Trust, then Anzen Unmanned + Allendale Robotics, then the
+    // three host teams on one slide so they read as a group.
+    //
+    // 2026-09-11 changes, all from Trista/Wendy via Alexandra:
+    //  - Plasan and Casa Calvo REMOVED: neither sponsored in 2026. Their art is
+    //    deleted rather than commented out; recover from git if they return.
+    //  - Albers/Cramer Trust ADDED (they funded this year's scholarship).
+    //  - GVSU ADDED. Not on the shirt back, requested separately.
     sponsors: [
-      // Navy ink on transparent (white background flood-filled off the supplied
-      // 1200px file), so it takes the white card.
-      { src: "/grand-rapids-girls/plasan.png", light: true },
+      // Wordmark lifted from the shirt back PDF (the only art anyone has for
+      // them) and recoloured white, set on two lines so it is not a hairline of
+      // text inside object-contain. Reads bare on green.
+      { src: "/grand-rapids-girls/albers-cramer-trust.png" },
       // Gold gradient wordmark, already reversed-friendly, reads bare on green.
       { src: "/grand-rapids-girls/anzen-unmanned.png" },
-      // Orange script, reads bare.
-      { src: "/grand-rapids-girls/casa-calvo.png" },
+      // GVSU's approved 2-colour primary lockup (blue logomark left of a black
+      // logotype). Their brand guide says do not recolour the primary logo, so
+      // it takes the white card rather than being knocked out to white. The
+      // official files sit behind a gvsu.edu login; this is the same lockup
+      // from a public vector mirror.
+      { src: "/grand-rapids-girls/gvsu.png", light: true },
+      // Black-on-transparent, off the shirt back. PENDING: Alexandra emailed to
+      // ask whether Allendale Robotics is just the org behind 4003 TriSonics or
+      // a separate sponsor. The shirt lists it in the sponsor row, separate from
+      // the team logos, so it gets its own slide until she hears back. Drop this
+      // line if it turns out to be TriSonics.
+      { src: "/grand-rapids-girls/allendale-robotics.png", light: true },
       // 3875 Red Storm, 4003 TriSonics and 4967 That ONE Team on one slide.
       // 4967's mark is block lettering on a flat tile, so it was upscaled 4x
       // with NEAREST rather than a smooth filter, which would blur the blocks.
