@@ -66,8 +66,21 @@ const profile: ProfileDefinition = {
   },
   assets: {
     // Centre logo on the score-reveal, and the mask for the glint sweep on
-    // scores-ready. MUST have alpha (see Assets below): the source art is a
-    // JPEG with no alpha, which would make the glint sweep a plain rectangle.
+    // scores-ready, so it MUST have alpha or the sweep becomes a plain rectangle.
+    //
+    // 2026-09-11: rebuilt from the 2026 shirt front (Trista's Rexi, via
+    // Alexandra) with two changes for a dark screen, both of which Filip called
+    // on the day. The shirt is a 3-colour print meant for light fabric:
+    //  - The ring text was black and disappeared into the #090C09 background.
+    //    Now the same off-white as Rexi's lab coat.
+    //  - The ring itself was #07170D, a near-black that read as a hole. Now mid
+    //    steel grey, which is what the porthole-with-rivets was always drawing.
+    // Rexi's own ink, the hat and the FIRST/REBUILT patches are untouched.
+    //
+    // Traced rather than kept as a raster: the shirt file is only 541x574 and
+    // this renders at size-[480px], so it goes soft the moment the canvas scales
+    // past 1080p. tools/trace-logo.py regenerates it from the shirt art.
+    // logo.png is the same recoloured art as a raster twin; nothing reads it.
     event: "/grand-rapids-girls/logo.svg",
     // Order follows the 2026 shirt back (Trista's file, via Alexandra
     // 2026-09-11), which is the authoritative sponsor list for this year:
