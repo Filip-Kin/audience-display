@@ -58,7 +58,7 @@
 				</div>
 				{#if $settings.scoreBarAvatars}
 					<div class="w-[52px] flex-none bg-[oklch(0_0_0/0.28)]">
-						<Avatar avatar={team.avatar || undefined} team={team.number} class="w-full h-full object-cover" alt="" />
+						<Avatar avatar={team.avatar || undefined} team={team.number} placeholder={team.placeholder} class="w-full h-full object-cover" alt="" />
 					</div>
 				{/if}
 			</div>

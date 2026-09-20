@@ -81,6 +81,11 @@ export type Team = {
    *  team playing under a B-team label. Set per team in customADTeams.json. */
   designation?: string;
   card: FMSMatchResultsTeam["cardCarryStatus"];
+  /** Filler team in an FMS test match (level "None", described in FMS as
+   *  "Match Test"), which loads teams 1-6 whether or not they exist. The number
+   *  still shows, but the avatar must fall back to the default instead of
+   *  pulling the real team 1's art. */
+  placeholder?: boolean;
   rankChange?: FMSMatchResultsTeam["teamRankChange"];
   isCaptain?: boolean;
   potentialCaptain?: boolean;

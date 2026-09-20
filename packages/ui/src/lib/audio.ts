@@ -130,3 +130,19 @@ export const playSound = (sound: string) => {
 	player.volume(volume);
 	player.play();
 };
+
+/**
+ * Pause/resume/stop a sound that is already playing. Used for the pick clock,
+ * whose 5-second bed must freeze with the alliance clock: Howler resumes a
+ * paused sound from where it stopped, so the bed stays lined up with the
+ * seconds still on the clock.
+ */
+export const controlSound = (sound: string, action: "pause" | "resume" | "stop") => {
+	const key = EVENT_SOUNDS[sound];
+	if (!key) return;
+	const player = players.get(key);
+	if (!player) return;
+	if (action === "pause") player.pause();
+	else if (action === "resume") player.play();
+	else player.stop();
+};

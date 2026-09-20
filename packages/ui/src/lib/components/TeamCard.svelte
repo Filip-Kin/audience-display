@@ -25,7 +25,7 @@
 	>
 		<div class="flex flex-row {allianceBg} text-white p-3 text-xl gap-4 align-middle">
 			<div class="size-[60px]">
-				<Avatar avatar={team.avatar} team={team.number} alt="{team.number} Icon" width="60" height="60" />
+				<Avatar avatar={team.avatar} team={team.number} placeholder={team.placeholder} alt="{team.number} Icon" width="60" height="60" />
 			</div>
 			<span class="text-5xl font-semibold">{team.number}{#if team.designation}<span class="text-3xl font-medium opacity-70"> ({team.designation})</span>{/if}</span>
 		</div>

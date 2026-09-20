@@ -50,6 +50,7 @@
 	<Avatar
 		avatar={team.avatar}
 		team={team.number}
+		placeholder={team.placeholder}
 		alt="Team {team.number}"
 		class="rounded-[14px] {alliance === 'red' ? 'bg-red-900' : 'bg-blue-900'} p-1"
 		style="width: {avatarSize}px; order: {invert ? 3 : 1};"

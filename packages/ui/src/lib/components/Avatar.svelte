@@ -11,6 +11,8 @@
 	export let avatar: string | undefined = undefined;
 	/** Team number, used to look up a hand-made avatar in the avatar store. */
 	export let team: number | undefined = undefined;
+	/** Filler team in an FMS test match: never resolve this number to real art. */
+	export let placeholder = false;
 	let className = "";
 	export { className as class };
 	export let style = "";
@@ -19,13 +21,16 @@
 	const PLACEHOLDER = `data:image/png;base64,${defaultAvatar}`;
 
 	$: storeOk = !!avatarStoreUrl;
-	$: teamVersion = team != null ? $avatarState.teams.get(team) : undefined;
+	// A test match loads teams 1-6 whoever is at the event, so the number is not
+	// an identity: drop both it and whatever art FMS attached to it.
+	$: lookupTeam = placeholder ? undefined : team;
+	$: teamVersion = lookupTeam != null ? $avatarState.teams.get(lookupTeam) : undefined;
 	// A team is in the /avatars map iff the store has a CRISP upload for it at the
 	// active event (event override or team default). Otherwise the store may still
 	// serve a low-res TBA fallback, which we try only when FMS gives us nothing.
-	$: hasCrispUpload = storeOk && team != null && teamVersion !== undefined;
+	$: hasCrispUpload = storeOk && lookupTeam != null && teamVersion !== undefined;
 	// Note: `!!avatar` so an empty-string FMS avatar counts as "no avatar".
-	$: hasFms = !!avatar;
+	$: hasFms = !placeholder && !!avatar;
 	$: hasDefault = storeOk && $avatarState.default != null;
 
 	// Shown immediately (no network wait): the FMS avatar if we have one, else the
@@ -36,9 +41,9 @@
 	// the TBA low-res fallback and the store's shared default only fill in when
 	// there is no FMS avatar to show.
 	$: upgrades = [
-		hasCrispUpload ? avatarUrl(team as number, teamVersion as number) : null,
-		!hasFms && team != null && storeOk
-			? avatarUrl(team as number, teamVersion ?? 0)
+		hasCrispUpload ? avatarUrl(lookupTeam as number, teamVersion as number) : null,
+		!hasFms && lookupTeam != null && storeOk
+			? avatarUrl(lookupTeam as number, teamVersion ?? 0)
 			: null,
 		!hasFms && hasDefault ? defaultAvatarUrl($avatarState.default as number) : null,
 	].filter((u): u is string => u !== null);

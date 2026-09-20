@@ -1,6 +1,6 @@
 import { derived, get, writable } from "svelte/store";
 import type { AudienceDisplayState } from "lib";
-import { playSound } from "./audio";
+import { controlSound, playSound } from "./audio";
 import { settings, applyProfileDefaults } from "./settings";
 import type { Screen } from "../../../lib/types/audience_display";
 import { applyTheme } from "./theme";
@@ -125,6 +125,13 @@ export const state = writable(defaultState, (set) => {
           console.log("Match ready sound is disabled in settings.");
         } else {
           playSound(message.data);
+        }
+      }
+      if (message.type === "soundControl") {
+        // Same display-only guard as "sound": the config pages stay silent, so
+        // they have nothing to pause either.
+        if (location.pathname.startsWith("/display")) {
+          controlSound(message.data.sound, message.data.action);
         }
       }
     };

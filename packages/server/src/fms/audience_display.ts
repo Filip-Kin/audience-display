@@ -373,6 +373,31 @@ export class AudienceDisplayManager {
   private teamLineup: { red: number[]; blue: number[] } = { red: [], blue: [] };
   private profileSelector: ProfileSelector | null = null;
 
+  // #region event roster
+  // Team numbers actually at this event, from the published schedule plus the
+  // rankings. Only grows: the "current" schedule narrows to the playoff matches
+  // once playoffs start, and a qual-only team is still at the event.
+  private eventTeams: Set<number> = new Set();
+  private eventTeamsFetchedAt = 0;
+  private static readonly EVENT_ROSTER_TTL_MS = 60_000;
+  // #endregion
+
+  // #region pick-clock pause state
+  // FMS never announces an alliance-clock pause: AllianceSelectionTimerPause()
+  // in the event wizard only calls allianceSelectionTimer.Pause(), with no hub
+  // broadcast. So a pause is only visible as the AllianceSelectionTimer value
+  // no longer counting down. The 5-second warning bed (pick_clock.wav, 4.96s)
+  // is timed to run out exactly at zero, so a pause at 3s left leaves it
+  // beeping over a frozen clock. Watchdog: if no LOWER value arrives within
+  // PICK_CLOCK_PAUSE_MS, the clock is paused - works whether FMS holds the
+  // value on the wire or stops ticking entirely.
+  private pickClockLastTick: number | null = null;
+  private pickClockPauseTimer: ReturnType<typeof setTimeout> | null = null;
+  private pickClockSounding = false;
+  private pickClockPaused = false;
+  private static readonly PICK_CLOCK_PAUSE_MS = 1600;
+  // #endregion
+
   constructor(server: Server, fmsUrl: string, profileSelector?: ProfileSelector) {
     this.server = server;
     this.fmsUrl = fmsUrl;
@@ -462,8 +487,7 @@ export class AudienceDisplayManager {
         this.pickTimerType === "pick" &&
         (this.screen === "alliance-selection" || this.screen === "alliance-selection-fullscreen")
       ) {
-        if (time === 5) this.playSound("pickClock");
-        if (time === 0) this.playSound("pickClockExpired");
+        this.onPickClockTick(time);
       }
       this.broadcastState();
     });
@@ -513,6 +537,10 @@ export class AudienceDisplayManager {
       const next: Screen = screen;
       this.screen = next;
       this.screenEstablished = true;
+
+      if (next !== "alliance-selection" && next !== "alliance-selection-fullscreen") {
+        this.resetPickClock();
+      }
 
       if (next === "match-preview") {
         const current = await this.getCurrentMatchAndPlayNumber();
@@ -872,6 +900,75 @@ export class AudienceDisplayManager {
     );
   }
 
+  /** Pause/resume/stop a sound that is already playing on every display. */
+  controlSound(soundName: string, action: "pause" | "resume" | "stop") {
+    this.server.publish(
+      "audience-display",
+      JSON.stringify({ type: "soundControl", data: { sound: soundName, action } })
+    );
+  }
+
+  // #region pick-clock pause detection
+  /** One AllianceSelectionTimer tick while a pick clock owns the screen. */
+  private onPickClockTick(time: number) {
+    const previous = this.pickClockLastTick;
+    this.pickClockLastTick = time;
+    const countedDown = previous === null || time < previous;
+
+    // The clock went UP: the FTA hit Reset, so the warning bed no longer lines
+    // up with anything. Kill it instead of resuming it later.
+    if (previous !== null && time > previous) this.stopPickClockSound();
+
+    if (time === 5) {
+      this.playSound("pickClock");
+      this.pickClockSounding = true;
+      this.pickClockPaused = false;
+    } else if (time === 0) {
+      this.playSound("pickClockExpired");
+      this.pickClockSounding = false;
+      this.pickClockPaused = false;
+    } else if (this.pickClockPaused && countedDown) {
+      // Counting down again: pick the bed up where it stopped. It stays in sync
+      // with the clock because both were frozen for the same stretch.
+      this.pickClockPaused = false;
+      this.controlSound("pickClock", "resume");
+    }
+
+    // Only a LOWER value proves the clock is still running. A repeat of the
+    // same second must not push the watchdog out, or a paused clock that keeps
+    // ticking its held value on the wire would never be detected.
+    if (countedDown) this.armPickClockWatchdog();
+  }
+
+  /** Declare a pause when no lower value arrives in time. */
+  private armPickClockWatchdog() {
+    if (this.pickClockPauseTimer) clearTimeout(this.pickClockPauseTimer);
+    this.pickClockPauseTimer = null;
+    if (!this.pickClockSounding || this.pickClockPaused) return;
+    this.pickClockPauseTimer = setTimeout(() => {
+      this.pickClockPauseTimer = null;
+      this.pickClockPaused = true;
+      this.controlSound("pickClock", "pause");
+    }, AudienceDisplayManager.PICK_CLOCK_PAUSE_MS);
+  }
+
+  private stopPickClockSound() {
+    if (this.pickClockPauseTimer) clearTimeout(this.pickClockPauseTimer);
+    this.pickClockPauseTimer = null;
+    if (this.pickClockSounding || this.pickClockPaused) {
+      this.controlSound("pickClock", "stop");
+    }
+    this.pickClockSounding = false;
+    this.pickClockPaused = false;
+  }
+
+  /** Leaving the selection screens ends the pick clock entirely. */
+  private resetPickClock() {
+    this.stopPickClockSound();
+    this.pickClockLastTick = null;
+  }
+  // #endregion
+
   private async refreshBracket() {
     this.bracket = await fetchBracket(this.fmsUrl);
     // Scheduled start of playoff M1, for the bracket header's pre-playoff countdown.
@@ -1097,12 +1194,13 @@ export class AudienceDisplayManager {
       `Get${levelString}MatchPreviewData`
     );
     if (data === null) return null;
+    if (level === LevelParam.None) await this.refreshEventTeams();
     this.captureEventMeta(data.eventCode);
     return {
       matchNumber: data.matchNumber,
       matchType: this.getMatchTypeFromLevel(level),
-      redTeams: this.mapQualPreviewTeams(data.redAlliance),
-      blueTeams: this.mapQualPreviewTeams(data.blueAlliance),
+      redTeams: this.markTestFillers(this.mapQualPreviewTeams(data.redAlliance), level),
+      blueTeams: this.markTestFillers(this.mapQualPreviewTeams(data.blueAlliance), level),
     };
   }
 
@@ -1196,6 +1294,45 @@ export class AudienceDisplayManager {
     return this.fetchJson<FMSMatchSchedule[]>(
       "/api/v1.0/match/get/GetCurrentSchedule",
       "GetCurrentSchedule"
+    );
+  }
+
+  /** Add every team in the published schedule to the event roster. */
+  private async refreshEventTeams(): Promise<void> {
+    if (this.eventTeams.size > 0 &&
+        Date.now() - this.eventTeamsFetchedAt < AudienceDisplayManager.EVENT_ROSTER_TTL_MS) {
+      return;
+    }
+    const schedule = await this.getCurrentSchedule();
+    this.eventTeamsFetchedAt = Date.now();
+    if (schedule === null) return;
+    for (const match of schedule) {
+      for (const number of [
+        match.teamNumberRed1, match.teamNumberRed2, match.teamNumberRed3,
+        match.teamNumberBlue1, match.teamNumberBlue2, match.teamNumberBlue3,
+      ]) {
+        if (number > 0) this.eventTeams.add(number);
+      }
+    }
+  }
+
+  /**
+   * Flag the filler teams FMS loads into a test match. Level None is FMS's own
+   * "Match Test" (TournamentLevel.None, [Description("Match Test")]), and an
+   * untouched test match carries teams 1-6, so team 1 turns up wearing the real
+   * team 1's avatar. The number alone does not decide it: a test match can just
+   * as well be loaded with real teams, and at an event where team 1-6 is
+   * competing those numbers ARE real. So only a team that is not on this
+   * event's roster counts as a filler. The number still shows either way; only
+   * the avatar falls back to the default.
+   */
+  private markTestFillers(teams: Team[], level: LevelParam): Team[] {
+    if (level !== LevelParam.None) return teams;
+    // Roster unknown (no schedule published yet, FMS did not answer): leave the
+    // teams alone rather than blanking someone who is really out there.
+    if (this.eventTeams.size === 0) return teams;
+    return teams.map((t) =>
+      this.eventTeams.has(t.number) ? t : { ...t, placeholder: true }
     );
   }
 
@@ -1337,12 +1474,13 @@ export class AudienceDisplayManager {
       `GetMatchResults${levelString}Data`
     );
     if (data === null) return null;
+    if (level === LevelParam.None) await this.refreshEventTeams();
     this.captureEventMeta(data.eventCode, data.season);
     return {
       matchNumber: data.matchNumber,
       matchType: this.getMatchTypeFromLevel(level),
-      redTeams: this.mapQualResultTeams(data.redAllianceData),
-      blueTeams: this.mapQualResultTeams(data.blueAllianceData),
+      redTeams: this.markTestFillers(this.mapQualResultTeams(data.redAllianceData), level),
+      blueTeams: this.markTestFillers(this.mapQualResultTeams(data.blueAllianceData), level),
       redScoreDetails: data.redAllianceData.scoreDetails,
       blueScoreDetails: data.blueAllianceData.scoreDetails,
       matchWinner:
@@ -1459,6 +1597,9 @@ export class AudienceDisplayManager {
       "GetQualRankings"
     );
     if (rankings === null) return null;
+    // Rankings list everyone at the event, including teams the current schedule
+    // no longer mentions once playoffs narrow it down.
+    for (const r of rankings) if (r.teamNumber > 0) this.eventTeams.add(r.teamNumber);
     return rankings.map((r) => ({
       number: r.teamNumber,
       rank: r.rank,
