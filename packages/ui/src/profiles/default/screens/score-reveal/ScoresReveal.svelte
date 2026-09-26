@@ -15,10 +15,16 @@
 	import Shutter from "@lib/components/Shutter.svelte";
 	import { packUrl } from "@lib/animation_pack.js";
 	import { get } from "svelte/store";
-	import { audioUnlocked, volumes } from "@lib/audio";
+	import { audioUnlocked, volumes, playSound } from "@lib/audio";
 
 	let ready = false;
 	let videoReady = false;
+	// Whoosh once as the shutter opens onto the scores.
+	let whooshed = false;
+	$: if (videoReady && !whooshed) {
+		whooshed = true;
+		playSound("scoreReveal");
+	}
 	const dispatcher = createEventDispatcher();
 	export let exit = false;
 

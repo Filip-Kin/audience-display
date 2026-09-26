@@ -19,6 +19,8 @@ import pickClock_wav from "../assets/audio/pick_clock.wav";
 import pickClockExpired_wav from "../assets/audio/pick_clock_expired.wav";
 // Real FMS "Powerup" sound (PowerUp_LinearPop.wav), played entering shifts 1-4.
 import shiftChange_wav from "../assets/audio/shift_change.wav";
+// Pit Podcast "whoosh-up", played as the shutter opens onto the results.
+import scoreReveal_wav from "../assets/audio/score_reveal.wav";
 
 /** One entry per distinct sound file: drives both playback and the volume sliders. */
 export const SOUND_DEFS = [
@@ -31,6 +33,7 @@ export const SOUND_DEFS = [
 	{ key: "matchReady", label: "Match Ready", src: ready_wav },
 	{ key: "pickClock", label: "Pick Clock", src: pickClock_wav },
 	{ key: "pickClockExpired", label: "Pick Clock Expired", src: pickClockExpired_wav },
+	{ key: "scoreReveal", label: "Score Reveal", src: scoreReveal_wav },
 ] as const;
 
 export type VolumeKey = (typeof SOUND_DEFS)[number]["key"] | "victoryVideo";
@@ -48,6 +51,7 @@ const defaultVolumes = (): Volumes => ({
 	matchReady: 1,
 	pickClock: 0.9,
 	pickClockExpired: 0.9,
+	scoreReveal: 0.9,
 	victoryVideo: 0.5,
 });
 
@@ -118,6 +122,7 @@ const EVENT_SOUNDS: Record<string, (typeof SOUND_DEFS)[number]["key"]> = {
 	pickClock: "pickClock",
 	pickClockExpired: "pickClockExpired",
 	shiftChange: "shiftChange",
+	scoreReveal: "scoreReveal",
 };
 
 export const playSound = (sound: string) => {
