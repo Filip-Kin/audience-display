@@ -371,6 +371,10 @@ export class AudienceDisplayManager {
   private match: MatchState = defaultMatchState(1);
 
   private teamLineup: { red: number[]; blue: number[] } = { red: [], blue: [] };
+  // "level:matchNumber" the current team lists were fetched for. Several paths
+  // (timeout, reconnect) move the match number without touching the teams, so
+  // anything that shows teams next to the number checks this first.
+  private previewFor = "";
   private profileSelector: ProfileSelector | null = null;
 
   // #region event roster
@@ -582,6 +586,7 @@ export class AudienceDisplayManager {
         await this.refreshRankData();
         if (!isCurrent()) return;
       } else if (next === "timeout" && this.currentLevel === LevelParam.Playoff) {
+        await this.ensurePreviewForCurrentMatch();
         // The timeout slideshow includes a live mini bracket during playoffs.
         await this.refreshBracket();
         if (!isCurrent()) return;
@@ -590,6 +595,7 @@ export class AudienceDisplayManager {
         return;
       }
 
+      if (next === "timeout" || next === "background") await this.ensurePreviewForCurrentMatch();
       if (!isCurrent()) return;
       this.stopBracketRefresh();
       this.broadcastState();
@@ -795,6 +801,7 @@ export class AudienceDisplayManager {
         this.currentLevel = current.level;
         this.match.details.matchNumber = current.matchNumber;
         this.match.details.matchType = this.getMatchTypeFromLevel(current.level);
+        await this.ensurePreviewForCurrentMatch();
       }
       this.broadcastState();
     });
@@ -818,6 +825,7 @@ export class AudienceDisplayManager {
     this.fmsConnection.on("timeout", async (data) => {
       this.match.details.matchNumber = data.MatchNumber;
       this.match.score.winner = undefined;
+      await this.ensurePreviewForCurrentMatch();
       this.broadcastState();
     });
 
@@ -827,7 +835,11 @@ export class AudienceDisplayManager {
     // needing a video switch.
     this.fmsConnection.on("matchLoaded", async (data) => {
       const level = LevelParam[data.level];
-      if (level === this.currentLevel && data.matchNumber === this.match.details.matchNumber) {
+      if (
+        level === this.currentLevel &&
+        data.matchNumber === this.match.details.matchNumber &&
+        this.previewFor === `${level}:${data.matchNumber}`
+      ) {
         return;
       }
       this.currentLevel = level;
@@ -1104,7 +1116,19 @@ export class AudienceDisplayManager {
   }
 
   /** Apply a normalized preview to the live match state, ordering teams to match the field lineup. */
+  /** Fetch the teams for the match number on screen if the current lists belong to another match. */
+  private async ensurePreviewForCurrentMatch() {
+    const level = this.currentLevel;
+    const matchNumber = this.match.details.matchNumber;
+    if (!matchNumber || this.previewFor === `${level}:${matchNumber}`) return;
+    const preview = await this.getMatchPreview(level, matchNumber);
+    // The number may have moved again while the fetch was in flight.
+    if (preview === null || level !== this.currentLevel || matchNumber !== this.match.details.matchNumber) return;
+    this.applyMatchPreview(preview);
+  }
+
   private applyMatchPreview(preview: NormalizedMatchPreview) {
+    this.previewFor = `${this.currentLevel}:${preview.matchNumber}`;
     this.match.details.matchNumber = preview.matchNumber;
     this.match.details.matchType = preview.matchType;
     this.match.details.redAlliance = preview.redAllianceName;
