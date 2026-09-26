@@ -486,11 +486,10 @@ export class AudienceDisplayManager {
         return;
       }
       this.match.timer = time;
-      // Pick-clock warning/expiry sounds (previously tied to the local countdown).
-      if (
-        this.pickTimerType === "pick" &&
-        (this.screen === "alliance-selection" || this.screen === "alliance-selection-fullscreen")
-      ) {
+      // Warning/expiry sounds on every selection clock, break or pick, like the
+      // official display's updateSelectionTimer. Gating on "pick" left the
+      // break clocks (all FMS sends at events that skip pick clocks) silent.
+      if (this.screen === "alliance-selection" || this.screen === "alliance-selection-fullscreen") {
         this.onPickClockTick(time);
       }
       this.broadcastState();
