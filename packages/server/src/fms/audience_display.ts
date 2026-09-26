@@ -336,6 +336,11 @@ export class AudienceDisplayManager {
   private eventDeclines: Map<number, boolean> = new Map();
   // Current field state, from the field monitor hub's MatchStatusInfoChanged.
   private currentMatchState = "";
+  // Set by any FMS timeout state (*TO), cleared when its clock hits zero or a
+  // match starts. The end sound must fire even when the operator has already
+  // switched away from the Timeout screen (lunch at MIALL: Match Preview was up
+  // two minutes before the timeout ran out, so it never sounded).
+  private timeoutRunning = false;
   private rankData: QualRanking[] = [];
   private connected = false;
   private bracket: BracketData | null = demoBracket();
@@ -463,12 +468,17 @@ export class AudienceDisplayManager {
     });
 
     this.fmsConnection.on("timer", async (time) => {
+      const previous = this.match.timer;
       this.match.timer = time;
       this.broadcastState();
 
-      if (this.screen === "timeout") {
-        if (time === 60) this.playSound("timeoutWarning");
-        if (time === 0) this.playSound("timeoutEnd");
+      // FMS repeats the final tick, so only a change of value sounds.
+      if (this.screen === "timeout" || this.timeoutRunning) {
+        if (time === 60 && previous !== 60) this.playSound("timeoutWarning");
+        if (time === 0 && previous !== 0) {
+          this.playSound("timeoutEnd");
+          this.timeoutRunning = false;
+        }
       }
     });
 
@@ -643,6 +653,8 @@ export class AudienceDisplayManager {
 
     this.fmsConnection.on("matchStateChanged", (state) => {
       this.currentMatchState = state;
+      if (state.endsWith("TO")) this.timeoutRunning = true;
+      else if (state === "MatchAuto") this.timeoutRunning = false;
     });
 
     this.fmsConnection.on("plcMatchStatus", (data) => {
