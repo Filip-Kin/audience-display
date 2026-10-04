@@ -36,6 +36,8 @@ const profile: ProfileDefinition = {
   eventInfoUrl: "https://c3robots.org/",
   theme: {
     ...defaultProfile.theme,
+    // Sharp corners on every card, to match the gear teeth in the mark.
+    radius: "0px",
     // Shutter, bright. Filip, 2026-10-04: dark shutters looked gloomy, and
     // brighter reads better on a projector; team names sit on the white cards,
     // which give the separation. Red side is a purple-magenta (hue kept off the
@@ -59,7 +61,11 @@ const profile: ProfileDefinition = {
   assets: {
     // Centre logo on the score-reveal, header logo on background/alliance
     // selection, and the mask for the glint sweep on scores-ready.
-    event: "/c3/logo.png",
+    // The gear-and-ribbon mark only, with a white outline traced round each
+    // shape: the full lockup's text was too small, and its pink letters
+    // vanished on the pink shutter half. Filip picked this over a white plate.
+    // Built from logo.png (the full lockup, kept as source art).
+    event: "/c3/logo-mark-outline.png",
     // Order: the beneficiary first (the event exists for YSC), then the two host
     // teams, then the two FIRST programme partners.
     sponsors: [
