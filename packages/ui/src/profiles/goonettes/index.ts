@@ -51,11 +51,13 @@ const profile: ProfileDefinition = {
     // (leftColor = leftIsRed ? primary : secondary), so on match preview the
     // sides follow $settings.invert. Pick two purples that work either way
     // round rather than relying on a fixed left/right assignment.
-    // Site section purple #771A85 and button ink #2A1543, darkened until the
-    // alliance colours clear the 3:1 shutter rule applyTheme checks
-    // (3.03:1 vs redAlliance, 3.12:1 vs blueAlliance).
-    primary: "oklch(0.31 0.15 322)",
-    secondary: "oklch(0.24 0.12 298)",
+    // Bright, from the site's section purple #771A85: a violet on the red side
+    // and the site purple lifted on the blue side, each hue kept away from the
+    // alliance colour it sits under. Filip, 2026-10-04: dark shutters looked
+    // gloomy, and brighter reads better on a projector; team names sit on the
+    // cards, which give the separation. White on either half is 5.2:1 or better.
+    primary: "oklch(0.50 0.22 295)", // violet; white 6.7:1
+    secondary: "oklch(0.56 0.21 322)", // site purple, lifted; white 5.2:1
     // Panels: stock lightness, hue moved off blue-grey into the brand purple
     // family, chroma kept low so it reads as a tint and not a colour.
     background: "oklch(0.13 0.018 305)",
