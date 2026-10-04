@@ -2,6 +2,7 @@
 	import { onMount } from "svelte";
 	import { state, activeProfile, sendSetTeamNames } from "@lib/state";
 	import Avatar from "@lib/components/Avatar.svelte";
+	import { avatarState } from "@lib/avatarStore";
 	import type { TeamNameEntry } from "../../lib/types/audience_display";
 
 	interface VmixInput {
@@ -135,8 +136,7 @@
 	// #region Team names
 	// One row per team FMS has named (it fills in as previews, results and
 	// rankings arrive), plus manual rows for teams FMS does not know yet. A row
-	// is Default (shows the FMS name) until a name or designation is typed, then
-	// Custom. Overrides are per profile on the server; edits stay local until
+	// shows the FMS name as a greyed placeholder until a name is typed. Overrides are per profile on the server; edits stay local until
 	// Save.
 	type TeamRow = { number: string; fmsName: string | null; name: string; designation: string; manual: boolean };
 
@@ -205,7 +205,8 @@
 		prevFms = fms;
 	}
 
-	const isCustom = (r: TeamRow) => !!(r.name.trim() || r.designation.trim());
+	// A blue ring marks art uploaded for this event on avatars.frc.tools.
+	$: eventAvatar = (n: string) => $avatarState.eventTeams.has(Number(n));
 
 	// FMS avatar for the row's team. The Avatar component upgrades it to the
 	// avatar-store upload for the active event, so the row shows exactly what
@@ -221,10 +222,6 @@
 
 	function addTeamRow() {
 		teamRows = [...teamRows, { number: "", fmsName: null, name: "", designation: "", manual: true }];
-	}
-
-	function resetTeamRow(i: number) {
-		teamRows[i] = { ...teamRows[i], name: "", designation: "" };
 	}
 
 	function removeTeamRow(i: number) {
@@ -313,24 +310,23 @@
 				{fmsCount ? `${fmsCount} teams from FMS` : "No teams from FMS yet"}
 			</p>
 			{#if teamRows.length}
-				<div class="hidden sm:grid grid-cols-[3rem_6rem_minmax(0,1fr)_7rem_5rem_4rem] items-center gap-3 text-sm text-gray-400">
+				<div class="hidden sm:grid grid-cols-[3rem_6rem_minmax(0,1fr)_9rem_2rem] items-center gap-3 text-sm text-gray-400">
 					<span></span>
 					<span>Team</span>
 					<span>Name</span>
 					<span>Designation</span>
 					<span></span>
-					<span></span>
 				</div>
 			{/if}
 			{#each teamRows as row, i}
-				<!-- Phone: designation and the row action drop to a second line. -->
-				<div class="grid grid-cols-[2.5rem_5.5rem_minmax(0,1fr)_auto] sm:grid-cols-[3rem_6rem_minmax(0,1fr)_7rem_5rem_4rem] items-center gap-x-2 sm:gap-x-3 gap-y-2">
+				<!-- Phone: designation drops to a second line under the name. -->
+				<div class="grid grid-cols-[2.5rem_4rem_minmax(0,1fr)_1.5rem] sm:grid-cols-[3rem_6rem_minmax(0,1fr)_9rem_2rem] items-center gap-x-2 sm:gap-x-3 gap-y-2">
 					{#key row.number}
 						<Avatar
 							avatar={fmsAvatar(row.number)}
 							team={Number(row.number) > 0 ? Number(row.number) : undefined}
 							alt="{row.number} avatar"
-							class="size-10 sm:size-12 rounded bg-gray-700"
+							class="size-10 sm:size-12 rounded bg-gray-700 {eventAvatar(row.number) ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-gray-800' : ''}"
 						/>
 					{/key}
 					{#if row.manual}
@@ -343,36 +339,29 @@
 							class="min-w-0 rounded bg-gray-700 px-3 py-2 text-white tabular-nums"
 						/>
 					{:else}
-						<span class="px-3 py-2 font-semibold tabular-nums">{row.number}</span>
+						<span class="sm:px-3 py-2 font-semibold tabular-nums">{row.number}</span>
 					{/if}
 					<input
 						type="text"
 						bind:value={row.name}
 						aria-label="Team name"
 						placeholder={row.fmsName ?? "Name"}
-						class="min-w-0 rounded px-3 py-2 text-white {isCustom(row) ? 'bg-gray-600 ring-1 ring-blue-500' : 'bg-gray-700'} placeholder:text-gray-400"
+						class="min-w-0 rounded px-3 py-2 text-white bg-gray-700 placeholder:text-gray-400"
 					/>
 					<input
 						type="text"
 						bind:value={row.designation}
 						aria-label="Designation"
 						placeholder="Designation"
-						class="min-w-0 rounded px-3 py-2 text-white {isCustom(row) ? 'bg-gray-600 ring-1 ring-blue-500' : 'bg-gray-700'} placeholder:text-gray-500 col-start-2 col-span-2 row-start-2 sm:col-auto sm:col-span-1 sm:row-start-auto"
+						class="min-w-0 rounded px-3 py-2 text-white bg-gray-700 placeholder:text-gray-500 col-start-2 col-span-2 row-start-2 sm:col-auto sm:col-span-1 sm:row-start-auto"
 					/>
-					<span
-						class="justify-self-start rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide {isCustom(row)
-							? 'bg-blue-600 text-white'
-							: 'bg-gray-700 text-gray-300'}">{isCustom(row) ? "Custom" : row.manual ? "Manual" : "Default"}</span
-					>
-					<div class="col-start-4 row-start-2 sm:col-auto sm:row-start-auto justify-self-end">
+					<div class="justify-self-end">
 						{#if row.manual}
 							<button
 								class="text-gray-400 hover:text-white text-2xl leading-none px-1"
 								aria-label="Remove team {row.number}"
 								on:click={() => removeTeamRow(i)}>&times;</button
 							>
-						{:else if isCustom(row)}
-							<button class="text-sm text-gray-300 hover:text-white" on:click={() => resetTeamRow(i)}>Reset</button>
 						{/if}
 					</div>
 				</div>

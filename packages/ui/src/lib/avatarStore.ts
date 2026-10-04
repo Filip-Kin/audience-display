@@ -23,8 +23,10 @@ export const avatarStoreUrl = STORE;
 // (setAvatarEvent) so this module stays dependency-free and cycle-free.
 let currentEvent: string | null = null;
 
-export type AvatarState = { teams: Map<number, number>; default: number | null };
-export const avatarState = writable<AvatarState>({ teams: new Map(), default: null });
+/** `eventTeams`: teams whose art is an upload for the active event (not the
+ *  team default), so the Team Names editor can mark them. */
+export type AvatarState = { teams: Map<number, number>; default: number | null; eventTeams: Set<number> };
+export const avatarState = writable<AvatarState>({ teams: new Map(), default: null, eventTeams: new Set() });
 
 function eventParam(event: string | null): string {
   return event ? `&event=${encodeURIComponent(event)}` : "";
@@ -51,10 +53,11 @@ async function refresh(): Promise<void> {
     const json = (await res.json()) as {
       teams?: Record<string, number>;
       default?: number | null;
+      eventTeams?: number[];
     };
     const teams = new Map<number, number>();
     for (const [k, v] of Object.entries(json.teams ?? {})) teams.set(Number(k), v);
-    avatarState.set({ teams, default: json.default ?? null });
+    avatarState.set({ teams, default: json.default ?? null, eventTeams: new Set(json.eventTeams ?? []) });
   } catch (err) {
     console.error("avatar store list failed:", err);
   }
