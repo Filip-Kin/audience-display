@@ -31,14 +31,20 @@ const profile: ProfileDefinition = {
   eventInfoUrl: "https://www.team2834.com/events/bgrc",
   theme: {
     ...defaultProfile.theme,
-    // Shutter halves. Right half is the exact 2834 brand purple; left half is a
-    // purple-tinted graphite that echoes the mark's grey gears. Both stay
-    // darker than redAlliance/blueAlliance so score boxes and team cards pop.
-    primary: "oklch(0.42 0.19 308)", // 2834 purple, brighter (#6A1B9A), 2.11:1 vs redAlliance
-    secondary: "oklch(0.36 0.03 308)", // graphite, lifted (#413949), 2.02:1 vs blueAlliance
-    // Alliance colours and accentWarn stay stock. accentWarn is the FRC
-    // attention yellow (under-review, cards, warnings); re-colouring it to a
-    // brand colour forced a chain of white overrides on MARC. Leave it.
+    // Shutter halves, both purple. Red side is the exact 2834 brand purple; blue
+    // side is a deeper violet. The graphite half read as a mistake next to the
+    // purple, so it is gone. Both stay darker than the alliance colours so score
+    // boxes and team cards pop.
+    primary: "oklch(0.42 0.19 308)", // 2834 purple (#6A1B9A), 2.11:1 vs redAlliance
+    secondary: "oklch(0.30 0.14 290)", // deep violet, 2.66:1 vs blueAlliance
+    // Chrome accent (headers, rules, bars, match label) in place of the stock
+    // gold: a light 2834 lavender, light enough to carry the dark accent ink
+    // (10:1). It fails 3:1 on the red alliance, so the score-bar trim gets its
+    // own paler tint that clears both (3.24:1 red, 3.96:1 blue).
+    accent: "oklch(0.80 0.13 308)",
+    scoreBarAccent: "oklch(0.90 0.06 308)",
+    // accentWarn stays the FRC attention yellow: under-review card, pick-clock
+    // warning. Referee semantics, not branding.
     // Surfaces: default lightness/chroma, hue rotated from 250 to the brand
     // purple 308, so the whole panel sits faintly purple instead of blue-grey.
     background: "oklch(0.13 0.012 308.1)", // #08060B

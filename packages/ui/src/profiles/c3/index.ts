@@ -12,9 +12,10 @@ import defaultProfile from "../default";
  *  - The brand pink #E5067D is oklch(0.599 0.242 359). The stock red alliance is
  *    oklch(0.60 0.235 25). Same lightness, same chroma, 26 degrees apart in hue.
  *    So brand pink is NEVER used at full strength next to a red team card.
- *  - The shutter halves are the brand's two inks darkened: graphite (the #999
- *    grey ink) and deep plum (the pink ink). Both stay well under the alliance
- *    lightness so score boxes and team cards still pop.
+ *  - The shutter halves are both brand colour: a deep magenta-violet and the
+ *    pink ink taken dark to plum. (Graphite from the #999 grey ink was tried
+ *    first and read as a mistake.) Both stay well under the alliance lightness
+ *    so score boxes and team cards still pop.
  *  - primary is the RED side and secondary is the BLUE side on match preview
  *    (MatchPreview: leftColor = leftIsRed ? primary : secondary). Plum went on
  *    the BLUE side deliberately: red-on-plum is the weakest pairing available,
@@ -36,18 +37,26 @@ const profile: ProfileDefinition = {
   eventInfoUrl: "https://c3robots.org/",
   theme: {
     ...defaultProfile.theme,
-    // Shutter, red side: graphite. The grey ink of the logo, taken dark.
-    primary: "oklch(0.37 0.04 340)", // graphite, lifted (#4E3746), 2.40:1 vs redAlliance
-    // Shutter, blue side: deep plum. The pink ink, taken dark.
-    secondary: "oklch(0.40 0.19 358)", // plum, brighter (#8D0047), 1.74:1 vs blueAlliance
+    // Shutter, red side: deep magenta-violet. Graphite read as a mistake next to
+    // the plum, so both halves are brand colour now. Kept well clear of the red
+    // alliance hue and dark, so red cards still pop.
+    primary: "oklch(0.30 0.15 330)", // 3.20:1 vs redAlliance
+    // Shutter, blue side: the pink ink, taken darker than before (was L 0.40,
+    // 1.74:1) so blue cards separate from it.
+    secondary: "oklch(0.35 0.17 358)", // plum, 2.11:1 vs blueAlliance
+    // Chrome accent (headers, rules, bars, match label) in place of the stock
+    // gold: light C3 pink, light enough for the dark accent ink (9.5:1). It
+    // fails 3:1 on the red alliance, so the score-bar trim gets a paler tint
+    // that clears both (3.21:1 red, 3.92:1 blue).
+    accent: "oklch(0.80 0.15 355)",
+    scoreBarAccent: "oklch(0.90 0.06 355)",
     // Page black and card surface warmed off the stock blue-black onto the pink
     // hue axis, so the whole screen sits in the brand's temperature.
     background: "oklch(0.13 0.012 350)",
     surface: "oklch(0.185 0.015 350)",
     text: "oklch(0.98 0.004 350)",
     // redAlliance / blueAlliance / accentWarn inherited from default on purpose.
-    // scoreBarAccent and matchLabel intentionally unset (they default to
-    // accentWarn, which is correct here).
+    // accentWarn is the FRC yellow for the under-review card; never brand it.
   },
   assets: {
     // Centre logo on the score-reveal, header logo on background/alliance
