@@ -132,7 +132,7 @@
 					phase={$state.match.phase}
 					timer={$state.match.timer}
 					phaseTimer={$state.match.phaseTimer}
-					underReview={matchOver && $state.match.underReview}
+					underReview={matchOver && ($state.match.underReview || $state.match.underReviewLatched)}
 					{arrowSide}
 					pulseLeft={leftEnding}
 					pulseRight={rightEnding}
