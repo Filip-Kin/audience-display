@@ -137,13 +137,15 @@
    default markup changes, a rule here stops matching and that element simply
    falls back to the stock look - nothing breaks. */
 
-/* Header: a floating pill like the site's buttons. Margins + padding + rim add
-   up to the stock 28+18+4 px so the body's calc(100% - Npx) still fits. */
+/* Header: a floating card with the same corner as the reveal cards (Filip
+   2026-10-04: a full pill was too round for a bar this tall). Margins +
+   padding + rim add up to the stock 28+18+4 px so the body's calc(100% - Npx)
+   still fits: 12 + 10 + 10 + 10 + 2x4 = 50. */
 .goon-chrome header.anim-top {
-	margin: 14px 40px 14px;
-	padding: 6px 40px 6px 10px;
+	margin: 12px 40px 10px;
+	padding: 10px;
 	border: 4px solid white;
-	border-radius: 999px;
+	border-radius: var(--goon-r);
 	background:
 		radial-gradient(120% 220% at 0% 50%, oklch(0.42 0.177 322 / 0.95), transparent 60%),
 		linear-gradient(90deg, var(--goon-card-hi), var(--goon-night));
@@ -161,14 +163,18 @@
 	margin-bottom: 2px;
 }
 /* Right-hand widgets in the header (Starts In, Resumes In, Break, pick
-   timer): pills. */
+   timer): stretched to the header's full inner height, so the gap above, below
+   and to the right of the timer is the same 10px header padding. Corner is
+   concentric with the header: 30 - 4 rim - 10 padding = 16. */
 .goon-chrome header > div:last-child:not(:first-child) {
-	border-radius: 999px;
+	align-self: stretch;
+	justify-content: center;
+	border-radius: var(--goon-r-sm);
 	padding-left: 40px;
 	padding-right: 40px;
 }
 .goon-chrome header .bg-accent {
-	border-radius: 999px;
+	border-radius: var(--goon-r-sm);
 	border: 3px solid white;
 }
 
