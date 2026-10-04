@@ -159,3 +159,11 @@ can drive to set up scenarios. If the tools/endpoint aren't reachable, the emula
 Read the current match from `GET /api/v1.0/audience/get/GetCurrentMatchAndPlayNumber`
 (`{item1: level string, item2: matchNumber, item3: playNumber}`, 204 when idle) — not the removed 2025
 route `/FieldMonitor/MatchNumberAndPlay`.
+
+## Event approval contact sheet
+
+`bun run ui:build && bun tools/contact-sheet.ts <profile>... [--out dir]` renders one PNG per
+profile: the 12 screens that carry the look plus every sponsor logo in the profile's deck. Filip
+sends this sheet to organisers to approve the look and the sponsor list, so produce it for every new
+event profile. It drives the fake-fms test sequence at 10.0.100.5:3010, so nothing else may be
+stepping it at the same time. Display servers run on ports 3201+ (`PORT` env).

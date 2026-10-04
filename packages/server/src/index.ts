@@ -236,7 +236,7 @@ const server = Bun.serve({
       ws.unsubscribe("audience-display");
     },
   },
-  port: 3001,
+  port: Number(process.env.PORT) || 3001,
 });
 
 console.log("Fake FMS:", FAKE_FMS);
