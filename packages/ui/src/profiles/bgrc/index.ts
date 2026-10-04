@@ -22,8 +22,8 @@ const profile: ProfileDefinition = {
   // characters and displayEventName() truncates above 35, so it would render as
   // "Bloomfield Girls Robotics Competiti... 2026". Use the short form.
   eventName: "BGRC",
-  // EXPECTED code, not a confirmed one: TBA has no 2026mibg event yet
-  // (2025mibg exists). Verify before the event or team avatars scope wrong.
+  // TBA-style code, scopes the avatar store to this event. Confirmed on TBA
+  // (2026mibg, 17 Oct 2026).
   eventCode: "2026mibg",
   // Schedule-screen QR target. Current Google Sites event page; the old Wix
   // site (bloomfieldhillsrob.wixsite.com/bgrc) still shows 2025 content.

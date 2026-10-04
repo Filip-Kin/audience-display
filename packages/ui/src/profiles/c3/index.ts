@@ -29,10 +29,9 @@ const profile: ProfileDefinition = {
   // Pin the on-screen title. Venue FMS at an off-season event usually reports
   // whatever event the field was last configured for.
   eventName: "Cullen's Cancer Clash",
-  // UNCONFIRMED. 2025 was "2025minor" (FRC Events code MINOR) but the 2026 page
-  // does not exist yet. Uncomment once FIRST publishes it, so the avatar store
-  // serves the right event scope.
-  // eventCode: "2026minor",
+  // TBA-style code, scopes the avatar store to this event. Confirmed on TBA
+  // (2026minor, 24-25 Oct 2026).
+  eventCode: "2026minor",
   // Schedule-screen QR target (replaces the game-logo panel on that screen).
   eventInfoUrl: "https://c3robots.org/",
   theme: {
