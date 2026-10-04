@@ -80,12 +80,11 @@ const profile: ProfileDefinition = {
     // event logo in a hard size-[480px] box with no object-contain, so a
     // portrait file is stretched on the match-end screen (see section 4).
     event: "/goonettes/logo.png",
-    // Event sponsor row, in the order the event site lists them. All four are
-    // dark ink on transparent (measured), so all four get the white card.
+    // Event sponsor row, in the order the event site lists them. Altair and
+    // Aptiv were dropped 2026-10-04 at the organisers' request. Both logos are
+    // dark ink on transparent (measured), so both get the white card.
     sponsors: [
       { src: "/goonettes/bosch.png", light: true },
-      { src: "/goonettes/aptiv.png", light: true },
-      { src: "/goonettes/altair.png", light: true },
       { src: "/goonettes/gc.png", light: true },
     ],
     // Pit Podcast is broadcasting the event, so it takes the dedicated
