@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { state } from "@lib/state";
+	import { state, activeProfile, sendSetTeamNames } from "@lib/state";
+	import Avatar from "@lib/components/Avatar.svelte";
+	import type { TeamNameEntry } from "../../lib/types/audience_display";
 
 	interface VmixInput {
 		key: string;
@@ -130,6 +132,76 @@
 		loadRealAlliances();
 	});
 
+	// #region Team names
+	// Per profile on the server, so the list always belongs to the active
+	// profile. Edits stay local until Save; the server's list replaces the draft
+	// whenever it changes and nothing is unsaved.
+	type TeamNameRow = { number: string; name: string; designation: string };
+
+	const toRows = (list: TeamNameEntry[]): TeamNameRow[] =>
+		list.map((t) => ({ number: String(t.number), name: t.name ?? "", designation: t.designation ?? "" }));
+
+	function toEntries(rows: TeamNameRow[]): TeamNameEntry[] {
+		const byNumber = new Map<number, TeamNameEntry>();
+		for (const r of rows) {
+			const number = Number(r.number);
+			const name = r.name.trim();
+			const designation = r.designation.trim();
+			if (!Number.isInteger(number) || number <= 0 || (!name && !designation)) continue;
+			byNumber.set(number, { number, ...(name ? { name } : {}), ...(designation ? { designation } : {}) });
+		}
+		return [...byNumber.values()].sort((a, b) => a.number - b.number);
+	}
+
+	let teamRows: TeamNameRow[] = [];
+	$: savedTeamNames = $state.teamNames ?? [];
+	$: teamNamesDirty = JSON.stringify(toEntries(teamRows)) !== JSON.stringify(savedTeamNames);
+
+	// Load the server list when the profile changes.
+	let teamScope: string | null | undefined = undefined;
+	$: if ($state.activeProfileId !== teamScope) {
+		teamScope = $state.activeProfileId;
+		teamRows = toRows(savedTeamNames);
+	}
+
+	// Follow server changes (a save here, or from another screen) unless the
+	// draft holds unsaved edits against the list it was loaded from.
+	let prevSaved = "[]";
+	$: savedTeamNames, followSaved();
+	function followSaved() {
+		const next = JSON.stringify(savedTeamNames);
+		// State is rebroadcast every few seconds; only a real change counts.
+		if (next === prevSaved) return;
+		const draft = JSON.stringify(toEntries(teamRows));
+		if (draft === prevSaved || draft === next) teamRows = toRows(savedTeamNames);
+		prevSaved = next;
+	}
+
+	// FMS avatar for the row's team, when FMS has sent the roster. The Avatar
+	// component upgrades it to the avatar-store upload for the active event, so
+	// the row shows exactly what the display will.
+	function fmsAvatar(n: string): string | undefined {
+		const number = Number(n);
+		return (
+			$state.ranking.find((t) => t.number === number)?.avatar ||
+			$state.rankData.find((t) => t.teamNumber === number)?.avatar ||
+			undefined
+		);
+	}
+
+	function addTeamRow() {
+		teamRows = [...teamRows, { number: "", name: "", designation: "" }];
+	}
+
+	function removeTeamRow(i: number) {
+		teamRows = teamRows.filter((_, j) => j !== i);
+	}
+
+	function saveTeamNames() {
+		sendSetTeamNames(toEntries(teamRows));
+	}
+	// #endregion
+
 	async function setupFms() {
 		busyFms = true;
 		fmsMsg = "";
@@ -197,6 +269,72 @@
 				</ul>
 			</section>
 		{/if}
+
+		<section class="rounded-lg bg-gray-800 p-6 space-y-4">
+			<div class="flex items-baseline justify-between gap-4">
+				<h2 class="text-lg font-semibold">Team Names</h2>
+				<span class="text-sm text-gray-400 truncate">{$activeProfile.name}</span>
+			</div>
+			{#if teamRows.length}
+				<div class="hidden sm:grid grid-cols-[3rem_6rem_minmax(0,1fr)_7rem_2rem] items-center gap-3 text-sm text-gray-400">
+					<span></span>
+					<span>Team</span>
+					<span>Name</span>
+					<span>Designation</span>
+					<span></span>
+				</div>
+			{/if}
+			{#each teamRows as row, i}
+				<!-- Phone: designation drops to a second line under the name. -->
+				<div class="grid grid-cols-[2.5rem_5.5rem_minmax(0,1fr)_1.5rem] sm:grid-cols-[3rem_6rem_minmax(0,1fr)_7rem_2rem] items-center gap-x-2 sm:gap-x-3 gap-y-2">
+					{#key row.number}
+						<Avatar
+							avatar={fmsAvatar(row.number)}
+							team={Number(row.number) > 0 ? Number(row.number) : undefined}
+							alt="{row.number} avatar"
+							class="size-10 sm:size-12 rounded bg-gray-700"
+						/>
+					{/key}
+					<input
+						type="number"
+						min="1"
+						bind:value={row.number}
+						aria-label="Team number"
+						class="min-w-0 rounded bg-gray-700 px-3 py-2 text-white tabular-nums"
+					/>
+					<input
+						type="text"
+						bind:value={row.name}
+						aria-label="Team name"
+						placeholder="Name"
+						class="min-w-0 rounded bg-gray-700 px-3 py-2 text-white"
+					/>
+					<input
+						type="text"
+						bind:value={row.designation}
+						aria-label="Designation"
+						placeholder="Designation"
+						class="min-w-0 rounded bg-gray-700 px-3 py-2 text-white col-start-2 col-span-2 row-start-2 sm:col-auto sm:col-span-1 sm:row-start-auto order-last sm:order-none"
+					/>
+					<button
+						class="text-gray-400 hover:text-white text-2xl leading-none"
+						aria-label="Remove team {row.number}"
+						on:click={() => removeTeamRow(i)}>&times;</button
+					>
+				</div>
+			{/each}
+			<div class="flex justify-end gap-3">
+				<button
+					class="rounded bg-gray-700 px-4 py-2 font-semibold text-white hover:bg-gray-600"
+					on:click={addTeamRow}>Add</button
+				>
+				<button
+					class="rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+					on:click={saveTeamNames}
+					disabled={!teamNamesDirty}>Save</button
+				>
+			</div>
+		</section>
 
 		<section class="rounded-lg bg-gray-800 p-6 space-y-4">
 			<h2 class="text-lg font-semibold">Playoff Bracket</h2>

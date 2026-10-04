@@ -2,10 +2,9 @@
 	import { get } from "svelte/store";
 	import { playSound, volumes, SOUND_DEFS, type VolumeKey } from "../audio";
 	import { settings } from "../settings"; // adjust if path is different
-	import { state, activeProfile, sendSelectProfile, sendSetFmsLogging, sendSetCaptionControl, sendSetTeamNames } from "../state";
+	import { state, activeProfile, sendSelectProfile, sendSetFmsLogging, sendSetCaptionControl } from "../state";
 	import { packUrl } from "../animation_pack";
 	import { listProfiles, DEFAULT_PROFILE_ID } from "../../profiles";
-	import type { TeamNameEntry } from "../../../../lib/types/audience_display";
 
 	export let settingsOpen: boolean;
 
@@ -59,65 +58,6 @@
 	// Slider drags retune a preview that is already playing.
 	$: if (victoryPreview) victoryPreview.volume = $volumes.victoryVideo;
 
-	// #region Team names
-	// Per profile on the server, so the list below always belongs to the profile
-	// selected above. Edits stay local until Save; the server's list replaces the
-	// draft whenever it changes and nothing is unsaved.
-	type TeamNameRow = { number: string; name: string; designation: string };
-
-	const toRows = (list: TeamNameEntry[]): TeamNameRow[] =>
-		list.map((t) => ({ number: String(t.number), name: t.name ?? "", designation: t.designation ?? "" }));
-
-	function toEntries(rows: TeamNameRow[]): TeamNameEntry[] {
-		const byNumber = new Map<number, TeamNameEntry>();
-		for (const r of rows) {
-			const number = Number(r.number);
-			const name = r.name.trim();
-			const designation = r.designation.trim();
-			if (!Number.isInteger(number) || number <= 0 || (!name && !designation)) continue;
-			byNumber.set(number, { number, ...(name ? { name } : {}), ...(designation ? { designation } : {}) });
-		}
-		return [...byNumber.values()].sort((a, b) => a.number - b.number);
-	}
-
-	let teamRows: TeamNameRow[] = [];
-	$: savedTeamNames = $state.teamNames ?? [];
-	$: teamNamesDirty = JSON.stringify(toEntries(teamRows)) !== JSON.stringify(savedTeamNames);
-	// Load the server list when the dialog opens or the profile changes.
-	let teamScope = "";
-	$: {
-		const scope = `${settingsOpen}|${$state.activeProfileId}`;
-		if (scope !== teamScope) {
-			teamScope = scope;
-			teamRows = toRows(savedTeamNames);
-		}
-	}
-
-	// Follow server changes (a save here, or another display's) unless the draft
-	// holds unsaved edits against the list it was loaded from.
-	let prevSaved = "[]";
-	$: savedTeamNames, followSaved();
-	function followSaved() {
-		const next = JSON.stringify(savedTeamNames);
-		// State is rebroadcast every few seconds; only a real change counts.
-		if (next === prevSaved) return;
-		const draft = JSON.stringify(toEntries(teamRows));
-		if (draft === prevSaved || draft === next) teamRows = toRows(savedTeamNames);
-		prevSaved = next;
-	}
-
-	function addTeamRow() {
-		teamRows = [...teamRows, { number: "", name: "", designation: "" }];
-	}
-
-	function removeTeamRow(i: number) {
-		teamRows = teamRows.filter((_, j) => j !== i);
-	}
-
-	function saveTeamNames() {
-		sendSetTeamNames(toEntries(teamRows));
-	}
-	// #endregion
 </script>
 
 <svelte:window on:keydown={(e) => settingsOpen && e.key === "Escape" && close()} />
@@ -163,61 +103,6 @@
 							<option value={p.id}>{p.name}</option>
 						{/each}
 					</select>
-				</div>
-
-				<div class="flex flex-col gap-2 p-4 bg-gray-100 rounded">
-					<div class="flex items-baseline justify-between gap-4">
-						<span class="font-semibold">Team Names</span>
-						<span class="text-sm text-gray-500 truncate">{$activeProfile.name}</span>
-					</div>
-					{#if teamRows.length}
-						<div class="grid grid-cols-[6rem_1fr_7rem_2rem] items-center gap-2 text-sm text-gray-500">
-							<span>Team</span>
-							<span>Name</span>
-							<span>Designation</span>
-							<span></span>
-						</div>
-					{/if}
-					{#each teamRows as row, i}
-						<div class="grid grid-cols-[6rem_1fr_7rem_2rem] items-center gap-2">
-							<input
-								type="number"
-								min="1"
-								bind:value={row.number}
-								aria-label="Team number"
-								class="bg-white border border-gray-300 rounded px-2 py-1 tabular-nums"
-							/>
-							<input
-								type="text"
-								bind:value={row.name}
-								aria-label="Team name"
-								class="bg-white border border-gray-300 rounded px-2 py-1"
-							/>
-							<input
-								type="text"
-								bind:value={row.designation}
-								aria-label="Designation"
-								class="bg-white border border-gray-300 rounded px-2 py-1"
-							/>
-							<button
-								class="text-gray-500 hover:text-black text-xl leading-none rounded"
-								aria-label="Remove team {row.number}"
-								on:click={() => removeTeamRow(i)}
-							>
-								&times;
-							</button>
-						</div>
-					{/each}
-					<div class="flex justify-end gap-2">
-						<button class="bg-white border border-gray-300 rounded px-3 py-1 text-sm" on:click={addTeamRow}>Add</button>
-						<button
-							class="bg-blue-500 text-white rounded px-3 py-1 text-sm disabled:opacity-40"
-							disabled={!teamNamesDirty}
-							on:click={saveTeamNames}
-						>
-							Save
-						</button>
-					</div>
 				</div>
 
 				<label class="flex items-center justify-between">
