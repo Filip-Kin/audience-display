@@ -1,0 +1,125 @@
+<script lang="ts">
+	import { state } from "@lib/state";
+	import { settings } from "@lib/settings";
+	import { get } from "svelte/store";
+	import AllianceSection from "@lib/components/AllianceSection.svelte";
+	import RankingPoints from "@lib/components/RankingPoints.svelte";
+	import TeamCard from "../../components/TeamCard.svelte";
+	import Trophy from "../../../../assets/trophy.svg";
+
+	export let ready: boolean;
+	export let alliance: "red" | "blue";
+	export let invert: boolean = false;
+
+	// Post-time snapshot; see ScoresReveal.
+	const results = get(state).results;
+	const seriesWins =
+		results?.details[alliance === "red" ? "redSeriesWins" : "blueSeriesWins"];
+	// Which bottom panel this instance renders in (blue sits left unless inverted).
+	$: leftPanel = alliance === ($settings.invert ? "red" : "blue");
+
+	$: isPlayoff = results?.details.matchType === "sf" || results?.details.matchType === "f";
+	$: isFinals = results?.details.matchType === "f";
+	$: allianceName = results?.details[alliance === "red" ? "redAlliance" : "blueAlliance"];
+	$: winner = results?.score.winner;
+	$: isWinner = winner === (alliance === "red" ? "Red" : "Blue");
+	$: isTie = winner === "Tie";
+	$: teams = results?.teams[alliance] ?? [];
+
+	// Standard 8-alliance double-elim topology (FRC game manual Table 10-2). Where each
+	// alliance goes next is fully determined by the match number + win/loss, so we don't
+	// need to walk the bracket data. Matches 14-16 are the finals.
+	const WINNER_NEXT: Record<number, number> = { 1: 7, 2: 7, 3: 8, 4: 8, 5: 10, 6: 9, 7: 11, 8: 11, 9: 12, 10: 12, 11: 14, 12: 13, 13: 14 };
+	const LOSER_NEXT: Record<number, number> = { 1: 5, 2: 5, 3: 6, 4: 6, 7: 9, 8: 10, 11: 13 };
+	const LOWER_MATCHES = new Set([5, 6, 9, 10, 12, 13]);
+
+	/** Where this alliance heads after the match — drives the banner on the winner side. */
+	$: advancement = ((): { kind: "finals" | "eliminated" } | { kind: "advances"; bracket: "Upper" | "Lower"; matchNumber: number } | null => {
+		if (!isPlayoff || !results) return null;
+		if (winner !== "Red" && winner !== "Blue") return null; // no advancement on a tie / no result
+
+		const cur = results.details.matchNumber;
+		// The finals matches (M14-16) decide the event; no advancement banner on them.
+		if (isFinals || cur >= 14) return null;
+
+		// Detailed advancement is the standard 8-alliance bracket only; bail on other sizes.
+		if ($state.bracket?.allianceCount && $state.bracket.allianceCount !== "EightAlliance") return null;
+
+		const next = isWinner ? WINNER_NEXT[cur] : LOSER_NEXT[cur];
+		if (next === undefined) return { kind: "eliminated" };
+		if (next >= 14) return { kind: "finals" };
+		return { kind: "advances", bracket: LOWER_MATCHES.has(next) ? "Lower" : "Upper", matchNumber: next };
+	})();
+
+	$: advancementText =
+		advancement === null ? "" :
+		advancement.kind === "advances" ? `Advances to ${advancement.bracket} Bracket · Match ${advancement.matchNumber}` :
+		advancement.kind === "finals" ? "Advances to Finals" :
+		"Eliminated";
+
+	// Neutral dusk purple for every advancement/elimination label so nothing
+	// clashes with the alliance colours.
+	$: advancementClass = advancement === null ? "" : "bg-[oklch(0.36_0.05_303)] text-white";
+
+	// Winner / Tie: stock gold and white (Filip: these stay gold on every
+	// profile), in the Goonettes pill shape and display font.
+	const bannerStyle = "h-16 goon-pill flex flex-row bg-bannerAccent gap-4 items-center text-white text-[46px] goon-display justify-center";
+</script>
+
+{#if results && ready}
+	<div class="flex flex-col gap-4 justify-start">
+		<!-- Top status: winner/tie banner (or a spacer to hold layout) with the
+		     playoff advancement banner beneath it, at the same gap as the rest
+		     of the column. -->
+		<div class="flex flex-col gap-4">
+			{#if isWinner}
+				<div class={bannerStyle}>
+					<img src={Trophy} alt="Trophy" class="size-14" />
+					<span class="align-middle">Winner</span>
+					<img src={Trophy} alt="Trophy" class="size-14" />
+				</div>
+			{:else if isTie}
+				<div class={bannerStyle}>
+					<img src={Trophy} alt="Trophy" class="size-14" />
+					<span class="align-middle">Tie!</span>
+					<img src={Trophy} alt="Trophy" class="size-14" />
+				</div>
+			{:else}
+				<div class="h-16"></div>
+			{/if}
+
+			{#if advancement}
+				<div class="rounded-full shadow-lg text-center text-[24px] goon-label tracking-[0.1em] py-2 px-5 {advancementClass}">
+					{advancementText}
+				</div>
+			{/if}
+		</div>
+
+		{#if allianceName}
+			<!-- Series wins card (finals only) sits on the INSIDE edge: name-then-
+			     card on the left panel, card-then-name on the right. -->
+			<div class="flex flex-row gap-3" class:flex-row-reverse={!leftPanel}>
+				<div class="flex-1 flex flex-row goon-pill {alliance === 'red' ? 'bg-redAlliance' : 'bg-blueAlliance'} text-white px-4 pt-2 pb-3 gap-4 align-middle text-[50px] leading-[1.1] goon-display justify-center">
+					{allianceName}
+				</div>
+				{#if seriesWins !== undefined}
+					<div class="self-stretch flex flex-col items-center justify-center goon-pill px-10 {alliance === 'red' ? 'bg-redAlliance' : 'bg-blueAlliance'} text-white">
+						<span class="uppercase tracking-[0.14em] text-[15px] leading-none opacity-90">Wins</span>
+						<span class="goon-display text-[44px] leading-none pt-1">{seriesWins}</span>
+					</div>
+				{/if}
+			</div>
+		{/if}
+
+		<AllianceSection {alliance} {teams} {ready} {invert} showRank={!isPlayoff}>
+			<svelte:fragment slot="card" let:team let:index>
+				<TeamCard {alliance} {ready} {index} {team} {invert} showRank={!isPlayoff} small={teams.length > 3} />
+			</svelte:fragment>
+			<svelte:fragment slot="bottom">
+				{#if !isPlayoff}
+					<RankingPoints {ready} {alliance} {invert} />
+				{/if}
+			</svelte:fragment>
+		</AllianceSection>
+	</div>
+{/if}

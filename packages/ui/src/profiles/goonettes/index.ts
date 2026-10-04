@@ -1,19 +1,31 @@
 import type { ProfileDefinition } from "../types";
 import defaultProfile from "../default";
+import MatchPreview from "./screens/match-preview/MatchPreview.svelte";
+import MatchReady from "./screens/match-ready/MatchReady.svelte";
+import ScoresReady from "./screens/scores-ready/ScoresReady.svelte";
+import ScoresReveal from "./screens/score-reveal/ScoresReveal.svelte";
+import { chrome } from "./components/wrap";
+import "./goon.css";
 
 /**
  * Goonettes Invitational - 6th annual girls-only FRC offseason event, hosted by
  * FRC 3604 (The Goon Squad) at Woodhaven High School, 10-11 October 2026.
  *
- * Pure re-theme of the default profile (screens: {}), like WRC and MARC. The
- * event identity is greyscale mascot art plus a single purple, so the only
- * theme change is the shutter pair and a purple tint on background/surface.
+ * Custom look taken from goonettesinvitational.org (Filip, 2026-10-04: "make
+ * it feel like a custom profile and not just a color swap"): bundled display /
+ * condensed / brush fonts, lavender pill shapes with the site's white rim, the
+ * "Goonettes invitational" lockup and the bow-skull mascot. See goon.css.
  *
- * Colours come from the event's own material:
- *  - primary   #562E87, the deep step of the Wix theme's purple ramp
- *  - secondary #470A57, the purple the word "Goonettes" is actually set in
- * Both stay darker than redAlliance/blueAlliance so score boxes and team cards
- * pop off the shutter, same rule as the default and WRC themes.
+ * Screens that carry the look are Goonettes copies of the default screens
+ * (score bar, match preview, waiting-for-scores, score reveal). The full-screen
+ * pages keep the DEFAULT component and are only wrapped (chrome(), CSS in
+ * goon.css), so they keep every default fix automatically. A fix to a default
+ * screen under match-ready/, match-preview/, scores-ready/ or score-reveal/
+ * must be mirrored into the copy here (THEME-RULES rule 19).
+ *
+ * Colours come from the event's own site: section purple #771A85 and button
+ * ink #2A1543 for the shutter (darkened to clear 3:1 against the alliance
+ * colours), lavender button fill #C19AFD for the chrome accent.
  *
  * accentWarn is left at the stock FRC attention YELLOW. It drives under-review
  * cards, yellow/red cards and warning states, and the MARC lesson was that
@@ -39,13 +51,24 @@ const profile: ProfileDefinition = {
     // (leftColor = leftIsRed ? primary : secondary), so on match preview the
     // sides follow $settings.invert. Pick two purples that work either way
     // round rather than relying on a fixed left/right assignment.
-    primary: "oklch(0.43 0.20 303)", // brighter (#681DA7), 2.04:1 vs redAlliance
-    secondary: "oklch(0.35 0.19 318)", // brighter (#600078), 2.19:1 vs blueAlliance
+    // Site section purple #771A85 and button ink #2A1543, darkened until the
+    // alliance colours clear the 3:1 shutter rule applyTheme checks
+    // (3.16:1 vs redAlliance, 3.12:1 vs blueAlliance).
+    primary: "oklch(0.31 0.15 322)",
+    secondary: "oklch(0.24 0.12 298)",
     // Panels: stock lightness, hue moved off blue-grey into the brand purple
     // family, chroma kept low so it reads as a tint and not a colour.
     background: "oklch(0.13 0.018 305)",
     surface: "oklch(0.18 0.022 305)",
+    // Chrome accent: the site's lavender button fill (#C19AFD) lifted to
+    // L 0.80 so near-black ink on it reads at ~10:1. Headers, rules, bullets,
+    // match label, hub arrows, confetti.
+    accent: "oklch(0.80 0.13 303)",
+    // Drawn straight on the red/blue halves (fuel-gauge arc, bug dividers):
+    // pale lavender clears 3:1 on both (3.24 red, 3.96 blue).
+    scoreBarAccent: "oklch(0.90 0.06 303)",
     // redAlliance / blueAlliance / accentWarn / text: inherited unchanged.
+    // accentWarn stays the FRC attention yellow (Match Under Review).
   },
   assets: {
     // Square-padded Goonettes mascot. MUST be square: ScoresReady renders the
@@ -82,8 +105,30 @@ const profile: ProfileDefinition = {
     // because its clip ends on a still; leave at the 500ms default until then.
     // victoryRevealLeadMs: 600,
   },
-  // Override-only: every omitted screen falls back to the default profile.
-  screens: {},
+  screens: {
+    "match-preview": MatchPreview,
+    "match-ready": MatchReady,
+    "match-auton": MatchReady,
+    "match-transition-shift": MatchReady,
+    "match-shift-1": MatchReady,
+    "match-shift-2": MatchReady,
+    "match-shift-3": MatchReady,
+    "match-shift-4": MatchReady,
+    "match-endgame": MatchReady,
+    "match-end": ScoresReady,
+    "scores-ready": ScoresReady,
+    "score-reveal": ScoresReveal,
+    // Stock layout and behaviour, Goonettes chrome (pill header, rounded
+    // panels, fonts) via the wrapper.
+    "alliance-selection": chrome(defaultProfile.screens["alliance-selection"]!),
+    "alliance-selection-fullscreen": chrome(defaultProfile.screens["alliance-selection-fullscreen"]!),
+    "break-timer": chrome(defaultProfile.screens["break-timer"]!),
+    "playoff-bracket": chrome(defaultProfile.screens["playoff-bracket"]!),
+    rankings: chrome(defaultProfile.screens.rankings!),
+    timeout: chrome(defaultProfile.screens.timeout!),
+    background: chrome(defaultProfile.screens.background!),
+    schedule: chrome(defaultProfile.screens.schedule!),
+  },
 };
 
 export default profile;

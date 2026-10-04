@@ -1,0 +1,129 @@
+<script lang="ts">
+	import { state, activeProfile } from "@lib/state";
+	import { settings } from "@lib/settings";
+	import { createEventDispatcher, onMount } from "svelte";
+	import { matchNameParts } from "@lib/matchNamer";
+		import Shutter from "@lib/components/Shutter.svelte";
+	import MatchHeader from "../../components/MatchHeader.svelte";
+	import AllianceSection from "@lib/components/AllianceSection.svelte";
+	import MatchPreviewTeamCard from "./MatchPreviewTeamCard.svelte";
+
+	export let exit = false;
+	const dispatcher = createEventDispatcher();
+
+	let ready = false;
+
+	onMount(() => {
+		setTimeout(() => { ready = true; }, 400);
+	});
+
+	$: if (exit) {
+		ready = false;
+		setTimeout(() => dispatcher("transitioned"), 500);
+	}
+
+	$: matchType = $state.match?.details.matchType ?? "q";
+	$: isPlayoff = matchType !== "q" && matchType !== "t";
+	// Match the score screen's arrangement: Blue on the left, Red on the right
+	// when not inverted (the score screen puts blue-left/red-right).
+	$: leftIsRed = $settings.invert;
+	// Per-profile: alliance names on full-width red/blue bars (WRC). Off = plain.
+	$: allianceNameBg = $activeProfile.options?.allianceNameBackground ?? false;
+	$: leftTeams = leftIsRed ? $state.match?.teams.red ?? [] : $state.match?.teams.blue ?? [];
+	$: rightTeams = leftIsRed ? $state.match?.teams.blue ?? [] : $state.match?.teams.red ?? [];
+
+	$: leftAllianceName = isPlayoff
+		? (leftIsRed ? $state.match?.details.redAlliance : $state.match?.details.blueAlliance) ?? (leftIsRed ? "RED ALLIANCE" : "BLUE ALLIANCE")
+		: (leftIsRed ? "RED ALLIANCE" : "BLUE ALLIANCE");
+	$: rightAllianceName = isPlayoff
+		? (leftIsRed ? $state.match?.details.blueAlliance : $state.match?.details.redAlliance) ?? (leftIsRed ? "BLUE ALLIANCE" : "RED ALLIANCE")
+		: (leftIsRed ? "BLUE ALLIANCE" : "RED ALLIANCE");
+
+	$: matchParts = $state.match
+		? matchNameParts($state.match.details.matchNumber, $state.eventDetails?.matchCount ?? 0, $state.match.details.matchType)
+		: [];
+
+	$: compact = leftTeams.length > 3 || rightTeams.length > 3;
+	$: cardGap = compact ? 10 : 18;
+</script>
+
+{#if $state.match}
+	<div class="goon fixed inset-0 overflow-hidden">
+		<Shutter
+			{exit}
+			leftColor={leftIsRed ? "var(--primary)" : "var(--secondary)"}
+			rightColor={leftIsRed ? "var(--secondary)" : "var(--primary)"}
+		/>
+
+		<!-- Header then body in ONE column, so the gap below the black match-title
+		     box is a real gap rather than the difference between two hardcoded tops.
+		     The title box is two lines for a qual or playoff name and one for a
+		     "Final 1", and the old fixed top-[…] body could not react to that: at
+		     two lines the alliance bars ran right up under the box. -->
+		{#if ready}
+			<div class="absolute inset-0 flex flex-col pt-7 px-[60px] pb-[60px] gap-6 z-10">
+				<div class="flex justify-center shrink-0">
+					<MatchHeader {matchParts} size="64px" />
+				</div>
+
+				<!-- Body grid: left lineup | VS | right lineup -->
+				<div class="grid items-center flex-1 min-h-0 grid-cols-[1fr_auto_1fr] gap-10">
+				<!-- Left alliance -->
+				<div class="flex flex-col items-stretch" style="gap: {cardGap}px;">
+					<!-- Alliance name: a pill in the alliance colour with the site's
+					     white rim (allianceNameBackground) or plain text. -->
+					<div
+						class="goon-display text-white text-[52px] leading-none tracking-[0.03em]"
+						class:goon-pill={allianceNameBg}
+						class:w-full={allianceNameBg}
+						class:pt-2={allianceNameBg}
+						class:pb-3={allianceNameBg}
+						class:text-center={allianceNameBg}
+						class:bg-redAlliance={allianceNameBg && leftIsRed}
+						class:bg-blueAlliance={allianceNameBg && !leftIsRed}
+					>
+						{leftAllianceName}
+					</div>
+
+					<AllianceSection teams={leftTeams} alliance={leftIsRed ? "red" : "blue"} {ready} {compact} gap={cardGap}>
+						<svelte:fragment slot="card" let:team let:index>
+							<MatchPreviewTeamCard {team} alliance={leftIsRed ? "red" : "blue"} {compact} {index} showRank={!isPlayoff && !!team.rank} />
+						</svelte:fragment>
+					</AllianceSection>
+				</div>
+
+				<!-- Center VS -->
+				<div class="flex flex-col items-center justify-center gap-5 mt-64 px-3">
+					<div class="goon-display text-white text-[150px] leading-[0.85] [text-shadow:0_6px_0_oklch(0.30_0.132_318)]">
+						VS
+					</div>
+					<div class="bg-accent h-3 w-36 rounded-full"></div>
+					<img src="/goonettes/logo.png" alt="" class="size-64 object-contain drop-shadow-[0_10px_16px_oklch(0_0_0/0.55)]" />
+				</div>
+
+				<!-- Right alliance (mirrored) -->
+				<div class="flex flex-col items-stretch" style="gap: {cardGap}px;">
+					<div
+						class="goon-display text-white text-[52px] leading-none tracking-[0.03em] text-right"
+						class:goon-pill={allianceNameBg}
+						class:w-full={allianceNameBg}
+						class:pt-2={allianceNameBg}
+						class:pb-3={allianceNameBg}
+						class:!text-center={allianceNameBg}
+						class:bg-blueAlliance={allianceNameBg && leftIsRed}
+						class:bg-redAlliance={allianceNameBg && !leftIsRed}
+					>
+						{rightAllianceName}
+					</div>
+
+					<AllianceSection teams={rightTeams} alliance={leftIsRed ? "blue" : "red"} {ready} {compact} gap={cardGap}>
+						<svelte:fragment slot="card" let:team let:index>
+							<MatchPreviewTeamCard {team} alliance={leftIsRed ? "blue" : "red"} invert={true} {compact} {index} showRank={!isPlayoff && !!team.rank} />
+						</svelte:fragment>
+					</AllianceSection>
+				</div>
+				</div>
+			</div>
+		{/if}
+	</div>
+{/if}

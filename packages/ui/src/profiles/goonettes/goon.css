@@ -1,0 +1,209 @@
+/* Goonettes Invitational profile - fonts, tokens, keyframes.
+   Everything except @font-face is scoped under .goon, which every Goonettes
+   screen (and the Chrome wrapper around the reused default screens) sets on
+   its root, so nothing leaks into other profiles.
+
+   Look taken from goonettesinvitational.org: chunky display caps for the
+   wordmark, a dry-brush script for "invitational", condensed grotesque body
+   copy, lavender pill buttons with a white rim and dark-purple ink, and one
+   purple bow on a greyscale mascot.
+
+   Fonts are BUNDLED (public/goonettes/fonts/, SIL OFL 1.1, licence files next
+   to them) because a venue may be offline. The site's own faces ("Goonies",
+   "Hastagirl One DEMO", Wix-licensed DIN) cannot be shipped, so these are the
+   nearest open substitutes:
+     Lilita One   -> display: scores, team numbers, timer, titles
+     Oswald       -> labels and body (variable, 200-700)
+     Caveat Brush -> the "invitational" flourish and the event-name line only */
+@font-face {
+	font-family: "Goon Display";
+	src: url("/goonettes/fonts/lilita-one-latin.woff2") format("woff2");
+	font-weight: 400 900;
+	font-display: block;
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+	font-family: "Goon Display";
+	src: url("/goonettes/fonts/lilita-one-latin-ext.woff2") format("woff2");
+	font-weight: 400 900;
+	font-display: block;
+	unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+	font-family: "Goon Body";
+	src: url("/goonettes/fonts/oswald-latin.woff2") format("woff2");
+	font-weight: 200 700;
+	font-display: block;
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+	font-family: "Goon Body";
+	src: url("/goonettes/fonts/oswald-latin-ext.woff2") format("woff2");
+	font-weight: 200 700;
+	font-display: block;
+	unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+	font-family: "Goon Brush";
+	src: url("/goonettes/fonts/caveat-brush-latin.woff2") format("woff2");
+	font-weight: 400;
+	font-display: block;
+}
+
+.goon {
+	/* The default screens read these vars, so setting them here re-types every
+	   reused default screen without touching its markup. */
+	--font-display: "Goon Display", "Goon Body", system-ui, sans-serif;
+	--font-body: "Goon Body", system-ui, sans-serif;
+	--font-mono: "Goon Body", system-ui, sans-serif;
+	font-family: var(--font-body);
+
+	/* Site palette (goonettesinvitational.org), as oklch. */
+	--goon-lavender: var(--accent); /* #C19AFD button fill, lifted for contrast */
+	--goon-ink: oklch(0.25 0.084 302); /* #2A1543 button ink */
+	--goon-plum: oklch(0.42 0.177 322); /* #771A85 section purple */
+	--goon-grape: oklch(0.30 0.132 318); /* #470A57 "Goonettes" wordmark */
+	--goon-night: oklch(0.16 0.05 305); /* panel base, deeper than the shutter */
+	--goon-rim: 4px; /* white rim on pills and cards, like the site's buttons */
+	--goon-r: 30px; /* card radius */
+	--goon-r-sm: 16px;
+}
+
+.goon-display {
+	font-family: var(--font-display);
+	font-weight: 400;
+	letter-spacing: 0.01em;
+}
+.goon-brush {
+	font-family: "Goon Brush", var(--font-body);
+	font-weight: 400;
+	letter-spacing: 0;
+	text-transform: none;
+}
+.goon-label {
+	font-family: var(--font-body);
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.16em;
+}
+
+/* Lilita One and Oswald have no tabular figures, so a ticking clock or a
+   counting score would wobble. Digits.svelte puts each digit in a cell of this
+   width instead. */
+.goon-digit {
+	display: inline-block;
+	width: 0.6em;
+	text-align: center;
+}
+.goon-digit-sep {
+	display: inline-block;
+	width: 0.28em;
+	text-align: center;
+}
+
+/* Pill with the site's white rim + soft drop. */
+.goon-pill {
+	border-radius: 999px;
+	border: var(--goon-rim) solid white;
+	box-shadow: 0 6px 18px oklch(0 0 0 / 0.45);
+}
+
+/* Hub-active underglow flash in the last 3s of a phase. Ends faded out. */
+@keyframes goon-underglow-flashout {
+	0%, 20%, 40%, 60%, 80% { opacity: 1; }
+	10%, 30%, 50%, 70% { opacity: 0.15; }
+	100% { opacity: 0; }
+}
+@keyframes goon-arrow {
+	0%, 100% { opacity: 1; transform: scale(1); }
+	50% { opacity: 0.15; transform: scale(0.78); }
+}
+/* Mascot bob on the waiting-for-scores screen. */
+@keyframes goon-bob {
+	0%, 100% { transform: translateY(0) rotate(-2deg); }
+	50% { transform: translateY(-14px) rotate(2deg); }
+}
+
+/* #region Reused default chrome screens (rankings, timeout, bracket, schedule,
+   background, alliance selection, break timer). Chrome.svelte wraps the
+   default component in .goon.goon-chrome; these rules restyle its markup.
+   They target the semantic <header> and a few stable utility classes. If the
+   default markup changes, a rule here stops matching and that element simply
+   falls back to the stock look - nothing breaks. */
+
+/* Header: a floating pill like the site's buttons. Margins + padding + rim add
+   up to the stock 28+18+4 px so the body's calc(100% - Npx) still fits. */
+.goon-chrome header.anim-top {
+	margin: 14px 40px 14px;
+	padding: 6px 40px 6px 10px;
+	border: 4px solid white;
+	border-radius: 999px;
+	background:
+		radial-gradient(120% 220% at 0% 50%, oklch(0.42 0.177 322 / 0.95), transparent 60%),
+		linear-gradient(90deg, var(--goon-grape), var(--goon-night));
+	box-shadow: 0 10px 30px oklch(0 0 0 / 0.5);
+}
+/* Event-name line above the title: brush script in lavender, like the site's
+   "invitational". */
+.goon-chrome header .text-dim {
+	font-family: "Goon Brush", var(--font-body);
+	text-transform: none;
+	letter-spacing: 0;
+	color: var(--accent);
+	font-size: 40px;
+	line-height: 1;
+	margin-bottom: 2px;
+}
+/* Right-hand widgets in the header (Starts In, Resumes In, Break, pick
+   timer): pills. */
+.goon-chrome header > div:last-child:not(:first-child) {
+	border-radius: 999px;
+	padding-left: 40px;
+	padding-right: 40px;
+}
+.goon-chrome header .bg-accent {
+	border-radius: 999px;
+	border: 3px solid white;
+}
+
+/* Section labels: round bullet, lavender rule. */
+.goon-chrome .bg-accent.size-2 {
+	border-radius: 999px;
+	width: 12px;
+	height: 12px;
+}
+/* Panels with the stock white hairline become rounded white-rim cards. */
+.goon-chrome .border-2.border-white {
+	border-radius: var(--goon-r);
+	border-width: 3px;
+}
+/* Body panels: tint the stock 55-60% black with the event purple. */
+.goon-chrome .bg-\[oklch\(0_0_0\/0\.55\)\],
+.goon-chrome .bg-\[oklch\(0_0_0\/0\.6\)\] {
+	background-color: oklch(0.14 0.04 305 / 0.75);
+}
+/* Rankings rows: rounded white chips. */
+.goon-chrome .grid.bg-white {
+	border-radius: 14px;
+}
+/* Root background: the event's purple glow behind the stock dark field. */
+.goon-chrome .fixed.inset-0.bg-background {
+	background:
+		radial-gradient(70% 60% at 100% 100%, oklch(0.42 0.177 322 / 0.35), transparent 70%),
+		radial-gradient(60% 50% at 0% 100%, oklch(0.30 0.132 300 / 0.45), transparent 70%),
+		var(--background);
+}
+/* #endregion */
+
+/* Score reveal: the stock RankingPoints badges (lib component) become rounded
+   tiles, matching the rest of the reveal. */
+.goon-reveal .size-20 {
+	border-radius: 18px;
+}
+.goon-reveal .text-3xl.text-center.font-bold {
+	font-family: var(--font-body);
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.16em;
+	font-size: 24px;
+}
