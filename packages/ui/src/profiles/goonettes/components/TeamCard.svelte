@@ -21,7 +21,7 @@
 
 {#if ready}
 	<div
-		class="flex flex-col rounded-[var(--goon-r-sm)] overflow-hidden border-solid border-white border-[3px] shadow-[0_6px_20px_oklch(0_0_0/0.55)]"
+		class="flex flex-col rounded-[var(--goon-r-sm)] overflow-hidden border-solid border-[color:var(--goon-rim-color)] border-[length:min(3px,var(--goon-rim))] shadow-[0_6px_20px_oklch(0_0_0/0.55)]"
 		in:fly|local={{ x: 100 * (invert ? -1 : 1), duration: 500, delay: 150 * index + 150 }}
 		out:fly|local={{ x: 400 * (invert ? -1 : 1), duration: 100 }}
 	>

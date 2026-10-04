@@ -252,7 +252,7 @@
 			<div class="shrink-0" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}>
 				{#if hasSponsors}
 					<h2 class="goon-label text-[26px] text-center text-white mb-3" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Event Sponsors</h2>
-					<div class="h-52 flex items-center justify-center rounded-[var(--goon-r)] border-solid border-white border-[length:var(--goon-rim)] bg-[oklch(0.13_0.035_305/0.7)] p-6 shadow-[0_10px_28px_oklch(0_0_0/0.45)]">
+					<div class="h-52 flex items-center justify-center rounded-[var(--goon-r)] border-solid border-[color:var(--goon-rim-color)] border-[length:var(--goon-rim)] bg-[oklch(0.13_0.035_305/0.7)] p-6 shadow-[0_10px_28px_oklch(0_0_0/0.45)]">
 						<SponsorCarousel />
 					</div>
 				{:else}
@@ -271,7 +271,7 @@
 			<div in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>
 				<!-- Match name and score totals share ONE card: the black header rounds
 				     the top, the blue/red halves round the bottom. No gap between them. -->
-				<div class="overflow-hidden rounded-[var(--goon-r)] border-solid border-white border-[length:var(--goon-rim)] shadow-[0_12px_40px_oklch(0_0_0/0.6)]">
+				<div class="overflow-hidden rounded-[var(--goon-r)] border-solid border-[color:var(--goon-rim-color)] border-[length:var(--goon-rim)] shadow-[0_12px_40px_oklch(0_0_0/0.6)]">
 					<div class="px-6 pt-3 pb-3 text-center" style="background: var(--goon-card);">
 						<div class="flex items-baseline justify-center gap-2 leading-none whitespace-nowrap">
 							<span class="goon-display uppercase text-[26px] text-white tracking-[0.03em]">Goonettes</span>
@@ -302,7 +302,7 @@
 					     transitions are local by default and would not fire from here. -->
 					<div class="w-full" in:fly|global={{ y: 200, duration: 400 }} out:fade|global={{ duration: 150 }}>
 						<!-- Stock breakdown table, rounded by this wrapper. -->
-						<div class="max-w-3xl mx-auto overflow-hidden rounded-[var(--goon-r-sm)] border-solid border-white border-[length:var(--goon-rim)] shadow-[0_10px_28px_oklch(0_0_0/0.45)]">
+						<div class="max-w-3xl mx-auto overflow-hidden rounded-[var(--goon-r-sm)] border-solid border-[color:var(--goon-rim-color)] border-[length:var(--goon-rim)] shadow-[0_10px_28px_oklch(0_0_0/0.45)]">
 							<ScoreBreakdown leftScore={leftBreakdownScore} rightScore={rightBreakdownScore} {tiebreaker} />
 						</div>
 					</div>
@@ -325,7 +325,7 @@
 					{#if hasSponsors}
 						<h2 class="goon-label text-[26px] text-center text-white mb-3" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Livestream Partner</h2>
 					{/if}
-					<div class="h-52 flex items-center justify-center rounded-[var(--goon-r)] {hasSponsors ? 'border-solid border-white border-[length:var(--goon-rim)] bg-[oklch(0.13_0.035_305/0.7)] p-6 shadow-[0_10px_28px_oklch(0_0_0/0.45)]' : ''}">
+					<div class="h-52 flex items-center justify-center rounded-[var(--goon-r)] {hasSponsors ? 'border-solid border-[color:var(--goon-rim-color)] border-[length:var(--goon-rim)] bg-[oklch(0.13_0.035_305/0.7)] p-6 shadow-[0_10px_28px_oklch(0_0_0/0.45)]' : ''}">
 						<Logo type="livestream" alt="livestream partner" class="max-h-full max-w-full mx-auto self-center object-contain" />
 					</div>
 				</div>

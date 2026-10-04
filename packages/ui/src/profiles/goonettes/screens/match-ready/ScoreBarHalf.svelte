@@ -60,7 +60,7 @@
 	></div>
 
 	<div
-		class="relative z-[1] h-full grid items-center py-3.5 gap-4 border-solid border-white {isLeft
+		class="relative z-[1] h-full grid items-center py-3.5 gap-4 border-solid border-[color:var(--goon-rim-color)] {isLeft
 			? 'grid-cols-[1fr_auto_auto] pl-6 pr-5'
 			: 'grid-cols-[auto_auto_1fr] pl-5 pr-6'}"
 		style="background: {bgVar}; border-radius: {radius}; {rim}"

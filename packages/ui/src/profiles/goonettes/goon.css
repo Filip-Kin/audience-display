@@ -70,7 +70,11 @@
 	--goon-card-hi: oklch(0.30 0.132 318);
 	--goon-card-lo: oklch(0.13 0.035 305);
 	--goon-card: radial-gradient(120% 140% at 50% 0%, var(--goon-card-hi), var(--goon-card-lo) 70%);
-	--goon-rim: 4px; /* white rim on pills and cards, like the site's buttons */
+	/* Rim on pills and cards. The site's buttons have a white one; Filip picked
+	   none (2026-10-04, A/B/C of white, purple, none), so shadows carry the
+	   separation. Every rim reads these two values. */
+	--goon-rim: 0px;
+	--goon-rim-color: white;
 	--goon-r: 30px; /* card radius */
 	--goon-r-sm: 16px;
 }
@@ -115,7 +119,7 @@
 /* Pill with the site's white rim + soft drop. */
 .goon-pill {
 	border-radius: 999px;
-	border: var(--goon-rim) solid white;
+	border: var(--goon-rim) solid var(--goon-rim-color);
 	box-shadow: 0 6px 18px oklch(0 0 0 / 0.45);
 }
 
@@ -140,11 +144,11 @@
 /* Header: a floating card with the same corner as the reveal cards (Filip
    2026-10-04: a full pill was too round for a bar this tall). Margins +
    padding + rim add up to the stock 28+18+4 px so the body's calc(100% - Npx)
-   still fits: 12 + 10 + 10 + 10 + 2x4 = 50. */
+   still fits: 16 + 10 + 10 + 14 + 2 x rim(0) = 50. */
 .goon-chrome header.anim-top {
-	margin: 12px 40px 10px;
+	margin: 16px 40px 14px;
 	padding: 10px;
-	border: 4px solid white;
+	border: var(--goon-rim) solid var(--goon-rim-color);
 	border-radius: var(--goon-r);
 	background:
 		radial-gradient(120% 220% at 0% 50%, oklch(0.42 0.177 322 / 0.95), transparent 60%),
@@ -165,17 +169,17 @@
 /* Right-hand widgets in the header (Starts In, Resumes In, Break, pick
    timer): stretched to the header's full inner height, so the gap above, below
    and to the right of the timer is the same 10px header padding. Corner is
-   concentric with the header: 30 - 4 rim - 10 padding = 16. */
+   concentric with the header: 30 - 10 padding (rim is 0) = 20. */
 .goon-chrome header > div:last-child:not(:first-child) {
 	align-self: stretch;
 	justify-content: center;
-	border-radius: var(--goon-r-sm);
+	border-radius: 20px;
 	padding-left: 40px;
 	padding-right: 40px;
 }
 .goon-chrome header .bg-accent {
-	border-radius: var(--goon-r-sm);
-	border: 3px solid white;
+	border-radius: 20px;
+	border: 3px solid var(--goon-rim-color);
 }
 
 /* Section labels: round bullet, lavender rule. */
@@ -187,7 +191,8 @@
 /* Panels with the stock white hairline become rounded white-rim cards. */
 .goon-chrome .border-2.border-white {
 	border-radius: var(--goon-r);
-	border-width: 3px;
+	border-width: min(3px, var(--goon-rim));
+	border-color: var(--goon-rim-color);
 }
 /* Body panels: tint the stock 55-60% black with the event purple. */
 .goon-chrome .bg-\[oklch\(0_0_0\/0\.55\)\],

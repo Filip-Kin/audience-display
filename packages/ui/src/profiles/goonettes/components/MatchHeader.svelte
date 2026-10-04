@@ -9,7 +9,7 @@
      card with the white rim, the event lockup on top and the match name in
      lavender. Sized by its content; no measuring. -->
 <div
-	class="rounded-[var(--goon-r)] border-solid border-white border-[length:var(--goon-rim)] px-12 pt-3 pb-4 text-center shadow-[0_12px_36px_oklch(0_0_0/0.55)]"
+	class="rounded-[var(--goon-r)] border-solid border-[color:var(--goon-rim-color)] border-[length:var(--goon-rim)] px-12 pt-3 pb-4 text-center shadow-[0_12px_36px_oklch(0_0_0/0.55)]"
 	style="background: var(--goon-card);"
 >
 	<div class="flex items-baseline justify-center gap-2 leading-none whitespace-nowrap">

@@ -122,14 +122,6 @@
 			in:fade={{ duration: 150 }}
 			out:fade={{ duration: 150 }}
 		>
-			{#if !top}
-				<!-- The mascot perches on the timer, clear of the shift counter. -->
-				<img
-					src="/goonettes/logo.png"
-					alt=""
-					class="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%-8px)] w-[132px] z-20 pointer-events-none drop-shadow-[0_6px_10px_oklch(0_0_0/0.6)]"
-				/>
-			{/if}
 			<div class="grid grid-cols-realtimeScores rounded-[var(--goon-bar-r)] shadow-[0_14px_40px_oklch(0_0_0/0.55)]" style="--goon-bar-r: 56px;">
 				<ScoreBarHalf
 					side="left"
