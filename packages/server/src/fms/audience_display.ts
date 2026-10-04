@@ -31,7 +31,7 @@ import {
   type FMSRankingTeam,
 } from "lib/types/FMS_API_audience";
 import type { AllianceSelection, QualRanking, Team } from "lib/types/audience_display";
-import { getTeamName, getTeamDesignation, getFmsName, listTeamNames } from "../team_name";
+import { getTeamName, getTeamDesignation, getFmsName, listTeamNames, listFmsTeams } from "../team_name";
 import { logRest, isFmsLoggingEnabled } from "../fms_logger";
 import { isCaptionControlEnabled, syncCaptionScreen } from "../caption_control";
 import { syncCompanion } from "../companion";
@@ -347,6 +347,7 @@ export class AudienceDisplayManager {
   private firstPlayoffMatchTime: string | null = null;
   private gameConfig: GameConfig = defaultGameConfig();
   private bracketRefreshTimer: ReturnType<typeof setInterval> | null = null;
+  private rosterTimer: ReturnType<typeof setInterval> | null = null;
 
   // Bumped on every screen-changing command (video switch, results, match end/commit)
   // so in-flight async handlers can tell they were superseded and stop touching state.
@@ -450,6 +451,13 @@ export class AudienceDisplayManager {
         this.gameConfig = cfg;
       })
     );
+
+    // Team roster for the Team Names editor. FMS has no plain team-name list;
+    // names only arrive inside rank data, previews and results. Rank data
+    // carries every ranked team, so poll it once a minute: the editor fills in
+    // as soon as FMS has the roster, without anyone opening the Rankings screen.
+    promises.push(this.refreshRankData());
+    this.rosterTimer = setInterval(() => void this.refreshRankData(), 60_000);
 
     Promise.all(promises).then(async () => {
       if (this.teamLineup.blue.length === 0 || this.teamLineup.red.length === 0) {
@@ -895,6 +903,8 @@ export class AudienceDisplayManager {
           fmsLogging: isFmsLoggingEnabled(),
           captionControl: isCaptionControlEnabled(),
           teamNames: listTeamNames(),
+          // Test-match fillers (teams 1-6) drop out once the roster is known.
+          fmsTeams: listFmsTeams().filter((t) => this.eventTeams.size === 0 || this.eventTeams.has(t.number)),
           version: pkg.version,
         },
       })
@@ -1689,7 +1699,7 @@ export class AudienceDisplayManager {
       "GetQualificationRankData"
     );
     this.captureEventMeta(data?.eventCode, data?.seasonYear);
-    this.rankData = (data?.teamRanks ?? []).map((t) => ({
+    const next = (data?.teamRanks ?? []).map((t) => ({
       rank: t.rank,
       teamNumber: t.teamNumber,
       teamName: getTeamName(t.teamNumber, t.teamName ?? ""),
@@ -1699,5 +1709,8 @@ export class AudienceDisplayManager {
       losses: t.losses,
       ties: t.ties,
     }));
+    // The roster poll calls this every minute; an identical table must not
+    // become a new array, or the Rankings screen re-renders mid-scroll.
+    if (JSON.stringify(next) !== JSON.stringify(this.rankData)) this.rankData = next;
   }
 }

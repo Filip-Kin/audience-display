@@ -7,7 +7,8 @@ import type { TeamNameEntry } from 'lib/types/audience_display';
 // id: { "teamNames": { "marc": [{ "number": 9993, "name": "Tung Tung Turret" }] } }.
 // Keying by profile is the point. A B-team name set for one event must not
 // follow the laptop to the next event, and every event runs its own profile.
-// Edited from the Settings dialog; this module is the only writer of the key.
+// Edited from the Team Names editor on the main page; this module is the only
+// writer of the key.
 
 // #region settings.json persistence
 const settingsPath = () => join(appDataDir(), 'settings.json');
@@ -47,10 +48,16 @@ export function initTeamNames(getProfileId: () => string): void {
         : {};
 }
 
-/** The active profile's overrides, for the Settings dialog. */
+/** The active profile's overrides, for the Team Names editor. */
 export function listTeamNames(): TeamNameEntry[] {
     const list = byProfile[activeProfile()];
     return Array.isArray(list) ? list : [];
+}
+
+/** Every team FMS has named so far (full names), for the Team Names editor:
+ *  the list fills in on its own as previews, results and rankings arrive. */
+export function listFmsTeams(): { number: number; name: string }[] {
+    return [...fmsNames.long].map(([number, name]) => ({ number, name })).sort((a, b) => a.number - b.number);
 }
 
 /** The name FMS last sent for a team, or undefined if none has come in yet. */
@@ -71,7 +78,7 @@ export function getTeamDesignation(teamNumber: number): string | undefined {
     return match?.designation || undefined;
 }
 
-/** Replace the active profile's override list (the Settings dialog sends it
+/** Replace the active profile's override list (the Team Names editor sends it
  *  complete). Rows without a positive team number, or with neither a name nor
  *  a designation, are dropped; a later row for the same number wins. */
 export function saveTeamNames(entries: unknown): TeamNameEntry[] {

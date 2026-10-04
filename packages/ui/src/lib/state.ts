@@ -29,6 +29,7 @@ const defaultState: AudienceDisplayState = {
   fmsLogging: true,
   captionControl: false,
   teamNames: [],
+  fmsTeams: [],
 };
 
 let socket: WebSocket | null = null;

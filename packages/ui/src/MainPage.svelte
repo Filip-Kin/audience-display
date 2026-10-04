@@ -133,15 +133,14 @@
 	});
 
 	// #region Team names
-	// Per profile on the server, so the list always belongs to the active
-	// profile. Edits stay local until Save; the server's list replaces the draft
-	// whenever it changes and nothing is unsaved.
-	type TeamNameRow = { number: string; name: string; designation: string };
+	// One row per team FMS has named (it fills in as previews, results and
+	// rankings arrive), plus manual rows for teams FMS does not know yet. A row
+	// is Default (shows the FMS name) until a name or designation is typed, then
+	// Custom. Overrides are per profile on the server; edits stay local until
+	// Save.
+	type TeamRow = { number: string; fmsName: string | null; name: string; designation: string; manual: boolean };
 
-	const toRows = (list: TeamNameEntry[]): TeamNameRow[] =>
-		list.map((t) => ({ number: String(t.number), name: t.name ?? "", designation: t.designation ?? "" }));
-
-	function toEntries(rows: TeamNameRow[]): TeamNameEntry[] {
+	function toEntries(rows: TeamRow[]): TeamNameEntry[] {
 		const byNumber = new Map<number, TeamNameEntry>();
 		for (const r of rows) {
 			const number = Number(r.number);
@@ -153,33 +152,64 @@
 		return [...byNumber.values()].sort((a, b) => a.number - b.number);
 	}
 
-	let teamRows: TeamNameRow[] = [];
-	$: savedTeamNames = $state.teamNames ?? [];
-	$: teamNamesDirty = JSON.stringify(toEntries(teamRows)) !== JSON.stringify(savedTeamNames);
+	function buildRows(saved: TeamNameEntry[], fms: { number: number; name: string }[]): TeamRow[] {
+		const rows: TeamRow[] = fms.map((t) => {
+			const o = saved.find((e) => e.number === t.number);
+			return { number: String(t.number), fmsName: t.name, name: o?.name ?? "", designation: o?.designation ?? "", manual: false };
+		});
+		for (const o of saved) {
+			if (fms.some((t) => t.number === o.number)) continue;
+			rows.push({ number: String(o.number), fmsName: null, name: o.name ?? "", designation: o.designation ?? "", manual: true });
+		}
+		return rows.sort((a, b) => Number(a.number) - Number(b.number));
+	}
 
-	// Load the server list when the profile changes.
+	let teamRows: TeamRow[] = [];
+	$: savedTeamNames = $state.teamNames ?? [];
+	$: fmsTeams = $state.fmsTeams ?? [];
+	$: teamNamesDirty = JSON.stringify(toEntries(teamRows)) !== JSON.stringify(savedTeamNames);
+	$: fmsCount = teamRows.filter((r) => !r.manual).length;
+
+	// Rebuild on a profile switch.
 	let teamScope: string | null | undefined = undefined;
 	$: if ($state.activeProfileId !== teamScope) {
 		teamScope = $state.activeProfileId;
-		teamRows = toRows(savedTeamNames);
+		teamRows = buildRows(savedTeamNames, fmsTeams);
+		prevSaved = JSON.stringify(savedTeamNames);
+		prevFms = JSON.stringify(fmsTeams);
 	}
 
-	// Follow server changes (a save here, or from another screen) unless the
-	// draft holds unsaved edits against the list it was loaded from.
+	// Follow the server (a save, another screen, new FMS teams). State is
+	// rebroadcast every few seconds, so only a real change counts. With unsaved
+	// edits, new FMS teams are merged in without touching what was typed.
 	let prevSaved = "[]";
-	$: savedTeamNames, followSaved();
-	function followSaved() {
-		const next = JSON.stringify(savedTeamNames);
-		// State is rebroadcast every few seconds; only a real change counts.
-		if (next === prevSaved) return;
+	let prevFms = "[]";
+	$: savedTeamNames, fmsTeams, followServer();
+	function followServer() {
+		const saved = JSON.stringify(savedTeamNames);
+		const fms = JSON.stringify(fmsTeams);
+		if (saved === prevSaved && fms === prevFms) return;
 		const draft = JSON.stringify(toEntries(teamRows));
-		if (draft === prevSaved || draft === next) teamRows = toRows(savedTeamNames);
-		prevSaved = next;
+		if (draft === prevSaved || draft === saved) {
+			teamRows = buildRows(savedTeamNames, fmsTeams);
+		} else {
+			const rows = [...teamRows];
+			for (const t of fmsTeams) {
+				const row = rows.find((r) => Number(r.number) === t.number);
+				if (row) Object.assign(row, { fmsName: t.name, manual: false });
+				else rows.push({ number: String(t.number), fmsName: t.name, name: "", designation: "", manual: false });
+			}
+			teamRows = rows.sort((a, b) => Number(a.number) - Number(b.number));
+		}
+		prevSaved = saved;
+		prevFms = fms;
 	}
 
-	// FMS avatar for the row's team, when FMS has sent the roster. The Avatar
-	// component upgrades it to the avatar-store upload for the active event, so
-	// the row shows exactly what the display will.
+	const isCustom = (r: TeamRow) => !!(r.name.trim() || r.designation.trim());
+
+	// FMS avatar for the row's team. The Avatar component upgrades it to the
+	// avatar-store upload for the active event, so the row shows exactly what
+	// the display will.
 	function fmsAvatar(n: string): string | undefined {
 		const number = Number(n);
 		return (
@@ -190,7 +220,11 @@
 	}
 
 	function addTeamRow() {
-		teamRows = [...teamRows, { number: "", name: "", designation: "" }];
+		teamRows = [...teamRows, { number: "", fmsName: null, name: "", designation: "", manual: true }];
+	}
+
+	function resetTeamRow(i: number) {
+		teamRows[i] = { ...teamRows[i], name: "", designation: "" };
 	}
 
 	function removeTeamRow(i: number) {
@@ -275,18 +309,22 @@
 				<h2 class="text-lg font-semibold">Team Names</h2>
 				<span class="text-sm text-gray-400 truncate">{$activeProfile.name}</span>
 			</div>
+			<p class="text-sm text-gray-400">
+				{fmsCount ? `${fmsCount} teams from FMS` : "No teams from FMS yet"}
+			</p>
 			{#if teamRows.length}
-				<div class="hidden sm:grid grid-cols-[3rem_6rem_minmax(0,1fr)_7rem_2rem] items-center gap-3 text-sm text-gray-400">
+				<div class="hidden sm:grid grid-cols-[3rem_6rem_minmax(0,1fr)_7rem_5rem_4rem] items-center gap-3 text-sm text-gray-400">
 					<span></span>
 					<span>Team</span>
 					<span>Name</span>
 					<span>Designation</span>
 					<span></span>
+					<span></span>
 				</div>
 			{/if}
 			{#each teamRows as row, i}
-				<!-- Phone: designation drops to a second line under the name. -->
-				<div class="grid grid-cols-[2.5rem_5.5rem_minmax(0,1fr)_1.5rem] sm:grid-cols-[3rem_6rem_minmax(0,1fr)_7rem_2rem] items-center gap-x-2 sm:gap-x-3 gap-y-2">
+				<!-- Phone: designation and the row action drop to a second line. -->
+				<div class="grid grid-cols-[2.5rem_5.5rem_minmax(0,1fr)_auto] sm:grid-cols-[3rem_6rem_minmax(0,1fr)_7rem_5rem_4rem] items-center gap-x-2 sm:gap-x-3 gap-y-2">
 					{#key row.number}
 						<Avatar
 							avatar={fmsAvatar(row.number)}
@@ -295,32 +333,48 @@
 							class="size-10 sm:size-12 rounded bg-gray-700"
 						/>
 					{/key}
-					<input
-						type="number"
-						min="1"
-						bind:value={row.number}
-						aria-label="Team number"
-						class="min-w-0 rounded bg-gray-700 px-3 py-2 text-white tabular-nums"
-					/>
+					{#if row.manual}
+						<input
+							type="number"
+							min="1"
+							bind:value={row.number}
+							aria-label="Team number"
+							placeholder="Team"
+							class="min-w-0 rounded bg-gray-700 px-3 py-2 text-white tabular-nums"
+						/>
+					{:else}
+						<span class="px-3 py-2 font-semibold tabular-nums">{row.number}</span>
+					{/if}
 					<input
 						type="text"
 						bind:value={row.name}
 						aria-label="Team name"
-						placeholder="Name"
-						class="min-w-0 rounded bg-gray-700 px-3 py-2 text-white"
+						placeholder={row.fmsName ?? "Name"}
+						class="min-w-0 rounded px-3 py-2 text-white {isCustom(row) ? 'bg-gray-600 ring-1 ring-blue-500' : 'bg-gray-700'} placeholder:text-gray-400"
 					/>
 					<input
 						type="text"
 						bind:value={row.designation}
 						aria-label="Designation"
 						placeholder="Designation"
-						class="min-w-0 rounded bg-gray-700 px-3 py-2 text-white col-start-2 col-span-2 row-start-2 sm:col-auto sm:col-span-1 sm:row-start-auto order-last sm:order-none"
+						class="min-w-0 rounded px-3 py-2 text-white {isCustom(row) ? 'bg-gray-600 ring-1 ring-blue-500' : 'bg-gray-700'} placeholder:text-gray-500 col-start-2 col-span-2 row-start-2 sm:col-auto sm:col-span-1 sm:row-start-auto"
 					/>
-					<button
-						class="text-gray-400 hover:text-white text-2xl leading-none"
-						aria-label="Remove team {row.number}"
-						on:click={() => removeTeamRow(i)}>&times;</button
+					<span
+						class="justify-self-start rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide {isCustom(row)
+							? 'bg-blue-600 text-white'
+							: 'bg-gray-700 text-gray-300'}">{isCustom(row) ? "Custom" : row.manual ? "Manual" : "Default"}</span
 					>
+					<div class="col-start-4 row-start-2 sm:col-auto sm:row-start-auto justify-self-end">
+						{#if row.manual}
+							<button
+								class="text-gray-400 hover:text-white text-2xl leading-none px-1"
+								aria-label="Remove team {row.number}"
+								on:click={() => removeTeamRow(i)}>&times;</button
+							>
+						{:else if isCustom(row)}
+							<button class="text-sm text-gray-300 hover:text-white" on:click={() => resetTeamRow(i)}>Reset</button>
+						{/if}
+					</div>
 				</div>
 			{/each}
 			<div class="flex justify-end gap-3">

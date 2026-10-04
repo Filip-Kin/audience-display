@@ -179,8 +179,10 @@ export type AudienceDisplayState = {
   /** Whether the server is auto-positioning the external live-captions overlay
    *  per the current screen (commands live-captions over its tRPC API). */
   captionControl: boolean;
-  /** The active profile's team name overrides, for the Settings dialog. */
+  /** The active profile's team name overrides, for the Team Names editor. */
   teamNames: TeamNameEntry[];
+  /** Every team FMS has named so far, with its FMS (default) name. */
+  fmsTeams: { number: number; name: string }[];
   /** Running app version. Clients reload when it changes so a display picks up a
    *  new UI bundle after the exe auto-updates, without a manual refresh. */
   version: string;
