@@ -7,7 +7,7 @@
 
 {#if visible}
 	<div
-		class="w-full flex flex-row items-center justify-center bg-bannerAccent uppercase text-white px-6 py-3.5 gap-[22px] font-black text-[30px] tracking-[0.18em]"
+		class="w-full flex flex-row items-center justify-center bg-bannerAccent uppercase text-bannerInk px-6 py-3.5 gap-[22px] font-black text-[30px] tracking-[0.18em]"
 		in:fade={{ duration: 250 }}
 		out:fade={{ duration: 150 }}
 	>

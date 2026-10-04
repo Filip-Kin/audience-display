@@ -43,6 +43,10 @@ const profile: ProfileDefinition = {
     // own paler tint that clears both (3.24:1 red, 3.96:1 blue).
     accent: "oklch(0.80 0.13 308)",
     scoreBarAccent: "oklch(0.90 0.06 308)",
+    // Winner / Tie / high score banners: the accent with dark ink, not white
+    // on gold (1.7:1). Light banner on the dark shutter, ink at ~10:1.
+    bannerAccent: "oklch(0.80 0.13 308)",
+    bannerInk: "oklch(0.18 0 0)",
     // accentWarn stays the FRC attention yellow: under-review card, pick-clock
     // warning. Referee semantics, not branding.
     // Surfaces: default lightness/chroma, hue rotated from 250 to the brand

@@ -12,6 +12,8 @@ const VAR_MAP: Record<keyof ProfileTheme, string> = {
   text: "--text",
   scoreBarAccent: "--scoreBarAccent",
   matchLabel: "--matchLabel",
+  bannerAccent: "--bannerAccent",
+  bannerInk: "--bannerInk",
 };
 
 /** oklch(L C H) or oklch(L C H / A) -> linear-light sRGB, for a contrast check. */
@@ -81,6 +83,9 @@ function warnAboutTheme(theme: ProfileTheme): void {
   const barAccent = theme.scoreBarAccent ?? accent;
   ratio(barAccent, theme.redAlliance, 3, "score-bar accent on redAlliance");
   ratio(barAccent, theme.blueAlliance, 3, "score-bar accent on blueAlliance");
+
+  // The Winner / Tie / high score banners carry bannerInk on bannerAccent.
+  if (theme.bannerAccent) ratio(theme.bannerInk ?? "white", theme.bannerAccent, 4.5, "bannerInk on bannerAccent");
 
   // Both accents are light backgrounds under near-black ink at ~14 sites, so a
   // dark one buys the chain of white overrides MARC once had.

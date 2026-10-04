@@ -50,6 +50,10 @@ const profile: ProfileDefinition = {
     // that clears both (3.21:1 red, 3.92:1 blue).
     accent: "oklch(0.80 0.15 355)",
     scoreBarAccent: "oklch(0.90 0.06 355)",
+    // Winner / Tie / high score banners: the accent with dark ink, not white
+    // on gold (1.7:1). Light banner on the dark shutter, ink at ~10:1.
+    bannerAccent: "oklch(0.80 0.15 355)",
+    bannerInk: "oklch(0.18 0 0)",
     // Page black and card surface warmed off the stock blue-black onto the pink
     // hue axis, so the whole screen sits in the brand's temperature.
     background: "oklch(0.13 0.012 350)",
