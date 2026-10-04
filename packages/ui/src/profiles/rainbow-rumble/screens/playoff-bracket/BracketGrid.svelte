@@ -64,16 +64,20 @@
 	function computeLines() {
 		if (!container) return;
 		const c = container.getBoundingClientRect();
+		// Rects come back in screen pixels, but the lines are drawn in the
+		// container's own (unscaled) space. The display scales #app to fit the
+		// screen and the main page scales its preview, so undo that factor.
+		const k = container.offsetWidth ? c.width / container.offsetWidth : 1;
 		const next = LINKS.flatMap(([from, to]) => {
 			const a = nodeEls[from];
 			const b = nodeEls[to];
 			if (!a || !b) return [];
 			const ra = a.getBoundingClientRect();
 			const rb = b.getBoundingClientRect();
-			const x1 = ra.right - c.left;
-			const y1 = ra.top + ra.height / 2 - c.top;
-			const x2 = rb.left - c.left;
-			const y2 = rb.top + rb.height / 2 - c.top;
+			const x1 = (ra.right - c.left) / k;
+			const y1 = (ra.top + ra.height / 2 - c.top) / k;
+			const x2 = (rb.left - c.left) / k;
+			const y2 = (rb.top + rb.height / 2 - c.top) / k;
 			// Merge joins (two sources into one destination) put their shared vertical
 			// midway between the cards; M12 -> M13 hugs its destination so the
 			// next-match pulse zoom never touches it; finals links elbow just before
