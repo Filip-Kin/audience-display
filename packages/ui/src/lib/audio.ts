@@ -19,7 +19,7 @@ import pickClock_wav from "../assets/audio/pick_clock.wav";
 import pickClockExpired_wav from "../assets/audio/pick_clock_expired.wav";
 // Real FMS "Powerup" sound (PowerUp_LinearPop.wav), played entering shifts 1-4.
 import shiftChange_wav from "../assets/audio/shift_change.wav";
-// Pit Podcast "whoosh-up", played as the shutter opens onto the results.
+// Pit Podcast "whoosh-down", played as the shutter opens onto the results.
 import scoreReveal_wav from "../assets/audio/score_reveal.wav";
 
 /** One entry per distinct sound file: drives both playback and the volume sliders. */
