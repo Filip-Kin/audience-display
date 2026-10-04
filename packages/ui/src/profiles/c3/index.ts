@@ -12,14 +12,13 @@ import defaultProfile from "../default";
  *  - The brand pink #E5067D is oklch(0.599 0.242 359). The stock red alliance is
  *    oklch(0.60 0.235 25). Same lightness, same chroma, 26 degrees apart in hue.
  *    So brand pink is NEVER used at full strength next to a red team card.
- *  - The shutter halves are both brand colour: a deep magenta-violet and the
- *    pink ink taken dark to plum. (Graphite from the #999 grey ink was tried
- *    first and read as a mistake.) Both stay well under the alliance lightness
- *    so score boxes and team cards still pop.
+ *  - The shutter halves are both bright brand colour: a purple-magenta and the
+ *    C3 pink. Graphite was tried first and read as a mistake; dark plum read
+ *    as gloomy. Team names sit on white cards, which carry the separation.
  *  - primary is the RED side and secondary is the BLUE side on match preview
- *    (MatchPreview: leftColor = leftIsRed ? primary : secondary). Plum went on
- *    the BLUE side deliberately: red-on-plum is the weakest pairing available,
- *    blue-on-plum is the strongest. Swap the two values if it reads wrong on the
+ *    (MatchPreview: leftColor = leftIsRed ? primary : secondary). Pink goes on
+ *    the BLUE side deliberately: pink next to a red card is the weakest pairing
+ *    available, pink next to blue the strongest. Swap the two values if it reads wrong on the
  *    wall, it is a one-line change.
  *  - accentWarn stays the FRC attention YELLOW. The MARC lesson: re-colouring it
  *    to a brand colour forces a chain of white overrides for no gain.
@@ -37,14 +36,12 @@ const profile: ProfileDefinition = {
   eventInfoUrl: "https://c3robots.org/",
   theme: {
     ...defaultProfile.theme,
-    // Shutter, red side: deep magenta-violet. Graphite read as a mistake next to
-    // the plum, so both halves are brand colour now. Both halves are dark enough
-    // to clear 3:1 under the alliance colours (THEME-RULES rule 10): this goes on
-    // a projector and team cards sit straight on it.
-    primary: "oklch(0.28 0.14 330)", // 3.40:1 vs redAlliance
-    // Shutter, blue side: the pink ink taken down to a deep plum (was L 0.40,
-    // 1.74:1 vs blue).
-    secondary: "oklch(0.24 0.12 358)", // plum, 3.03:1 vs blueAlliance
+    // Shutter, bright. Filip, 2026-10-04: dark shutters looked gloomy, and
+    // brighter reads better on a projector; team names sit on the white cards,
+    // which give the separation. Red side is a purple-magenta (hue kept off the
+    // red alliance); blue side is the C3 brand pink, far from blue.
+    primary: "oklch(0.56 0.22 315)", // purple-magenta; white 5.2:1
+    secondary: "oklch(0.57 0.24 0)", // brand pink; white 5.0:1
     // Chrome accent (headers, rules, bars, match label) in place of the stock
     // gold: light C3 pink, light enough for the dark accent ink (9.5:1). It
     // fails 3:1 on the red alliance, so the score-bar trim gets a paler tint
