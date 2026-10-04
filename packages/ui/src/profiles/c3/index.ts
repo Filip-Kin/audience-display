@@ -38,12 +38,13 @@ const profile: ProfileDefinition = {
   theme: {
     ...defaultProfile.theme,
     // Shutter, red side: deep magenta-violet. Graphite read as a mistake next to
-    // the plum, so both halves are brand colour now. Kept well clear of the red
-    // alliance hue and dark, so red cards still pop.
-    primary: "oklch(0.30 0.15 330)", // 3.20:1 vs redAlliance
-    // Shutter, blue side: the pink ink, taken darker than before (was L 0.40,
-    // 1.74:1) so blue cards separate from it.
-    secondary: "oklch(0.35 0.17 358)", // plum, 2.11:1 vs blueAlliance
+    // the plum, so both halves are brand colour now. Both halves are dark enough
+    // to clear 3:1 under the alliance colours (THEME-RULES rule 10): this goes on
+    // a projector and team cards sit straight on it.
+    primary: "oklch(0.28 0.14 330)", // 3.40:1 vs redAlliance
+    // Shutter, blue side: the pink ink taken down to a deep plum (was L 0.40,
+    // 1.74:1 vs blue).
+    secondary: "oklch(0.24 0.12 358)", // plum, 3.03:1 vs blueAlliance
     // Chrome accent (headers, rules, bars, match label) in place of the stock
     // gold: light C3 pink, light enough for the dark accent ink (9.5:1). It
     // fails 3:1 on the red alliance, so the score-bar trim gets a paler tint

@@ -31,12 +31,12 @@ const profile: ProfileDefinition = {
   eventInfoUrl: "https://www.team2834.com/events/bgrc",
   theme: {
     ...defaultProfile.theme,
-    // Shutter halves, both purple. Red side is the exact 2834 brand purple; blue
-    // side is a deeper violet. The graphite half read as a mistake next to the
-    // purple, so it is gone. Both stay darker than the alliance colours so score
-    // boxes and team cards pop.
-    primary: "oklch(0.42 0.19 308)", // 2834 purple (#6A1B9A), 2.11:1 vs redAlliance
-    secondary: "oklch(0.30 0.14 290)", // deep violet, 2.66:1 vs blueAlliance
+    // Shutter halves, both purple: the 2834 purple hue on the red side, a violet
+    // on the blue side. (A graphite half read as a mistake next to the purple.)
+    // Dark enough to clear 3:1 under the alliance colours (THEME-RULES rule 10),
+    // because this goes on a projector and team cards sit straight on it.
+    primary: "oklch(0.31 0.16 308)", // 2834 purple, deep; 3.19:1 vs redAlliance
+    secondary: "oklch(0.25 0.12 290)", // deep violet; 3.07:1 vs blueAlliance
     // Chrome accent (headers, rules, bars, match label) in place of the stock
     // gold: a light 2834 lavender, light enough to carry the dark accent ink
     // (10:1). It fails 3:1 on the red alliance, so the score-bar trim gets its
