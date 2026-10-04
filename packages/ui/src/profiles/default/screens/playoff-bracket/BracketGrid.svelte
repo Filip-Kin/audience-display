@@ -11,6 +11,9 @@
 	export let compact = false;
 	/** Hide the finals best-of-3 win dots (they read live series state). */
 	export let showSeries = true;
+	/** Real-alliance count to lay out; defaults to the live setting. The main
+	 *  page passes its unsaved choice to preview the collapse. */
+	export let realAlliances: number | undefined = undefined;
 
 	const byNumbers = (matches: AudienceDoubleElimMatch[], nums: number[]) =>
 		nums
@@ -26,7 +29,7 @@
 	// configured, collapse the foregone matches away and lay out only the
 	// real-vs-real ones. `collapsed === null` keeps the hardcoded layout below
 	// untouched, so any normal (8 real alliances) event is byte-for-byte the same.
-	$: collapsed = collapseBracket(bracket, $state.playoffRealAlliances ?? 8);
+	$: collapsed = collapseBracket(bracket, realAlliances ?? $state.playoffRealAlliances ?? 8);
 	$: collapsedCols = collapsed ? buildCollapsedCols(collapsed) : null;
 
 	function buildCollapsedCols(c: CollapsedBracket) {
@@ -93,16 +96,20 @@
 	function computeLines() {
 		if (!container) return;
 		const c = container.getBoundingClientRect();
+		// Rects come back in screen pixels, but the lines are drawn in the
+		// container's own (unscaled) space. The display scales #app to fit the
+		// screen and the main page scales its preview, so undo that factor.
+		const k = container.offsetWidth ? c.width / container.offsetWidth : 1;
 		const next = activeLinks.flatMap(([from, to]) => {
 			const a = nodeEls[from];
 			const b = nodeEls[to];
 			if (!a || !b) return [];
 			const ra = a.getBoundingClientRect();
 			const rb = b.getBoundingClientRect();
-			const x1 = ra.right - c.left;
-			const y1 = ra.top + ra.height / 2 - c.top;
-			const x2 = rb.left - c.left;
-			const y2 = rb.top + rb.height / 2 - c.top;
+			const x1 = (ra.right - c.left) / k;
+			const y1 = (ra.top + ra.height / 2 - c.top) / k;
+			const x2 = (rb.left - c.left) / k;
+			const y2 = (rb.top + rb.height / 2 - c.top) / k;
 			// Collapsed brackets are laid out fresh, so a plain midway elbow reads
 			// cleanly. The hardcoded 8-alliance layout keeps its tuned routing:
 			// merge joins share a vertical midway between the cards; M12 -> M13 hugs

@@ -16,7 +16,6 @@ import { initVmix, vmixStatus, ensureFmsInput, setupAllianceCamera, setVmixUrl }
 import { initPlayoffConfig, getRealAlliances, setRealAlliances } from "./playoff_config";
 import { initLogSync, syncFmsLog } from "./log_sync";
 import { existsSync } from "fs";
-import { networkInterfaces } from "os";
 import { join } from "path";
 import zipFile from "../../../ui-dist.zip" with { type: "file" };
 import { file } from "bun";
@@ -49,22 +48,6 @@ const json = (body: unknown, status = 200) =>
     status,
     headers: { "content-type": "application/json" },
   });
-
-/** Non-internal IPv4 addresses, so the landing page can tell the operator what
- *  URL to open the UI at from another machine on the venue network. */
-function hostIps(): { name: string; address: string }[] {
-  // Skip container/virtual interfaces (docker bridges, veth, VPN tun/tap) so the
-  // list stays the machine's real NICs (+ tailscale, which is legitimately useful).
-  const skip = /^(docker|br-|veth|virbr|vmnet|as\d|tap|tun|lo)/;
-  const out: { name: string; address: string }[] = [];
-  for (const [name, addrs] of Object.entries(networkInterfaces())) {
-    if (skip.test(name)) continue;
-    for (const a of addrs ?? []) {
-      if (a.family === "IPv4" && !a.internal) out.push({ name, address: a.address });
-    }
-  }
-  return out;
-}
 
 if (process.execPath.endsWith(".exe") && !process.execPath.endsWith("bun.exe")) {
   // Extract the embedded UI in-process (fflate) instead of shelling out to
@@ -181,9 +164,6 @@ const server = Bun.serve({
       return json({ ok: false, error: "unknown companion endpoint" }, 404);
     }
 
-    if (url.pathname === "/api/host/ips" && request.method === "GET") {
-      return json({ ok: true, ips: hostIps(), port: server.port });
-    }
 
     const rel =
       url.pathname === "/" ||

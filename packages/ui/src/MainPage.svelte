@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { state, activeProfile, sendSetTeamNames } from "@lib/state";
+	import { state, activeProfile, sendSetTeamNames, sendSelectProfile } from "@lib/state";
+	import { listProfiles, DEFAULT_PROFILE_ID } from "./profiles";
+	import BracketGrid from "./profiles/default/screens/playoff-bracket/BracketGrid.svelte";
 	import Avatar from "@lib/components/Avatar.svelte";
 	import { avatarState } from "@lib/avatarStore";
 	import type { TeamNameEntry } from "../../lib/types/audience_display";
@@ -93,22 +95,6 @@
 		}
 	}
 
-	// Host addresses so operators know what URL to open the UI at from another
-	// machine on the venue network.
-	let hostIps: { name: string; address: string }[] = [];
-	let hostPort = 3001;
-	async function loadHostIps() {
-		try {
-			const r = await (await fetch("/api/host/ips")).json();
-			if (r.ok) {
-				hostIps = r.ips;
-				hostPort = r.port;
-			}
-		} catch {
-			// non-fatal; the box may not expose this
-		}
-	}
-
 	async function refresh() {
 		loadingStatus = true;
 		try {
@@ -129,9 +115,15 @@
 
 	onMount(() => {
 		refresh();
-		loadHostIps();
 		loadRealAlliances();
 	});
+
+	const profiles = listProfiles();
+
+	// Bracket preview: the stock bracket laid out on a fixed 1100x620 stage and
+	// scaled down to the panel width, showing the unsaved real-alliance choice.
+	let previewWidth = 0;
+	$: previewScale = previewWidth ? previewWidth / 1100 : 0;
 
 	// #region Team names
 	// One row per team FMS has named (it fills in as previews, results and
@@ -290,124 +282,17 @@
 			</div>
 		</header>
 
-		{#if hostIps.length}
-			<section class="rounded-lg bg-gray-800 p-4 text-sm">
-				<span class="text-gray-400">Open this UI from another machine at:</span>
-				<ul class="mt-1 flex flex-col gap-1 font-mono text-gray-100">
-					{#each hostIps as ip (ip.address)}
-						<li>http://{ip.address}:{hostPort}<span class="text-gray-500"> ({ip.name})</span></li>
-					{/each}
-				</ul>
-			</section>
-		{/if}
-
-		<section class="rounded-lg bg-gray-800 p-6 space-y-4">
-			<div class="flex items-baseline justify-between gap-4">
-				<h2 class="text-lg font-semibold">Team Names</h2>
-				<span class="text-sm text-gray-400 truncate">{$activeProfile.name}</span>
-			</div>
-			<p class="text-sm text-gray-400">
-				{fmsCount ? `${fmsCount} teams from FMS` : "No teams from FMS yet"}
-			</p>
-			{#if teamRows.length}
-				<div class="hidden sm:grid grid-cols-[3rem_6rem_minmax(0,1fr)_9rem_2rem] items-center gap-3 text-sm text-gray-400">
-					<span></span>
-					<span>Team</span>
-					<span>Name</span>
-					<span>Designation</span>
-					<span></span>
-				</div>
-			{/if}
-			{#each teamRows as row, i}
-				<!-- Phone: designation drops to a second line under the name. -->
-				<div class="grid grid-cols-[2.5rem_4rem_minmax(0,1fr)_1.5rem] sm:grid-cols-[3rem_6rem_minmax(0,1fr)_9rem_2rem] items-center gap-x-2 sm:gap-x-3 gap-y-2">
-					{#key row.number}
-						<Avatar
-							avatar={fmsAvatar(row.number)}
-							team={Number(row.number) > 0 ? Number(row.number) : undefined}
-							alt="{row.number} avatar"
-							class="size-10 sm:size-12 rounded bg-gray-700 {eventAvatar(row.number) ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-gray-800' : ''}"
-						/>
-					{/key}
-					{#if row.manual}
-						<input
-							type="number"
-							min="1"
-							bind:value={row.number}
-							aria-label="Team number"
-							placeholder="Team"
-							class="min-w-0 rounded bg-gray-700 px-3 py-2 text-white tabular-nums"
-						/>
-					{:else}
-						<span class="sm:px-3 py-2 font-semibold tabular-nums">{row.number}</span>
-					{/if}
-					<input
-						type="text"
-						bind:value={row.name}
-						aria-label="Team name"
-						placeholder={row.fmsName ?? "Name"}
-						class="min-w-0 rounded px-3 py-2 text-white bg-gray-700 placeholder:text-gray-400"
-					/>
-					<input
-						type="text"
-						bind:value={row.designation}
-						aria-label="Designation"
-						placeholder="Designation"
-						class="min-w-0 rounded px-3 py-2 text-white bg-gray-700 placeholder:text-gray-500 col-start-2 col-span-2 row-start-2 sm:col-auto sm:col-span-1 sm:row-start-auto"
-					/>
-					<div class="justify-self-end">
-						{#if row.manual}
-							<button
-								class="text-gray-400 hover:text-white text-2xl leading-none px-1"
-								aria-label="Remove team {row.number}"
-								on:click={() => removeTeamRow(i)}>&times;</button
-							>
-						{/if}
-					</div>
-				</div>
-			{/each}
-			<div class="flex justify-end gap-3">
-				<button
-					class="rounded bg-gray-700 px-4 py-2 font-semibold text-white hover:bg-gray-600"
-					on:click={addTeamRow}>Add</button
-				>
-				<button
-					class="rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
-					on:click={saveTeamNames}
-					disabled={!teamNamesDirty}>Save</button
-				>
-			</div>
-		</section>
-
-		<section class="rounded-lg bg-gray-800 p-6 space-y-4">
-			<h2 class="text-lg font-semibold">Playoff Bracket</h2>
-			<p class="text-sm text-gray-400">
-				How many alliances are REAL. A small event runs the standard 8-alliance
-				bracket and backfills the empty seats with filler alliances (the seeds
-				beyond this number) whose matches are foregone 1-0 forfeits. The bracket
-				and alliance-selection screens then collapse those away and show only the
-				real matches. Leave at 8 for a normal event.
-			</p>
-			<div class="flex flex-wrap items-end gap-3">
-				<label class="flex flex-col gap-1 text-sm">
-					<span class="text-gray-400">Real alliances</span>
-					<select
-						bind:value={realAlliances}
-						on:change={() => (realAlliancesTouched = true)}
-						class="w-36 rounded bg-gray-700 px-3 py-2 text-white"
-					>
-						{#each [8, 7, 6, 5, 4, 3, 2] as n}
-							<option value={n}>{n}{n === 8 ? " (normal)" : ""}</option>
-						{/each}
-					</select>
-				</label>
-				<button
-					class="rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
-					on:click={saveRealAlliances}
-					disabled={busyAlliances}>{busyAlliances ? "Saving…" : "Save"}</button
-				>
-				{#if allianceMsg}<span class="text-sm text-gray-300">{allianceMsg}</span>{/if}
-			</div>
+		<section class="rounded-lg bg-gray-800 p-6 space-y-3">
+			<h2 class="text-lg font-semibold">Profile</h2>
+			<select
+				class="w-full rounded bg-gray-700 px-3 py-2 text-white"
+				value={$state.activeProfileId ?? DEFAULT_PROFILE_ID}
+				on:change={(e) => e.currentTarget.value && sendSelectProfile(e.currentTarget.value)}
+			>
+				{#each profiles as p}
+					<option value={p.id}>{p.name}</option>
+				{/each}
+			</select>
 		</section>
 
 		<section class="rounded-lg bg-gray-800 p-6 space-y-5">
@@ -530,5 +415,119 @@
 				{#if camMsg}<p class="text-sm text-gray-300">{camMsg}</p>{/if}
 			</div>
 		</section>
+
+		<section class="rounded-lg bg-gray-800 p-6 space-y-4">
+			<h2 class="text-lg font-semibold">Playoff Bracket</h2>
+			<div class="flex flex-wrap items-end gap-3">
+				<label class="flex flex-col gap-1 text-sm">
+					<span class="text-gray-400">Real alliances</span>
+					<select
+						bind:value={realAlliances}
+						on:change={() => (realAlliancesTouched = true)}
+						class="w-36 rounded bg-gray-700 px-3 py-2 text-white"
+					>
+						{#each [8, 7, 6, 5, 4, 3, 2] as n}
+							<option value={n}>{n}{n === 8 ? " (normal)" : ""}</option>
+						{/each}
+					</select>
+				</label>
+				<button
+					class="rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+					on:click={saveRealAlliances}
+					disabled={busyAlliances}>{busyAlliances ? "Saving…" : "Save"}</button
+				>
+				{#if allianceMsg}<span class="text-sm text-gray-300">{allianceMsg}</span>{/if}
+			</div>
+			{#if $state.bracket}
+				<div class="overflow-hidden rounded bg-background" bind:clientWidth={previewWidth} style="height: {620 * previewScale}px">
+					<div class="origin-top-left w-[1100px] h-[620px] p-4" style="transform: scale({previewScale})">
+						<BracketGrid bracket={$state.bracket} {realAlliances} showSeries={false} />
+					</div>
+				</div>
+			{/if}
+		</section>
+
+		<section class="rounded-lg bg-gray-800 p-6 space-y-4">
+			<div class="flex items-baseline justify-between gap-4">
+				<h2 class="text-lg font-semibold">Team Names</h2>
+				<span class="text-sm text-gray-400 truncate">{$activeProfile.name}</span>
+			</div>
+			<p class="text-sm text-gray-400">
+				{fmsCount ? `${fmsCount} teams from FMS` : "No teams from FMS yet"}
+			</p>
+			{#if teamRows.length}
+				<div class="hidden sm:grid grid-cols-[3rem_6rem_minmax(0,1fr)_9rem_2rem] items-center gap-3 text-sm text-gray-400">
+					<span></span>
+					<span>Team</span>
+					<span>Name</span>
+					<span>Designation</span>
+					<span></span>
+				</div>
+			{/if}
+			<div class="max-h-[30rem] overflow-y-auto space-y-3 pr-1">
+			{#each teamRows as row, i}
+				<!-- Phone: designation drops to a second line under the name. -->
+				<div class="grid grid-cols-[2.5rem_4rem_minmax(0,1fr)_1.5rem] sm:grid-cols-[3rem_6rem_minmax(0,1fr)_9rem_2rem] items-center gap-x-2 sm:gap-x-3 gap-y-2">
+					{#key row.number}
+						<Avatar
+							avatar={fmsAvatar(row.number)}
+							team={Number(row.number) > 0 ? Number(row.number) : undefined}
+							alt="{row.number} avatar"
+							class="size-10 sm:size-12 rounded bg-gray-700 {eventAvatar(row.number) ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-gray-800' : ''}"
+						/>
+					{/key}
+					{#if row.manual}
+						<input
+							type="number"
+							min="1"
+							bind:value={row.number}
+							aria-label="Team number"
+							placeholder="Team"
+							class="min-w-0 rounded bg-gray-700 px-3 py-2 text-white tabular-nums"
+						/>
+					{:else}
+						<span class="sm:px-3 py-2 font-semibold tabular-nums">{row.number}</span>
+					{/if}
+					<input
+						type="text"
+						bind:value={row.name}
+						aria-label="Team name"
+						placeholder={row.fmsName ?? "Name"}
+						class="min-w-0 rounded px-3 py-2 text-white bg-gray-700 placeholder:text-gray-400"
+					/>
+					<input
+						type="text"
+						bind:value={row.designation}
+						aria-label="Designation"
+						placeholder="Designation"
+						class="min-w-0 rounded px-3 py-2 text-white bg-gray-700 placeholder:text-gray-500 col-start-2 col-span-2 row-start-2 sm:col-auto sm:col-span-1 sm:row-start-auto"
+					/>
+					<div class="justify-self-end">
+						{#if row.manual}
+							<button
+								class="text-gray-400 hover:text-white text-2xl leading-none px-1"
+								aria-label="Remove team {row.number}"
+								on:click={() => removeTeamRow(i)}>&times;</button
+							>
+						{/if}
+					</div>
+				</div>
+			{/each}
+			</div>
+			<div class="flex justify-end gap-3">
+				<button
+					class="rounded bg-gray-700 px-4 py-2 font-semibold text-white hover:bg-gray-600"
+					on:click={addTeamRow}>Add</button
+				>
+				<button
+					class="rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+					on:click={saveTeamNames}
+					disabled={!teamNamesDirty}>Save</button
+				>
+			</div>
+		</section>
+
+
+
 	</div>
 </div>
