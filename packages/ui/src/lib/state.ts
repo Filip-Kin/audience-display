@@ -2,7 +2,7 @@ import { derived, get, writable } from "svelte/store";
 import type { AudienceDisplayState } from "lib";
 import { controlSound, playSound } from "./audio";
 import { settings, applyProfileDefaults } from "./settings";
-import type { Screen } from "../../../lib/types/audience_display";
+import type { Screen, TeamNameEntry } from "../../../lib/types/audience_display";
 import { applyTheme } from "./theme";
 import { displayEventName } from "./matchNamer";
 import { getProfile, DEFAULT_PROFILE_ID } from "../profiles";
@@ -28,6 +28,7 @@ const defaultState: AudienceDisplayState = {
   activeProfileId: null,
   fmsLogging: true,
   captionControl: false,
+  teamNames: [],
 };
 
 let socket: WebSocket | null = null;
@@ -249,4 +250,9 @@ export function sendSetFmsLogging(on: boolean): void {
 export function sendSetCaptionControl(on: boolean): void {
   if (!socket || socket.readyState !== WebSocket.OPEN) return;
   socket.send(JSON.stringify({ type: "setCaptionControl", on }));
+}
+
+export function sendSetTeamNames(teams: TeamNameEntry[]): void {
+  if (!socket || socket.readyState !== WebSocket.OPEN) return;
+  socket.send(JSON.stringify({ type: "setTeamNames", teams }));
 }

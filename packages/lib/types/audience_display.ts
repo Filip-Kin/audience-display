@@ -71,6 +71,14 @@ export type AllianceScore = {
   isHighScore: boolean; // from result endpoint scoreDetails.isHighScore
 };
 
+/** One team name override (settings.json `teamNames`, per profile), edited in Settings. */
+export type TeamNameEntry = {
+  number: number;
+  name?: string;
+  /** Alternate designation shown next to the team number, e.g. "1502B". */
+  designation?: string;
+};
+
 export type Team = {
   number: number;
   name: string;
@@ -78,7 +86,7 @@ export type Team = {
   rank?: number;
   avatar?: string;
   /** Optional alternate designation shown next to the number, e.g. "1502B" for a
-   *  team playing under a B-team label. Set per team in customADTeams.json. */
+   *  team playing under a B-team label. Set per team in Settings > Team names. */
   designation?: string;
   card: FMSMatchResultsTeam["cardCarryStatus"];
   /** Filler team in an FMS test match (level "None", described in FMS as
@@ -171,6 +179,8 @@ export type AudienceDisplayState = {
   /** Whether the server is auto-positioning the external live-captions overlay
    *  per the current screen (commands live-captions over its tRPC API). */
   captionControl: boolean;
+  /** The active profile's team name overrides, for the Settings dialog. */
+  teamNames: TeamNameEntry[];
   /** Running app version. Clients reload when it changes so a display picks up a
    *  new UI bundle after the exe auto-updates, without a manual refresh. */
   version: string;

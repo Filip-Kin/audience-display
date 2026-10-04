@@ -3,6 +3,7 @@ import { ProfileSelector } from "./profile_selector";
 import { checkForUpdate } from "./auto_update";
 import { initFmsLogger, setFmsLoggingEnabled } from "./fms_logger";
 import { initCaptionControl, setCaptionControlEnabled } from "./caption_control";
+import { initTeamNames, saveTeamNames } from "./team_name";
 import {
   initCompanion,
   getCompanionConfig,
@@ -77,6 +78,7 @@ if (process.execPath.endsWith(".exe") && !process.execPath.endsWith("bun.exe")) 
 
 const profileSelector = new ProfileSelector();
 console.log(`Active profile: ${profileSelector.get()}`);
+initTeamNames(() => profileSelector.get());
 
 const server = Bun.serve({
   async fetch(request, server) {
@@ -212,6 +214,11 @@ const server = Bun.serve({
         if (payload && payload.type === "setCaptionControl" && typeof payload.on === "boolean") {
           setCaptionControlEnabled(payload.on);
           audienceDisplay.broadcastState();
+          return;
+        }
+        if (payload && payload.type === "setTeamNames" && Array.isArray(payload.teams)) {
+          saveTeamNames(payload.teams);
+          audienceDisplay.reapplyTeamNames();
           return;
         }
       } catch {

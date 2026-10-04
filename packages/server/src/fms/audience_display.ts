@@ -31,7 +31,7 @@ import {
   type FMSRankingTeam,
 } from "lib/types/FMS_API_audience";
 import type { AllianceSelection, QualRanking, Team } from "lib/types/audience_display";
-import { getTeamName, getTeamDesignation } from "../team_name";
+import { getTeamName, getTeamDesignation, getFmsName, listTeamNames } from "../team_name";
 import { logRest, isFmsLoggingEnabled } from "../fms_logger";
 import { isCaptionControlEnabled, syncCaptionScreen } from "../caption_control";
 import { syncCompanion } from "../companion";
@@ -413,7 +413,8 @@ export class AudienceDisplayManager {
     this.fmsConnection = new FMSSignalRConnection(fmsUrl);
     this.profileSelector = profileSelector ?? null;
     if (this.profileSelector) {
-      this.profileSelector.onChange(() => this.broadcastState());
+      // Team name overrides are per profile, so a switch re-runs them (and broadcasts).
+      this.profileSelector.onChange(() => this.reapplyTeamNames());
     }
 
     const promises: Promise<void>[] = [];
@@ -893,6 +894,7 @@ export class AudienceDisplayManager {
           activeProfileId: this.profileSelector?.get() ?? null,
           fmsLogging: isFmsLoggingEnabled(),
           captionControl: isCaptionControlEnabled(),
+          teamNames: listTeamNames(),
           version: pkg.version,
         },
       })
@@ -910,6 +912,25 @@ export class AudienceDisplayManager {
       match: this.match,
       results: this.results,
     });
+  }
+
+  /** Re-run the team name overrides over everything already on screen, so an
+   *  edit in Settings shows now instead of at the next FMS fetch. */
+  reapplyTeamNames() {
+    const apply = (t: Team, kind: "long" | "short") => {
+      t.name = getTeamName(t.number, getFmsName(t.number, kind) ?? t.name, kind);
+      if (kind === "long") t.designation = getTeamDesignation(t.number);
+    };
+    for (const m of [this.match, this.results]) {
+      if (!m) continue;
+      m.teams.red.forEach((t) => apply(t, "long"));
+      m.teams.blue.forEach((t) => apply(t, "long"));
+    }
+    for (const a of this.alliances) a.teams.forEach((t) => apply(t, "short"));
+    for (const r of this.rankData) {
+      r.teamName = getTeamName(r.teamNumber, getFmsName(r.teamNumber) ?? r.teamName);
+    }
+    this.broadcastState();
   }
 
   selectProfile(id: string) {
@@ -1584,7 +1605,7 @@ export class AudienceDisplayManager {
       if (alliance.captainTeamNumber) {
         teams.push({
           number: alliance.captainTeamNumber,
-          name: getTeamName(alliance.captainTeamNumber, alliance.captainTeamNameShort),
+          name: getTeamName(alliance.captainTeamNumber, alliance.captainTeamNameShort, "short"),
           avatar: alliance.captainAvatar,
           rank: 0,
           card: alliance.cardEffectiveStatus,
@@ -1598,7 +1619,7 @@ export class AudienceDisplayManager {
         if (!num) return;
         teams.push({
           number: num,
-          name: getTeamName(num, nameShort),
+          name: getTeamName(num, nameShort, "short"),
           avatar,
           rank: 0,
           card: alliance.cardEffectiveStatus,
