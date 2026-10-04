@@ -40,14 +40,6 @@ export type ProfileTheme = {
    * when a dark accent reads with poor contrast on the dark bars.
    */
   matchLabel?: string;
-  /**
-   * Fill of the Winner / Tie / event high score banners on the score reveal.
-   * Defaults to the stock gold. Pair it with `bannerInk`: a light brand banner
-   * needs dark ink, and the default ink is white.
-   */
-  bannerAccent?: string;
-  /** Text and icon colour on `bannerAccent`. Defaults to white. */
-  bannerInk?: string;
 };
 
 export type SponsorLogo = {

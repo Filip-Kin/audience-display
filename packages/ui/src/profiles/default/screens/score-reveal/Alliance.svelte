@@ -59,7 +59,7 @@
 	// Neutral gray for every advancement/elimination label so nothing clashes with the rest of the screen.
 	$: advancementClass = advancement === null ? "" : "bg-[oklch(0.40_0.01_255)] text-white";
 
-	const bannerStyle = "h-16 flex flex-row bg-bannerAccent gap-4 items-center text-bannerInk text-5xl font-bold justify-center";
+	const bannerStyle = "h-16 flex flex-row bg-bannerAccent gap-4 items-center text-white text-5xl font-bold justify-center";
 </script>
 
 {#if results && ready}
@@ -70,15 +70,15 @@
 		<div class="flex flex-col gap-4">
 			{#if isWinner}
 				<div class={bannerStyle}>
-					<span class="size-16 bg-current" style="mask: url({Trophy}) center / contain no-repeat; -webkit-mask: url({Trophy}) center / contain no-repeat;" aria-hidden="true"></span>
+					<img src={Trophy} alt="Trophy" class="size-16" />
 					<span class="align-middle">Winner</span>
-					<span class="size-16 bg-current" style="mask: url({Trophy}) center / contain no-repeat; -webkit-mask: url({Trophy}) center / contain no-repeat;" aria-hidden="true"></span>
+					<img src={Trophy} alt="Trophy" class="size-16" />
 				</div>
 			{:else if isTie}
 				<div class={bannerStyle}>
-					<span class="size-16 bg-current" style="mask: url({Trophy}) center / contain no-repeat; -webkit-mask: url({Trophy}) center / contain no-repeat;" aria-hidden="true"></span>
+					<img src={Trophy} alt="Trophy" class="size-16" />
 					<span class="align-middle">Tie!</span>
-					<span class="size-16 bg-current" style="mask: url({Trophy}) center / contain no-repeat; -webkit-mask: url({Trophy}) center / contain no-repeat;" aria-hidden="true"></span>
+					<img src={Trophy} alt="Trophy" class="size-16" />
 				</div>
 			{:else}
 				<div class="h-16"></div>
