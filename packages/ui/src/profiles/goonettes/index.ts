@@ -46,6 +46,8 @@ const profile: ProfileDefinition = {
   eventInfoUrl: "https://www.goonettesinvitational.org/",
   theme: {
     ...defaultProfile.theme,
+    // Default cards on the chrome screens match the Goonettes small radius.
+    radius: "16px",
     // Shutter halves. Shutter.svelte defaults to secondary LEFT, primary RIGHT,
     // but MatchPreview.svelte:56 overrides both by alliance side
     // (leftColor = leftIsRed ? primary : secondary), so on match preview the

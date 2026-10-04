@@ -51,7 +51,7 @@
 		team={team.number}
 		placeholder={team.placeholder}
 		alt="Team {team.number}"
-		class="rounded-[6px] {alliance === 'red' ? 'bg-red-900' : 'bg-blue-900'} p-1"
+		class="rounded-[var(--radius)] {alliance === 'red' ? 'bg-red-900' : 'bg-blue-900'} p-1"
 		style="width: {avatarSize}px; order: {invert ? 3 : 1};"
 	/>
 

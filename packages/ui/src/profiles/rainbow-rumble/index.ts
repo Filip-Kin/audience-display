@@ -25,6 +25,8 @@ const profile: ProfileDefinition = {
 	theme: {
 		// Same alliance + surface palette as default; the rainbow identity comes
 		// from the per-screen accents in rr.css, not the theme tokens.
+		// The shared cards RR reuses kept 4px corners before radius was a token.
+		radius: "4px",
 		primary: "oklch(0.42 0.18 25)",
 		secondary: "oklch(0.36 0.20 258)",
 		redAlliance: "oklch(0.60 0.235 25)",

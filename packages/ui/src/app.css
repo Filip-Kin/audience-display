@@ -53,6 +53,8 @@
     /* Banner accent — gold, darker than --accentWarn. Used for the
        Winner / Tie / High Score callouts on the score reveal screen. */
     --bannerAccent: oklch(0.83 0.19 85.6);
+    /* Card corner radius, one value per profile (theme.radius). */
+    --radius: 8px;
 
     /* Rainbow stripe — preserved tradition. */
     --rainbow: linear-gradient(90deg,

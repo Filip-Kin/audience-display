@@ -252,7 +252,7 @@
 			<div class="shrink-0" in:fade={{ duration: 200 }} out:fade={{ duration: 200 }}>
 				{#if hasSponsors}
 					<h2 class="text-3xl text-center font-bold mb-3" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Event Sponsors</h2>
-					<div class="h-52 flex items-center justify-center rounded-2xl bg-[oklch(0_0_0/0.35)] p-6">
+					<div class="h-52 flex items-center justify-center rounded-[var(--radius)] bg-[oklch(0_0_0/0.35)] p-6">
 						<SponsorCarousel />
 					</div>
 				{:else}
@@ -271,7 +271,7 @@
 			<div in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>
 				<!-- Match name and score totals share ONE card: the black header rounds
 				     the top, the blue/red halves round the bottom. No gap between them. -->
-				<div class="overflow-hidden rounded-lg shadow-[0_12px_40px_oklch(0_0_0/0.6)]">
+				<div class="overflow-hidden rounded-[var(--radius)] shadow-[0_12px_40px_oklch(0_0_0/0.6)]">
 					<div class="bg-black px-6 pt-4 pb-3 text-center">
 						<div class="text-[26px] text-white font-normal leading-tight">{eventLabel}</div>
 						<!-- Narrow centre card: one segment per line. -->
@@ -319,7 +319,7 @@
 					{#if hasSponsors}
 						<h2 class="text-3xl text-center font-bold mb-3" in:fly={{ y: -50, duration: 200 }} out:fade={{ duration: 100 }}>Livestream Partner</h2>
 					{/if}
-					<div class="h-52 flex items-center justify-center rounded-2xl {hasSponsors ? 'bg-[oklch(0_0_0/0.35)] p-6' : ''}">
+					<div class="h-52 flex items-center justify-center rounded-[var(--radius)] {hasSponsors ? 'bg-[oklch(0_0_0/0.35)] p-6' : ''}">
 						<Logo type="livestream" alt="livestream partner" class="max-h-full max-w-full mx-auto self-center object-contain" />
 					</div>
 				</div>

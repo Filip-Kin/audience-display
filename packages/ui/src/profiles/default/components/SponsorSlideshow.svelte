@@ -41,7 +41,7 @@
 			<div class="w-full h-full flex items-center justify-center p-8 pb-10">
 				{#if slide.sponsor}
 					{#if slide.sponsor.light}
-						<div class="w-full h-full bg-white rounded-2xl p-6 flex items-center justify-center">
+						<div class="w-full h-full bg-white rounded-[var(--radius)] p-6 flex items-center justify-center">
 							<img src={slide.sponsor.src} alt="Sponsor" class="w-full h-full object-contain" />
 						</div>
 					{:else}
@@ -58,7 +58,7 @@
 			</div>
 		{:else if slide.kind === "feedback"}
 			<div class="w-full h-full flex flex-col items-center justify-center gap-4 p-8 pb-10">
-				<div class="bg-white rounded-2xl p-5 flex items-center justify-center min-h-0 flex-1 aspect-square">
+				<div class="bg-white rounded-[var(--radius)] p-5 flex items-center justify-center min-h-0 flex-1 aspect-square">
 					<img src={slide.src} alt="Event feedback QR code" class="h-full w-full object-contain" />
 				</div>
 				<span class="uppercase tracking-[0.12em] font-extrabold text-3xl text-white">{slide.label}</span>

@@ -54,7 +54,7 @@
 
 <div
 	bind:this={rootEl}
-	class="bg-black rounded px-12 py-4 text-center"
+	class="bg-black rounded-[var(--radius)] px-12 py-4 text-center"
 	class:w-full={fullWidth}
 	style={matchLabelMaxWidth ? "visibility: hidden;" : ""}
 >

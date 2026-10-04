@@ -85,7 +85,7 @@
 			{/if}
 
 			{#if advancement}
-				<div class="rounded shadow-lg text-center text-2xl font-bold uppercase tracking-[0.1em] py-2.5 px-3 {advancementClass}">
+				<div class="rounded-[var(--radius)] shadow-lg text-center text-2xl font-bold uppercase tracking-[0.1em] py-2.5 px-3 {advancementClass}">
 					{advancementText}
 				</div>
 			{/if}
@@ -95,11 +95,11 @@
 			<!-- Series wins card (finals only) sits on the INSIDE edge: name-then-
 			     card on the left panel, card-then-name on the right. -->
 			<div class="flex flex-row gap-3" class:flex-row-reverse={!leftPanel}>
-				<div class="flex-1 flex flex-row shadow-lg rounded {alliance === 'red' ? 'bg-redAlliance' : 'bg-blueAlliance'} text-white p-4 gap-4 align-middle text-5xl font-bold justify-center">
+				<div class="flex-1 flex flex-row shadow-lg rounded-[var(--radius)] {alliance === 'red' ? 'bg-redAlliance' : 'bg-blueAlliance'} text-white p-4 gap-4 align-middle text-5xl font-bold justify-center">
 					{allianceName}
 				</div>
 				{#if seriesWins !== undefined}
-					<div class="self-stretch flex flex-col items-center justify-center shadow-lg rounded px-10 {alliance === 'red' ? 'bg-redAlliance' : 'bg-blueAlliance'} text-white">
+					<div class="self-stretch flex flex-col items-center justify-center shadow-lg rounded-[var(--radius)] px-10 {alliance === 'red' ? 'bg-redAlliance' : 'bg-blueAlliance'} text-white">
 						<span class="uppercase tracking-[0.14em] text-[15px] leading-none opacity-90">Wins</span>
 						<span class="text-4xl font-bold leading-none tabular-nums pt-1">{seriesWins}</span>
 					</div>

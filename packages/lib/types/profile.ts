@@ -40,6 +40,12 @@ export type ProfileTheme = {
    * when a dark accent reads with poor contrast on the dark bars.
    */
   matchLabel?: string;
+  /**
+   * Corner radius for every card on every screen (team cards, the match and
+   * score cards, sponsor cards, alliance banners). One value per profile so the
+   * corners agree. Defaults to 8px; "0px" gives sharp corners.
+   */
+  radius?: string;
 };
 
 export type SponsorLogo = {

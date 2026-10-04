@@ -19,7 +19,7 @@
 
 {#if ready}
 	<div
-		class="flex flex-col rounded overflow-hidden shadow-[0_6px_20px_oklch(0_0_0/0.55)]"
+		class="flex flex-col rounded-[var(--radius)] overflow-hidden shadow-[0_6px_20px_oklch(0_0_0/0.55)]"
 		in:fly|local={{ x: 100 * (invert ? -1 : 1), duration: 500, delay: 150 * index + 150 }}
 		out:fly|local={{ x: 400 * (invert ? -1 : 1), duration: 100 }}
 	>
@@ -44,7 +44,7 @@
 				<span>{team.name}</span>
 				{#if team.card && team.card !== "None"}
 					<span
-						class="w-full h-8 rounded border border-gray-800 flex items-center justify-center uppercase text-[15px] font-black tracking-[0.06em] {team.card === 'Red'
+						class="w-full h-8 rounded-[var(--radius)] border border-gray-800 flex items-center justify-center uppercase text-[15px] font-black tracking-[0.06em] {team.card === 'Red'
 							? 'bg-red-600 text-white'
 							: 'bg-yellow-400 text-black'}">CARD</span
 					>

@@ -160,7 +160,7 @@
 													>
 														{team.rank}
 													</div>
-													<div class="size-[72px] flex items-center justify-center bg-[oklch(0.35_0_0)] p-1 rounded-lg overflow-hidden">
+													<div class="size-[72px] flex items-center justify-center bg-[oklch(0.35_0_0)] p-1 rounded-[var(--radius)] overflow-hidden">
 														<Avatar
 															avatar={team.avatar || undefined}
 															team={team.teamNumber}

@@ -12,6 +12,7 @@ const VAR_MAP: Record<keyof ProfileTheme, string> = {
   text: "--text",
   scoreBarAccent: "--scoreBarAccent",
   matchLabel: "--matchLabel",
+  radius: "--radius",
 };
 
 /** oklch(L C H) or oklch(L C H / A) -> linear-light sRGB, for a contrast check. */

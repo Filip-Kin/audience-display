@@ -13,7 +13,7 @@
 		<div class="w-full h-full flex items-center justify-center">
 			{#if slide.light}
 				<!-- Light logos get a white card so they read on a dark background. -->
-				<div class="bg-white rounded-2xl px-8 py-5 flex items-center justify-center">
+				<div class="bg-white rounded-[var(--radius)] px-8 py-5 flex items-center justify-center">
 					<img src={slide.src} class="max-h-[130px] max-w-full object-contain" alt="sponsor" />
 				</div>
 			{:else}
