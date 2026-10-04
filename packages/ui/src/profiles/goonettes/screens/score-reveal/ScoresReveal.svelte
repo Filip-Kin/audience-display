@@ -272,7 +272,7 @@
 				<!-- Match name and score totals share ONE card: the black header rounds
 				     the top, the blue/red halves round the bottom. No gap between them. -->
 				<div class="overflow-hidden rounded-[var(--goon-r)] border-solid border-white border-[length:var(--goon-rim)] shadow-[0_12px_40px_oklch(0_0_0/0.6)]">
-					<div class="px-6 pt-3 pb-3 text-center" style="background: radial-gradient(120% 140% at 50% 0%, oklch(0.30 0.132 318), oklch(0.13 0.035 305) 70%);">
+					<div class="px-6 pt-3 pb-3 text-center" style="background: var(--goon-card);">
 						<div class="flex items-baseline justify-center gap-2 leading-none whitespace-nowrap">
 							<span class="goon-display uppercase text-[26px] text-white tracking-[0.03em]">Goonettes</span>
 							<span class="goon-brush text-[28px] text-accent">invitational</span>

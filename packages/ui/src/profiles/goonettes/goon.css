@@ -63,7 +63,13 @@
 	--goon-ink: oklch(0.25 0.084 302); /* #2A1543 button ink */
 	--goon-plum: oklch(0.42 0.177 322); /* #771A85 section purple */
 	--goon-grape: oklch(0.30 0.132 318); /* #470A57 "Goonettes" wordmark */
-	--goon-night: oklch(0.16 0.05 305); /* panel base, deeper than the shutter */
+	--goon-night: oklch(0.16 0.05 305); /* panel base */
+	/* Dark card fill used behind white/lavender text (match title cards, timer,
+	   top bar). Cards stay dark on any shutter, so these are NOT the shutter:
+	   the shutter is theme.primary / theme.secondary in index.ts only. */
+	--goon-card-hi: oklch(0.30 0.132 318);
+	--goon-card-lo: oklch(0.13 0.035 305);
+	--goon-card: radial-gradient(120% 140% at 50% 0%, var(--goon-card-hi), var(--goon-card-lo) 70%);
 	--goon-rim: 4px; /* white rim on pills and cards, like the site's buttons */
 	--goon-r: 30px; /* card radius */
 	--goon-r-sm: 16px;
@@ -140,7 +146,7 @@
 	border-radius: 999px;
 	background:
 		radial-gradient(120% 220% at 0% 50%, oklch(0.42 0.177 322 / 0.95), transparent 60%),
-		linear-gradient(90deg, var(--goon-grape), var(--goon-night));
+		linear-gradient(90deg, var(--goon-card-hi), var(--goon-night));
 	box-shadow: 0 10px 30px oklch(0 0 0 / 0.5);
 }
 /* Event-name line above the title: brush script in lavender, like the site's
@@ -186,11 +192,12 @@
 .goon-chrome .grid.bg-white {
 	border-radius: 14px;
 }
-/* Root background: the event's purple glow behind the stock dark field. */
+/* Root background: a glow in the shutter colours (theme) behind the stock
+   dark field, so the chrome screens follow whatever shutter the theme sets. */
 .goon-chrome .fixed.inset-0.bg-background {
 	background:
-		radial-gradient(70% 60% at 100% 100%, oklch(0.42 0.177 322 / 0.35), transparent 70%),
-		radial-gradient(60% 50% at 0% 100%, oklch(0.30 0.132 300 / 0.45), transparent 70%),
+		radial-gradient(70% 60% at 100% 100%, color-mix(in oklab, var(--primary), transparent 55%), transparent 70%),
+		radial-gradient(60% 50% at 0% 100%, color-mix(in oklab, var(--secondary), transparent 45%), transparent 70%),
 		var(--background);
 }
 /* #endregion */

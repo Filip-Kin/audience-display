@@ -10,7 +10,7 @@
      lavender. Sized by its content; no measuring. -->
 <div
 	class="rounded-[var(--goon-r)] border-solid border-white border-[length:var(--goon-rim)] px-12 pt-3 pb-4 text-center shadow-[0_12px_36px_oklch(0_0_0/0.55)]"
-	style="background: radial-gradient(120% 140% at 50% 0%, oklch(0.30 0.132 318), oklch(0.13 0.035 305) 70%);"
+	style="background: var(--goon-card);"
 >
 	<div class="flex items-baseline justify-center gap-2 leading-none whitespace-nowrap">
 		<span class="goon-display uppercase text-[30px] text-white tracking-[0.03em]">Goonettes</span>

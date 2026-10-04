@@ -66,7 +66,7 @@
 	class="relative z-10 w-72 flex flex-col items-center justify-center border-solid border-white border-y-[length:var(--goon-rim)] {underReview
 		? 'bg-accentWarn gap-1.5 px-4 py-2'
 		: 'px-5 pt-1.5 pb-3'}"
-	style="{underReview ? '' : 'background: radial-gradient(120% 90% at 50% 0%, oklch(0.30 0.12 318), oklch(0.12 0.03 305) 70%);'} box-shadow: inset 6px 0 0 var(--scoreBarAccent), inset -6px 0 0 var(--scoreBarAccent);"
+	style="{underReview ? '' : 'background: radial-gradient(120% 90% at 50% 0%, var(--goon-card-hi), var(--goon-card-lo) 70%);'} box-shadow: inset 6px 0 0 var(--scoreBarAccent), inset -6px 0 0 var(--scoreBarAccent);"
 >
 	{#if underReview}
 		<!-- Official-FMS style: the whole timer square becomes the review card,
