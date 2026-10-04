@@ -53,7 +53,7 @@ const profile: ProfileDefinition = {
     // round rather than relying on a fixed left/right assignment.
     // Site section purple #771A85 and button ink #2A1543, darkened until the
     // alliance colours clear the 3:1 shutter rule applyTheme checks
-    // (3.16:1 vs redAlliance, 3.12:1 vs blueAlliance).
+    // (3.03:1 vs redAlliance, 3.12:1 vs blueAlliance).
     primary: "oklch(0.31 0.15 322)",
     secondary: "oklch(0.24 0.12 298)",
     // Panels: stock lightness, hue moved off blue-grey into the brand purple
@@ -65,10 +65,13 @@ const profile: ProfileDefinition = {
     // match label, hub arrows, confetti.
     accent: "oklch(0.80 0.13 303)",
     // Drawn straight on the red/blue halves (fuel-gauge arc, bug dividers):
-    // pale lavender clears 3:1 on both (3.24 red, 3.96 blue).
+    // pale lavender clears 3:1 on both (3.38 red, 3.96 blue).
     scoreBarAccent: "oklch(0.90 0.06 303)",
-    // redAlliance / blueAlliance / accentWarn / text: inherited unchanged.
-    // accentWarn stays the FRC attention yellow (Match Under Review).
+    // Stock red is L 0.60, which puts white text at 4.44:1. One hundredth
+    // darker clears 4.5:1 and still clears 3:1 over the primary shutter.
+    redAlliance: "oklch(0.59 0.235 25)",
+    // blueAlliance / accentWarn / text: inherited unchanged. accentWarn stays
+    // the FRC attention yellow (Match Under Review).
   },
   assets: {
     // Square-padded Goonettes mascot. MUST be square: ScoresReady renders the

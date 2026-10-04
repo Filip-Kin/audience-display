@@ -92,12 +92,17 @@
    width instead. */
 .goon-digit {
 	display: inline-block;
-	width: 0.6em;
+	width: 0.58em;
 	text-align: center;
 }
 .goon-digit-sep {
 	display: inline-block;
 	width: 0.28em;
+	text-align: center;
+}
+.goon-digit-slash {
+	display: inline-block;
+	width: 0.42em;
 	text-align: center;
 }
 
@@ -117,11 +122,6 @@
 @keyframes goon-arrow {
 	0%, 100% { opacity: 1; transform: scale(1); }
 	50% { opacity: 0.15; transform: scale(0.78); }
-}
-/* Mascot bob on the waiting-for-scores screen. */
-@keyframes goon-bob {
-	0%, 100% { transform: translateY(0) rotate(-2deg); }
-	50% { transform: translateY(-14px) rotate(2deg); }
 }
 
 /* #region Reused default chrome screens (rankings, timeout, bracket, schedule,
@@ -207,3 +207,4 @@
 	letter-spacing: 0.16em;
 	font-size: 24px;
 }
+
