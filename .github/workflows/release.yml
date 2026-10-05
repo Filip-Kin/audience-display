@@ -47,6 +47,20 @@ jobs:
       - name: Version the exe (auto-updater downloads by versioned name)
         run: mv audience-display.exe "audience-display-${GITHUB_REF_NAME#v}.exe"
 
+      # Windows version info + manifest (winres/winres.json). Bun only takes
+      # its --windows-* metadata flags when compiling on Windows, so the
+      # resources are patched into the cross-compiled exe instead; Bun's
+      # embedded payload is untouched. An unsigned exe that identifies as
+      # "Bun by Oven" is what Defender's ML detection flags.
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Windows resources
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          go install github.com/tc-hib/go-winres@v0.3.3
+          "$(go env GOPATH)/bin/go-winres" patch --no-backup --product-version "$v" --file-version "$v" "audience-display-$v.exe"
+
       - name: Create GitHub release with exe
         uses: softprops/action-gh-release@v2
         with:
