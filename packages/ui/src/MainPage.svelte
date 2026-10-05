@@ -120,10 +120,13 @@
 
 	const profiles = listProfiles();
 
-	// Bracket preview: the stock bracket laid out on a fixed 1100x620 stage and
-	// scaled down to the panel width, showing the unsaved real-alliance choice.
+	// Bracket preview: the stock bracket laid out at its real size, the
+	// 1808x816 area the Playoff Bracket screen gives it on the 1920x1080 canvas,
+	// then scaled down to the panel width. Shows the unsaved real-alliance choice.
+	const STAGE_W = 1808;
+	const STAGE_H = 816;
 	let previewWidth = 0;
-	$: previewScale = previewWidth ? previewWidth / 1100 : 0;
+	$: previewScale = previewWidth ? previewWidth / STAGE_W : 0;
 
 	// #region Team names
 	// One row per team FMS has named (it fills in as previews, results and
@@ -439,8 +442,8 @@
 				{#if allianceMsg}<span class="text-sm text-gray-300">{allianceMsg}</span>{/if}
 			</div>
 			{#if $state.bracket}
-				<div class="overflow-hidden rounded bg-background" bind:clientWidth={previewWidth} style="height: {620 * previewScale}px">
-					<div class="origin-top-left w-[1100px] h-[620px] p-4" style="transform: scale({previewScale})">
+				<div class="overflow-hidden rounded bg-background" bind:clientWidth={previewWidth} style="height: {STAGE_H * previewScale}px">
+					<div class="origin-top-left" style="width: {STAGE_W}px; height: {STAGE_H}px; transform: scale({previewScale})">
 						<BracketGrid bracket={$state.bracket} {realAlliances} showSeries={false} />
 					</div>
 				</div>
