@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, tick } from "svelte";
 	import { state, activeProfile, sendSetTeamNames, sendSelectProfile } from "@lib/state";
 	import { listProfiles, DEFAULT_PROFILE_ID } from "./profiles";
 	import BracketGrid from "./profiles/default/screens/playoff-bracket/BracketGrid.svelte";
@@ -215,8 +215,15 @@
 		);
 	}
 
-	function addTeamRow() {
+	let teamList: HTMLDivElement;
+	async function addTeamRow() {
 		teamRows = [...teamRows, { number: "", fmsName: null, name: "", designation: "", manual: true }];
+		// The new row lands at the bottom of the scrolling list: bring it into
+		// view and put the cursor in its number field.
+		await tick();
+		teamList?.scrollTo({ top: teamList.scrollHeight, behavior: "smooth" });
+		const inputs = teamList?.querySelectorAll<HTMLInputElement>('input[aria-label="Team number"]');
+		inputs?.[inputs.length - 1]?.focus({ preventScroll: true });
 	}
 
 	function removeTeamRow(i: number) {
@@ -455,9 +462,15 @@
 				<h2 class="text-lg font-semibold">Team Names</h2>
 				<span class="text-sm text-gray-400 truncate">{$activeProfile.name}</span>
 			</div>
-			<p class="text-sm text-gray-400">
-				{fmsCount ? `${fmsCount} teams from FMS` : "No teams from FMS yet"}
-			</p>
+			<div class="flex items-center justify-between gap-4">
+				<p class="text-sm text-gray-400">
+					{fmsCount ? `${fmsCount} teams from FMS` : "No teams from FMS yet"}
+				</p>
+				<button
+					class="rounded bg-gray-700 px-4 py-2 font-semibold text-white hover:bg-gray-600"
+					on:click={addTeamRow}>Add team</button
+				>
+			</div>
 			{#if teamRows.length}
 				<div class="hidden sm:grid grid-cols-[3rem_6rem_minmax(0,1fr)_9rem_2rem] items-center gap-3 text-sm text-gray-400">
 					<span></span>
@@ -467,7 +480,7 @@
 					<span></span>
 				</div>
 			{/if}
-			<div class="max-h-[30rem] overflow-y-auto space-y-3 pr-1">
+			<div class="max-h-[30rem] overflow-y-auto space-y-3 p-2" bind:this={teamList}>
 			{#each teamRows as row, i}
 				<!-- Phone: designation drops to a second line under the name. -->
 				<div class="grid grid-cols-[2.5rem_4rem_minmax(0,1fr)_1.5rem] sm:grid-cols-[3rem_6rem_minmax(0,1fr)_9rem_2rem] items-center gap-x-2 sm:gap-x-3 gap-y-2">
@@ -518,10 +531,6 @@
 			{/each}
 			</div>
 			<div class="flex justify-end gap-3">
-				<button
-					class="rounded bg-gray-700 px-4 py-2 font-semibold text-white hover:bg-gray-600"
-					on:click={addTeamRow}>Add</button
-				>
 				<button
 					class="rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
 					on:click={saveTeamNames}
