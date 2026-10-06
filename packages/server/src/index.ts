@@ -15,6 +15,9 @@ import {
 import { initVmix, vmixStatus, ensureFmsInput, setupAllianceCamera, setVmixUrl } from "./vmix";
 import { initPlayoffConfig, getRealAlliances, setRealAlliances } from "./playoff_config";
 import { initLogSync, syncFmsLog } from "./log_sync";
+import { AvEventHub, type ProfileState } from "./av_events";
+import { PROFILE_INDEX, profileName } from "lib";
+import pkg from "../../../package.json";
 import { existsSync } from "fs";
 import { join } from "path";
 import zipFile from "../../../ui-dist.zip" with { type: "file" };
@@ -49,19 +52,62 @@ const json = (body: unknown, status = 200) =>
     headers: { "content-type": "application/json" },
   });
 
+// Problems that last (no UI bundle, unknown profile). Sent as `error` events to
+// each /api/events client right after its hello, since they usually happen
+// before anyone is listening.
+const standingErrors = new Map<string, string>();
+
 if (process.execPath.endsWith(".exe") && !process.execPath.endsWith("bun.exe")) {
   // Extract the embedded UI in-process (fflate) instead of shelling out to
   // `unzip`, which Windows does not ship.
-  const entries = unzipSync(new Uint8Array(await file(zipFile).arrayBuffer()));
-  for (const [name, data] of Object.entries(entries)) {
-    if (name.endsWith("/")) continue;
-    await Bun.write(join("./.temp", name), data);
+  try {
+    const entries = unzipSync(new Uint8Array(await file(zipFile).arrayBuffer()));
+    for (const [name, data] of Object.entries(entries)) {
+      if (name.endsWith("/")) continue;
+      await Bun.write(join("./.temp", name), data);
+    }
+  } catch (err) {
+    console.log("UI bundle extraction failed:", err);
+    standingErrors.set("ui", "UI bundle extraction failed");
   }
+}
+if (!standingErrors.has("ui") && !existsSync(join("./.temp/dist", "index.html"))) {
+  standingErrors.set("ui", "UI bundle missing");
 }
 
 const profileSelector = new ProfileSelector();
 console.log(`Active profile: ${profileSelector.get()}`);
 initTeamNames(() => profileSelector.get());
+
+const profileState = (): ProfileState => {
+  const { id, source } = profileSelector.getSelection();
+  return { id, name: profileName(id), source };
+};
+const checkProfileKnown = (id: string): string | null => {
+  if (id in PROFILE_INDEX) {
+    standingErrors.delete("profile");
+    return null;
+  }
+  const message = `Unknown profile: ${id}`;
+  standingErrors.set("profile", message);
+  return message;
+};
+checkProfileKnown(profileSelector.get());
+
+// Optional event channel for the FIM AV Assistant (GET /api/events).
+const avEvents = new AvEventHub(
+  pkg.version,
+  profileState(),
+  { connected: false, eventCode: null },
+  { enabled: getCompanionConfig().enabled },
+  () => [...standingErrors.values()]
+);
+profileSelector.onChange((id) => {
+  avEvents.setProfile(profileState());
+  const problem = checkProfileKnown(id);
+  if (problem) avEvents.error(problem);
+});
+profileSelector.onError((message) => avEvents.error(message));
 
 const server = Bun.serve({
   async fetch(request, server) {
@@ -70,6 +116,23 @@ const server = Bun.serve({
       const success = server.upgrade(request);
       if (success) return undefined;
       return new Response("Failed to upgrade connection", { status: 400 });
+    }
+
+    if (url.pathname === "/api/events" && request.method === "GET") {
+      return avEvents.handle(request, server);
+    }
+
+    // AV Assistant knows the event code: same selection rule as an FMS code.
+    if (url.pathname === "/api/control/event" && request.method === "POST") {
+      const body = (await request.json().catch(() => null)) as { eventCode?: unknown } | null;
+      const code = typeof body?.eventCode === "string" ? body.eventCode.trim() : "";
+      if (!code) return json({ ok: false, error: "eventCode required" }, 400);
+      try {
+        profileSelector.applyEventCode(code);
+        return json({ ok: true });
+      } catch (e) {
+        return json({ ok: false, error: String(e) }, 500);
+      }
     }
 
     // vMix automation (landing page). All fail soft with a JSON error so the UI
@@ -140,7 +203,9 @@ const server = Bun.serve({
         }
         if (url.pathname === "/api/companion/config" && request.method === "POST") {
           const body = await request.json().catch(() => ({}));
-          return json({ ok: true, config: setCompanionConfig(body) });
+          const config = setCompanionConfig(body);
+          avEvents.setCompanion({ enabled: config.enabled });
+          return json({ ok: true, config });
         }
         if (url.pathname === "/api/companion/test" && request.method === "POST") {
           const body = (await request.json().catch(() => ({}))) as {
@@ -226,6 +291,12 @@ const audienceDisplay = new AudienceDisplayManager(
   RESOLVED_FMS_URL,
   profileSelector
 );
+let fmsWasConnected = false;
+audienceDisplay.onFmsStatus((status) => {
+  avEvents.setFms(status);
+  if (fmsWasConnected && !status.connected) avEvents.error("FMS connection lost");
+  fmsWasConnected = status.connected;
+});
 
 // State heartbeat: FMS events can go quiet for minutes between matches, and
 // displays use this cadence to detect half-dead sockets (their watchdog forces

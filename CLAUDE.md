@@ -32,6 +32,15 @@ Profiles live in `packages/ui/src/profiles/`. Each profile is a `ProfileDefiniti
 (`profiles/types.ts`): `id`, `name`, optional `eventName`, `theme`, `assets`, `animations`, and a
 `screens` map. Register new profiles in `profiles/index.ts`.
 
+`id`, `name` and `eventCodes` live in `packages/lib/profile_index.ts` (`PROFILE_INDEX`) so the server
+can read them; each profile spreads them in with `...profileMeta("<id>")`. A new profile needs an
+entry there first. `eventCodes` are FMS event codes (e.g. `["MIBIG1"]`): when FMS reports a code that
+exactly one profile lists, the server selects that profile (`ProfileSelector.applyEventCode`, rule and
+tests in `packages/server/src/profile_selector*.ts`). Only add a code that is known for certain; venue
+FMS installs often still carry an older event, and a wrong code switches the branding on its own.
+`eventCodes` is not the TBA-style `eventCode` the avatar store uses. The FIM AV Assistant listens on
+`GET /api/events` and can send a code with `POST /api/control/event` (see readme).
+
 **There is one canonical set of screen components: `profiles/default/screens/`.** Other profiles are
 branding overrides (theme colors, event/livestream logos, victory animations) that reuse those
 components. This means any change to a component in `profiles/default/screens/` or to `app.css`, or

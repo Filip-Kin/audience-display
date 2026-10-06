@@ -21,6 +21,31 @@ The look is defined by a profile; screens a profile doesn't override fall back t
 Pick the profile from the gear menu on the display page (bottom-right hover); the choice is
 stored server-side, so every connected display switches together.
 
+**By FMS event code:** a profile can list the FMS event codes it belongs to (`eventCodes` in
+`packages/lib/profile_index.ts`). When the FMS event code becomes known or changes and exactly one
+profile lists it (case-insensitive), the server selects that profile. No match leaves the current
+choice alone. A manual pick made after an automatic one stands until the event code changes again,
+across restarts too (the code that made the last automatic pick is kept in `.active-profile-event`
+next to `.active-profile`). The server reads the code from FMS
+(`/api/v1.0/systembase/get/get_CurrentlyActiveEventCode`) at boot, on every reconnect, and when FMS
+pushes `CurrentlyActiveEventChanged`.
+
+## FIM AV Assistant event channel
+
+Optional; the display runs the same with nothing connected.
+
+- `GET /api/events`: `text/event-stream`. The first message is
+  `{"type":"hello","addon":"audience-display","protocol":1,"version":"<version>","profile":{...},"fms":{...},"companion":{...}}`,
+  then one `data: <json>` message per change (no `event:` field) and `: ping` every 15 s. Lasting
+  problems (UI bundle missing, unknown profile) follow the hello as `error` messages.
+  - `{"type":"profile","id","name","source"}`, source `"event"`, `"manual"` or `"default"`
+  - `{"type":"fms","connected","eventCode"}` (`eventCode` is `null` until FMS reports one)
+  - `{"type":"companion","enabled"}` when the Bitfocus Companion setting changes
+  - `{"type":"error","message"}` for FMS connection lost, profile save failure, unknown profile
+- `POST /api/control/event` `{"eventCode":"MIBIG1"}`: an event code from AV Assistant, same
+  selection rule as an FMS code. Returns `{"ok":true}` or `{"ok":false,"error":"..."}`. It does not
+  change the `fms.eventCode` FMS reports.
+
 ## Running an event (Windows exe)
 
 Grab `audience-display-<version>.exe` from the
