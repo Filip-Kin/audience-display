@@ -19,18 +19,20 @@ export type ProfileMeta = {
 
 export const PROFILE_INDEX = {
   default: { id: "default", name: "Default (Red + Blue)" },
-  wrc: { id: "wrc", name: "WRC (Wolverine Robotics Competition)" },
-  "rainbow-rumble": { id: "rainbow-rumble", name: "Rainbow Rumble" },
-  marc: { id: "marc", name: "MARC (Pit Podcast)" },
-  // FIRST's code for Ferris State Roboday (frc-events.firstinspires.org/2026/MIBIG1).
+  // FMS event codes are TBA's `first_event_code` for each event (upper
+  // case), read 2026-10-06; FIRST keeps the same code year to year.
+  wrc: { id: "wrc", name: "WRC (Wolverine Robotics Competition)", eventCodes: ["MIANN"] },
+  "rainbow-rumble": { id: "rainbow-rumble", name: "Rainbow Rumble", eventCodes: ["MIMAS1"] },
+  marc: { id: "marc", name: "MARC (Pit Podcast)", eventCodes: ["MIDUN"] },
   "fsu-roboday": { id: "fsu-roboday", name: "Ferris State Roboday", eventCodes: ["MIBIG1"] },
   "grand-rapids-girls": {
     id: "grand-rapids-girls",
     name: "Grand Rapids Girls Robotics Competition",
+    eventCodes: ["MIALL"],
   },
-  goonettes: { id: "goonettes", name: "Goonettes Invitational" },
-  bgrc: { id: "bgrc", name: "BGRC (Bloomfield Girls Robotics Competition)" },
-  c3: { id: "c3", name: "C3 (Cullen's Cancer Clash)" },
+  goonettes: { id: "goonettes", name: "Goonettes Invitational", eventCodes: ["MIBRO1"] },
+  bgrc: { id: "bgrc", name: "BGRC (Bloomfield Girls Robotics Competition)", eventCodes: ["MIBLO"] },
+  c3: { id: "c3", name: "C3 (Cullen's Cancer Clash)", eventCodes: ["MINOR"] },
 } satisfies Record<string, ProfileMeta>;
 
 export type ProfileId = keyof typeof PROFILE_INDEX;
