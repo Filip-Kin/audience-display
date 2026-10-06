@@ -2,11 +2,19 @@ import type { ComponentType } from "svelte";
 import type { Screen, ProfileTheme, ProfileAssets } from "lib";
 
 export type ProfileDefinition = {
+  /** `id`, `name` and `eventCodes` come from packages/lib/profile_index.ts via
+   *  `...profileMeta("<id>")`, so the server can read them too. */
   id: string;
   name: string;
+  /**
+   * FMS event codes this profile belongs to (e.g. ["MIBIG1"]). When FMS reports
+   * a code exactly one profile lists, the server selects that profile. Set it in
+   * packages/lib/profile_index.ts, not here.
+   */
+  eventCodes?: string[];
   eventName?: string;
   /**
-   * TBA-style event code (e.g. "2026rr") used to fetch event-specific avatars
+   * TBA-style event code (e.g. "2026rr"), separate from `eventCodes`, used to fetch event-specific avatars
    * from the avatar store. Set this on offseason/custom profiles that have no
    * real FMS event code. When omitted, the code is derived from the live FMS
    * event (season + event code, e.g. 2026 + "MIRR" -> "2026mirr").

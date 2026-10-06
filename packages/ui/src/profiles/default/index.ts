@@ -1,4 +1,5 @@
 import type { ProfileDefinition } from "../types";
+import { profileMeta } from "lib";
 import MatchPreview from "./screens/match-preview/MatchPreview.svelte";
 import MatchReady from "./screens/match-ready/MatchReady.svelte";
 import ScoresReady from "./screens/scores-ready/ScoresReady.svelte";
@@ -12,8 +13,7 @@ import Background from "./screens/background/Background.svelte";
 import Schedule from "./screens/schedule/Schedule.svelte";
 
 const profile: ProfileDefinition = {
-  id: "default",
-  name: "Default (Red + Blue)",
+  ...profileMeta("default"),
   // eventName: "Kettering District Event",  // uncomment to override the FMS event name
   theme: {
     // `primary` / `secondary` drive the shutter backgrounds — kept darker than

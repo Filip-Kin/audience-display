@@ -63,6 +63,8 @@ type EventMap = {
   matchStateChanged: string;
   fieldMonitorTeamsChanged: { red: number[]; blue: number[] };
   tournamentLevelChanged: unknown;
+  /** FMS switched its active event (payload is the event GUID, unused). */
+  activeEventChanged: null;
   gameSpecificMessage: GameSpecificMessage;
   plcMatchStatus: PlcMatchStatusData;
 };
@@ -136,6 +138,7 @@ export class FMSSignalRConnection {
     matchStateChanged: [],
     fieldMonitorTeamsChanged: [],
     tournamentLevelChanged: [],
+    activeEventChanged: [],
     gameSpecificMessage: [],
     plcMatchStatus: [],
   };
@@ -434,6 +437,12 @@ export class FMSSignalRConnection {
       this.emit("tournamentLevelChanged", data);
     });
 
+    // Payload is the new event's GUID; listeners refetch the code and name.
+    this.infrastructureConnection.on("currentlyactiveeventchanged", (data) => {
+      console.log("currentlyactiveeventchanged: ", data);
+      this.emit("activeEventChanged", null);
+    });
+
     // Known-noisy / unused hub methods: intentional no-ops so the signalr client
     // doesn't warn about missing handlers for them (GlobalTimerChanged fires 1/s;
     // VideoSwitchOptionChanged duplicates systemconfigvaluechanged "VideoSwitchOption").
@@ -442,7 +451,6 @@ export class FMSSignalRConnection {
       "videoswitchoptionchanged",
       "matchposted",
       "matchcommitted",
-      "currentlyactiveeventchanged",
       "currentlyactiveeventdbcreated",
       "scheduleaheadbehindchanged",
       "schedulechanged",

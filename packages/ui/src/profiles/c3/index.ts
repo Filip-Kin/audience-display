@@ -1,4 +1,5 @@
 import type { ProfileDefinition } from "../types";
+import { profileMeta } from "lib";
 import defaultProfile from "../default";
 
 /**
@@ -24,8 +25,7 @@ import defaultProfile from "../default";
  *    to a brand colour forces a chain of white overrides for no gain.
  */
 const profile: ProfileDefinition = {
-  id: "c3",
-  name: "C3 (Cullen's Cancer Clash)",
+  ...profileMeta("c3"),
   // Pin the on-screen title. Venue FMS at an off-season event usually reports
   // whatever event the field was last configured for.
   eventName: "Cullen's Cancer Clash",

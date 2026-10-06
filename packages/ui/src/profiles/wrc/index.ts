@@ -1,4 +1,5 @@
 import type { ProfileDefinition } from "../types";
+import { profileMeta } from "lib";
 import defaultProfile from "../default";
 
 /**
@@ -18,8 +19,7 @@ import defaultProfile from "../default";
  * FMS event name is used).
  */
 const profile: ProfileDefinition = {
-  id: "wrc",
-  name: "WRC (Wolverine Robotics Competition)",
+  ...profileMeta("wrc"),
   eventName: "Wolverine Robotics Competition",
   // Schedule screen QR target (else the screen falls back to the game logo).
   eventInfoUrl: "https://famnm.club/offseason/",

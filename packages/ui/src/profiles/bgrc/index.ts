@@ -1,4 +1,5 @@
 import type { ProfileDefinition } from "../types";
+import { profileMeta } from "lib";
 import defaultProfile from "../default";
 
 /**
@@ -16,8 +17,7 @@ import defaultProfile from "../default";
  * doc for the event-logo plan.
  */
 const profile: ProfileDefinition = {
-  id: "bgrc",
-  name: "BGRC (Bloomfield Girls Robotics Competition)",
+  ...profileMeta("bgrc"),
   // Pin the on-screen title. "Bloomfield Girls Robotics Competition" is 37
   // characters and displayEventName() truncates above 35, so it would render as
   // "Bloomfield Girls Robotics Competiti... 2026". Use the short form.

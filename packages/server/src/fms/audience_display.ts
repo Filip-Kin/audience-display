@@ -382,6 +382,7 @@ export class AudienceDisplayManager {
   // anything that shows teams next to the number checks this first.
   private previewFor = "";
   private profileSelector: ProfileSelector | null = null;
+  private fmsStatusListeners: Array<(s: { connected: boolean; eventCode: string | null }) => void> = [];
 
   // #region event roster
   // Team numbers actually at this event, from the published schedule plus the
@@ -422,11 +423,7 @@ export class AudienceDisplayManager {
 
     promises.push(this.updateMatchCount());
 
-    promises.push(
-      this.getEventName().then((eventName) => {
-        if (eventName !== null) this.eventDetails.name = eventName;
-      })
-    );
+    promises.push(this.refreshActiveEvent());
 
     promises.push(
       this.getCurrentMatchAndPlayNumber().then((data) => {
@@ -809,8 +806,17 @@ export class AudienceDisplayManager {
       this.broadcastState();
     });
 
+    // FMS pushes this when the operator switches events; the code and name
+    // follow it.
+    this.fmsConnection.on("activeEventChanged", async () => {
+      await this.refreshActiveEvent();
+      this.broadcastState();
+    });
+
     this.fmsConnection.on("connected", async () => {
       this.connected = true;
+      this.notifyFmsStatus();
+      await this.refreshActiveEvent();
       // Resync everything that can change while disconnected (an FMS restart
       // mid-event must not leave the display on stale state). The connection
       // also refetches the video switch option itself and re-emits videoSwitch.
@@ -829,6 +835,7 @@ export class AudienceDisplayManager {
     this.fmsConnection.on("disconnected", () => {
       console.log("Disconnected from FMS");
       this.connected = false;
+      this.notifyFmsStatus();
       this.broadcastState();
     });
 
@@ -941,6 +948,26 @@ export class AudienceDisplayManager {
       r.teamName = getTeamName(r.teamNumber, getFmsName(r.teamNumber) ?? r.teamName);
     }
     this.broadcastState();
+  }
+
+  /** FMS connection or event code changed. */
+  onFmsStatus(listener: (s: { connected: boolean; eventCode: string | null }) => void) {
+    this.fmsStatusListeners.push(listener);
+  }
+
+  getFmsStatus(): { connected: boolean; eventCode: string | null } {
+    return { connected: this.connected, eventCode: this.eventDetails.eventCode ?? null };
+  }
+
+  private notifyFmsStatus() {
+    const status = this.getFmsStatus();
+    for (const l of this.fmsStatusListeners) {
+      try {
+        l(status);
+      } catch (err) {
+        console.warn("FMS status listener threw", err);
+      }
+    }
   }
 
   selectProfile(id: string) {
@@ -1338,6 +1365,35 @@ export class AudienceDisplayManager {
     };
   }
 
+  /** Read the active event's code and name from FMS (boot, reconnect, and
+   *  CurrentlyActiveEventChanged). */
+  private async refreshActiveEvent(): Promise<void> {
+    const [code, name] = await Promise.all([this.getEventCode(), this.getEventName()]);
+    if (name !== null) this.eventDetails.name = name;
+    this.captureEventMeta(code);
+  }
+
+  private async getEventCode(): Promise<string | null> {
+    try {
+      const res = await fetch(
+        `http://${this.fmsUrl}/api/v1.0/systembase/get/get_CurrentlyActiveEventCode`
+      );
+      if (!res.ok) {
+        console.log(`get_CurrentlyActiveEventCode returned HTTP ${res.status}`);
+        return null;
+      }
+      const text = (await res.text()).trim();
+      let code: unknown = text;
+      try {
+        code = JSON.parse(text);
+      } catch {}
+      return typeof code === "string" && code.trim() ? code.trim() : null;
+    } catch (err) {
+      console.log("get_CurrentlyActiveEventCode request failed:", err);
+      return null;
+    }
+  }
+
   private async getEventName(): Promise<string | null> {
     try {
       const res = await fetch(
@@ -1676,15 +1732,22 @@ export class AudienceDisplayManager {
   /**
    * Capture the FMS event code + season from any DTO that carries them (score /
    * rank responses), so the audience display can request event-specific avatars
-   * from the avatar store. FMS has no dedicated systembase key for the code, so
-   * we harvest it from responses we already fetch. Updates on change.
+   * from the avatar store and pick the profile listed for that code. The code
+   * is read from get_CurrentlyActiveEventCode and also harvested from responses
+   * we already fetch. Updates on change (case-insensitive).
    */
   private captureEventMeta(
     eventCode?: string | null,
     season?: number | null
   ): void {
-    if (eventCode && this.eventDetails.eventCode !== eventCode) {
+    if (
+      eventCode &&
+      this.eventDetails.eventCode?.toUpperCase() !== eventCode.toUpperCase()
+    ) {
+      console.log(`FMS event code: ${eventCode}`);
       this.eventDetails.eventCode = eventCode;
+      this.notifyFmsStatus();
+      this.profileSelector?.applyEventCode(eventCode);
     }
     if (season && this.eventDetails.season !== season) {
       this.eventDetails.season = season;

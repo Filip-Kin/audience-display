@@ -1,4 +1,5 @@
 import type { ProfileDefinition } from "../types";
+import { profileMeta } from "lib";
 import MatchPreview from "./screens/match-preview/MatchPreview.svelte";
 import MatchReady from "./screens/match-ready/MatchReady.svelte";
 import ScoresReady from "./screens/scores-ready/ScoresReady.svelte";
@@ -18,8 +19,7 @@ import "./rr.css";
  * in rr.css (scoped under the .rr class each screen sets on its root).
  */
 const profile: ProfileDefinition = {
-	id: "rainbow-rumble",
-	name: "Rainbow Rumble",
+	...profileMeta("rainbow-rumble"),
 	eventName: "Rainbow Rumble",
 	eventInfoUrl: "https://rainbowrumble.org/#schedule",
 	theme: {

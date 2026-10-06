@@ -1,4 +1,5 @@
 import type { ProfileDefinition } from "../types";
+import { profileMeta } from "lib";
 import defaultProfile from "../default";
 
 /**
@@ -19,8 +20,7 @@ import defaultProfile from "../default";
  *    holds for both: a dark accent buys a chain of white overrides.
  */
 const profile: ProfileDefinition = {
-  id: "grand-rapids-girls",
-  name: "Grand Rapids Girls Robotics Competition",
+  ...profileMeta("grand-rapids-girls"),
   // On-screen title. displayEventName() truncates past 35 chars, and the full
   // "Grand Rapids Girls Robotics Competition" is 39, so "Competition" is
   // dropped rather than shown as "...".

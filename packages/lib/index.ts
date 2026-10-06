@@ -48,3 +48,12 @@ export type {
 
 export { collapseBracket } from "./collapse_bracket";
 export type { CollapsedBracket, CollapsedNode } from "./collapse_bracket";
+
+export {
+  PROFILE_INDEX,
+  profileMeta,
+  listProfileMeta,
+  profileName,
+  profileIdForEventCode,
+} from "./profile_index";
+export type { ProfileMeta, ProfileId } from "./profile_index";

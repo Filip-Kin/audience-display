@@ -1,4 +1,5 @@
 import type { ProfileDefinition } from "../types";
+import { profileMeta } from "lib";
 import defaultProfile from "../default";
 
 /**
@@ -16,8 +17,7 @@ import defaultProfile from "../default";
  *  - Colors stay the stock red/blue shutter (no custom theme requested).
  */
 const profile: ProfileDefinition = {
-  id: "marc",
-  name: "MARC (Pit Podcast)",
+  ...profileMeta("marc"),
   // Force the on-screen title to "MARC": the real FMS at the venue still
   // reports "Rainbow Rumble" as its event name, so pin it here rather than
   // trust the live FMS name (same as WRC pins its own title).

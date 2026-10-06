@@ -5,5 +5,6 @@ audience-display-*.exe
 audience-display-*.zip
 .temp
 .active-profile
+.active-profile-event
 log-sync.json
 contact-sheets/

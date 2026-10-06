@@ -1,4 +1,5 @@
 import type { ProfileDefinition } from "../types";
+import { profileMeta } from "lib";
 import defaultProfile from "../default";
 import MatchPreview from "./screens/match-preview/MatchPreview.svelte";
 import MatchReady from "./screens/match-ready/MatchReady.svelte";
@@ -34,8 +35,7 @@ import "./goon.css";
  * anyway, so the default does not look foreign here.
  */
 const profile: ProfileDefinition = {
-  id: "goonettes",
-  name: "Goonettes Invitational",
+  ...profileMeta("goonettes"),
   // Pin the title: offseason FMS installs routinely report a stale event name.
   // The background screen appends the year, so do NOT put "2026" in here.
   eventName: "Goonettes Invitational",

@@ -1,4 +1,5 @@
 import type { ProfileDefinition } from "../types";
+import { profileMeta } from "lib";
 import defaultProfile from "../default";
 
 /**
@@ -10,8 +11,7 @@ import defaultProfile from "../default";
  * wordmark, which is the only asset that drops cleanly onto a dark screen.
  */
 const profile: ProfileDefinition = {
-  id: "fsu-roboday",
-  name: "Ferris State Roboday",
+  ...profileMeta("fsu-roboday"),
   // Pin the title: FIRST calls the code MIBIG1 but the event name has been both
   // "FSU Roboday" (2019) and "Ferris State Roboday" (2024+). Use the current one.
   eventName: "Ferris State Roboday",
