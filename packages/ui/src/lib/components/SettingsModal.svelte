@@ -2,9 +2,8 @@
 	import { get } from "svelte/store";
 	import { playSound, volumes, SOUND_DEFS, type VolumeKey } from "../audio";
 	import { settings } from "../settings"; // adjust if path is different
-	import { state, activeProfile, sendSelectProfile, sendSetFmsLogging, sendSetCaptionControl } from "../state";
+	import { state, activeProfile, sendSetFmsLogging, sendSetCaptionControl } from "../state";
 	import { packUrl } from "../animation_pack";
-	import { listProfiles, DEFAULT_PROFILE_ID } from "../../profiles";
 
 	export let settingsOpen: boolean;
 
@@ -12,7 +11,6 @@
 		settingsOpen = false;
 	}
 
-	const profiles = listProfiles();
 	// Baked at build time via vite `define` (from root package.json). Shown in the
 	// dialog header so the running build is identifiable at a glance.
 	const appVersion = __APP_VERSION__;
@@ -21,11 +19,6 @@
 		...SOUND_DEFS.map((d) => ({ key: d.key as VolumeKey, label: d.label })),
 		{ key: "victoryVideo", label: "Winner Animation" },
 	];
-
-	function handleProfileChange(e: Event) {
-		const target = e.target as HTMLSelectElement;
-		if (target.value) sendSelectProfile(target.value);
-	}
 
 	function setVolume(key: VolumeKey, e: Event) {
 		const value = Number((e.target as HTMLInputElement).value) / 100;
@@ -92,19 +85,6 @@
 			</div>
 
 			<div class="grid grid-cols-1 gap-6">
-				<div class="flex flex-col gap-2 p-4 bg-gray-100 rounded">
-					<span class="font-semibold">Profile</span>
-					<select
-						class="bg-white border border-gray-300 rounded px-2 py-1"
-						value={$state.activeProfileId ?? DEFAULT_PROFILE_ID}
-						on:change={handleProfileChange}
-					>
-						{#each profiles as p}
-							<option value={p.id}>{p.name}</option>
-						{/each}
-					</select>
-				</div>
-
 				<label class="flex items-center justify-between">
 					<span>Invert Scoring Bar</span>
 					<label class="relative inline-flex items-center cursor-pointer">
