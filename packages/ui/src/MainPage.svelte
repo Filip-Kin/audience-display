@@ -1,6 +1,13 @@
 <script lang="ts">
 	import { onMount, tick } from "svelte";
-	import { state, activeProfile, sendSetTeamNames, sendSelectProfile } from "@lib/state";
+	import {
+		state,
+		activeProfile,
+		sendSetTeamNames,
+		sendSelectProfile,
+		sendSetFmsLogging,
+		sendSetCaptionControl,
+	} from "@lib/state";
 	import { listProfiles, DEFAULT_PROFILE_ID } from "./profiles";
 	import BracketGrid from "./profiles/default/screens/playoff-bracket/BracketGrid.svelte";
 	import Avatar from "@lib/components/Avatar.svelte";
@@ -303,6 +310,28 @@
 					<option value={p.id}>{p.name}</option>
 				{/each}
 			</select>
+		</section>
+
+		<section class="rounded-lg bg-gray-800 p-6 space-y-3">
+			<h2 class="text-lg font-semibold">Server</h2>
+			<label class="flex items-center justify-between gap-4">
+				<span>FMS traffic logging</span>
+				<input
+					type="checkbox"
+					class="h-5 w-5 accent-blue-500"
+					checked={$state.fmsLogging}
+					on:change={(e) => sendSetFmsLogging(e.currentTarget.checked)}
+				/>
+			</label>
+			<label class="flex items-center justify-between gap-4">
+				<span>Move captions automatically</span>
+				<input
+					type="checkbox"
+					class="h-5 w-5 accent-blue-500"
+					checked={$state.captionControl}
+					on:change={(e) => sendSetCaptionControl(e.currentTarget.checked)}
+				/>
+			</label>
 		</section>
 
 		<section class="rounded-lg bg-gray-800 p-6 space-y-5">

@@ -2,7 +2,7 @@
 	import { get } from "svelte/store";
 	import { playSound, volumes, SOUND_DEFS, type VolumeKey } from "../audio";
 	import { settings } from "../settings"; // adjust if path is different
-	import { state, activeProfile, sendSetFmsLogging, sendSetCaptionControl } from "../state";
+	import { activeProfile } from "../state";
 	import { packUrl } from "../animation_pack";
 
 	export let settingsOpen: boolean;
@@ -25,13 +25,7 @@
 		volumes.update((v) => ({ ...v, [key]: value }));
 	}
 
-	function handleLoggingChange(e: Event) {
-		sendSetFmsLogging((e.target as HTMLInputElement).checked);
-	}
 
-	function handleCaptionControlChange(e: Event) {
-		sendSetCaptionControl((e.target as HTMLInputElement).checked);
-	}
 
 	// Volume test for the winner animation: play the active profile's victory
 	// video audio track (audio only) at the slider volume.
@@ -149,34 +143,6 @@
 						<span>After Match End (-1 to disable)</span>
 					</div>
 					<input type="number" bind:value={$settings.transitionAfterMatchEnd} class="bg-gray-100 border border-gray-800 px-2 w-16" />
-				</label>
-
-				<label class="flex items-center justify-between">
-					<div class="flex flex-col">
-						<span>FMS Traffic Logging</span>
-						<span class="text-sm text-gray-500">Record all FMS communication for reverse engineering</span>
-					</div>
-					<label class="relative inline-flex items-center cursor-pointer">
-						<input type="checkbox" checked={$state.fmsLogging} on:change={handleLoggingChange} class="sr-only peer" />
-						<div
-							class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:bg-blue-600 transition-colors"
-						></div>
-						<div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-					</label>
-				</label>
-
-				<label class="flex items-center justify-between">
-					<div class="flex flex-col">
-						<span>Move Captions Automatically</span>
-						<span class="text-sm text-gray-500">Position the live-captions overlay to fit each screen (commands the caption server)</span>
-					</div>
-					<label class="relative inline-flex items-center cursor-pointer">
-						<input type="checkbox" checked={$state.captionControl} on:change={handleCaptionControlChange} class="sr-only peer" />
-						<div
-							class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:bg-blue-600 transition-colors"
-						></div>
-						<div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-					</label>
 				</label>
 
 				<div class="flex flex-col gap-2 p-4 bg-gray-100 rounded">
