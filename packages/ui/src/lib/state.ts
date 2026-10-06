@@ -28,6 +28,7 @@ const defaultState: AudienceDisplayState = {
   activeProfileId: null,
   fmsLogging: true,
   captionControl: false,
+  managed: false,
   teamNames: [],
   fmsTeams: [],
 };

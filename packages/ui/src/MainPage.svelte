@@ -334,6 +334,8 @@
 			</label>
 		</section>
 
+		<!-- Run by FIM-AV Assistant: its vMix tab adds these inputs. -->
+		{#if !$state.managed}
 		<section class="rounded-lg bg-gray-800 p-6 space-y-5">
 			<div class="flex items-center justify-between">
 				<h2 class="text-lg font-semibold">vMix Automation</h2>
@@ -454,6 +456,7 @@
 				{#if camMsg}<p class="text-sm text-gray-300">{camMsg}</p>{/if}
 			</div>
 		</section>
+		{/if}
 
 		<section class="rounded-lg bg-gray-800 p-6 space-y-4">
 			<h2 class="text-lg font-semibold">Playoff Bracket</h2>

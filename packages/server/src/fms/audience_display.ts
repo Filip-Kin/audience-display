@@ -909,6 +909,7 @@ export class AudienceDisplayManager {
           activeProfileId: this.profileSelector?.get() ?? null,
           fmsLogging: isFmsLoggingEnabled(),
           captionControl: isCaptionControlEnabled(),
+          managed: process.env.FIMAV_MANAGED === "1",
           teamNames: listTeamNames(),
           // Test-match fillers (teams 1-6) drop out once the roster is known.
           fmsTeams: listFmsTeams().filter((t) => this.eventTeams.size === 0 || this.eventTeams.has(t.number)),

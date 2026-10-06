@@ -179,6 +179,9 @@ export type AudienceDisplayState = {
   /** Whether the server is auto-positioning the external live-captions overlay
    *  per the current screen (commands live-captions over its tRPC API). */
   captionControl: boolean;
+  /** Run by FIM-AV Assistant (FIMAV_MANAGED=1): the root page hides what
+   *  AV Assistant does itself (vMix input setup). */
+  managed: boolean;
   /** The active profile's team name overrides, for the Team Names editor. */
   teamNames: TeamNameEntry[];
   /** Every team FMS has named so far, with its FMS (default) name. */

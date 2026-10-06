@@ -49,6 +49,7 @@ export class AvEventHub {
       addon: "audience-display",
       protocol: PROTOCOL_VERSION,
       version: this.version,
+      managed: process.env.FIMAV_MANAGED === "1",
       profile: { ...this.profile },
       fms: { ...this.fms },
       companion: { ...this.companion },
