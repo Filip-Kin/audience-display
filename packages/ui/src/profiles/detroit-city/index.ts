@@ -72,7 +72,16 @@ const profile: ProfileDefinition = {
     // do not). Navy and maize on transparent, built for white, so it takes the
     // white card. MEZ also uses a newer square "MEZ / MICHIGAN ENGINEERING
     // ZONE" wordmark on LinkedIn, but nothing above 200px of it exists online.
-    sponsors: [{ src: "/detroit-city/mez.png", light: true }],
+    //
+    // Event sponsors, Filip 2026-10-06: Aptiv and Nissan are the big ones, so
+    // they lead. Both marks are vector off Wikimedia Commons (public domain as
+    // simple text/shapes), rendered at 1600px: Aptiv is orange + black ink,
+    // Nissan's 2020 badge is dark grey, so both take the white card.
+    sponsors: [
+      { src: "/detroit-city/aptiv.png", light: true },
+      { src: "/detroit-city/nissan.png", light: true },
+      { src: "/detroit-city/mez.png", light: true },
+    ],
     // Pit Podcast streams the event, so it takes the livestream slot on the
     // reveal and alliance-selection screens.
     livestream: "/pitpodcast.png",
