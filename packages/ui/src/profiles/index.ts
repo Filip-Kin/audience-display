@@ -11,6 +11,7 @@ import goonettesProfile from "./goonettes";
 import bgrcProfile from "./bgrc";
 import c3Profile from "./c3";
 import detroitCityProfile from "./detroit-city";
+import botBashProfile from "./bot-bash";
 
 const registry: Record<string, ProfileDefinition> = {
   [defaultProfile.id]: defaultProfile,
@@ -23,6 +24,7 @@ const registry: Record<string, ProfileDefinition> = {
   [bgrcProfile.id]: bgrcProfile,
   [c3Profile.id]: c3Profile,
   [detroitCityProfile.id]: detroitCityProfile,
+  [botBashProfile.id]: botBashProfile,
 };
 
 export const DEFAULT_PROFILE_ID = defaultProfile.id;

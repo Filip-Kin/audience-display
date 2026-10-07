@@ -35,6 +35,9 @@ export const PROFILE_INDEX = {
   c3: { id: "c3", name: "C3 (Cullen's Cancer Clash)", eventCodes: ["MINOR"] },
   // TBA 2026midet, first_event_code "midet" (read 2026-10-06).
   "detroit-city": { id: "detroit-city", name: "Detroit City Championship", eventCodes: ["MIDET"] },
+  // TBA 2026mimid1, first_event_code "mimid1" (read 2026-10-06). The March
+  // district at the same school is MIMID; the venue FMS may still carry it.
+  "bot-bash": { id: "bot-bash", name: "Great Lakes Bay Bot Bash", eventCodes: ["MIMID1"] },
 } satisfies Record<string, ProfileMeta>;
 
 export type ProfileId = keyof typeof PROFILE_INDEX;
