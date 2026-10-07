@@ -33,6 +33,8 @@ export const PROFILE_INDEX = {
   goonettes: { id: "goonettes", name: "Goonettes Invitational", eventCodes: ["MIBRO1"] },
   bgrc: { id: "bgrc", name: "BGRC (Bloomfield Girls Robotics Competition)", eventCodes: ["MIBLO"] },
   c3: { id: "c3", name: "C3 (Cullen's Cancer Clash)", eventCodes: ["MINOR"] },
+  // TBA 2026midet, first_event_code "midet" (read 2026-10-06).
+  "detroit-city": { id: "detroit-city", name: "Detroit City Championship", eventCodes: ["MIDET"] },
 } satisfies Record<string, ProfileMeta>;
 
 export type ProfileId = keyof typeof PROFILE_INDEX;

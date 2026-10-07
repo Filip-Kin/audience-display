@@ -10,6 +10,7 @@ import grandRapidsGirlsProfile from "./grand-rapids-girls";
 import goonettesProfile from "./goonettes";
 import bgrcProfile from "./bgrc";
 import c3Profile from "./c3";
+import detroitCityProfile from "./detroit-city";
 
 const registry: Record<string, ProfileDefinition> = {
   [defaultProfile.id]: defaultProfile,
@@ -21,6 +22,7 @@ const registry: Record<string, ProfileDefinition> = {
   [goonettesProfile.id]: goonettesProfile,
   [bgrcProfile.id]: bgrcProfile,
   [c3Profile.id]: c3Profile,
+  [detroitCityProfile.id]: detroitCityProfile,
 };
 
 export const DEFAULT_PROFILE_ID = defaultProfile.id;
