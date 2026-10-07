@@ -60,10 +60,13 @@ const profile: ProfileDefinition = {
     // mask. The 2026 logo with its teal field keyed out (the source is a flat
     // RGB PNG); mint, gold and white ink on alpha.
     event: "/detroit-city/logo.png",
-    // No sponsor art yet. MEZ and U of D Jesuit are the hosts, but the event
-    // site is unreachable from here and nobody has sent logo files. An empty
-    // deck is an empty carousel, same as MARC.
-    sponsors: [],
+    // Host: the Michigan Engineering Zone. Their official lockup (skyline,
+    // MEZ, Michigan Engineering, handwritten ZONE), 2294px from the MEZ site's
+    // uploads (wp-content bypasses the site's Cloudflare challenge; the pages
+    // do not). Navy and maize on transparent, built for white, so it takes the
+    // white card. MEZ also uses a newer square "MEZ / MICHIGAN ENGINEERING
+    // ZONE" wordmark on LinkedIn, but nothing above 200px of it exists online.
+    sponsors: [{ src: "/detroit-city/mez.png", light: true }],
     // Pit Podcast streams the event, so it takes the livestream slot on the
     // reveal and alliance-selection screens.
     livestream: "/pitpodcast.png",
