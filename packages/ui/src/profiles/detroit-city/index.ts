@@ -16,10 +16,10 @@ import defaultProfile from "../default";
  * (oklch 0.81 0.17 79). The event site (mez.engin.umich.edu/dcc) sits behind
  * a Cloudflare challenge, so nothing was read from its CSS.
  *
- *  - Shutter halves are bright, per Filip 2026-10-04 (dark shutters read
- *    gloomy on a projector; the white team cards carry the separation). Red
- *    side is the brand teal, blue side the brand green: each hue sits far from
- *    the alliance colour under it (teal 200 vs red 25, green 160 vs blue 258).
+ *  - Shutter halves are two tones of the brand teal (hue 200-205), far from
+ *    both alliance hues (red 25, blue 258). The red side is the lighter one,
+ *    per the 2026-10-04 projector rule; the white team cards carry the
+ *    separation.
  *  - The gold gear is NOT the chrome accent. It sits on the same hue as the
  *    FRC attention yellow (accentWarn), so a gold accent would make every
  *    header look like an under-review banner. The accent is the logo's mint
@@ -39,10 +39,16 @@ const profile: ProfileDefinition = {
   eventInfoUrl: "https://mez.engin.umich.edu/dcc/",
   theme: {
     ...defaultProfile.theme,
-    // Shutter halves. White on either half clears 4.5:1 (5.75:1 teal,
-    // 4.57:1 green).
+    // Shutter halves: two-tone teal, the logo's own field lifted on the red
+    // side and kept deep on the blue side. Filip picked this over teal/green,
+    // the swap, and either half gold (gold swallowed the gear and the Winner
+    // banner), 2026-10-06. White clears 4.5:1 on both (5.75:1 / 9.4:1).
     primary: "oklch(0.50 0.09 200)", // brand teal, lifted; #007176
-    secondary: "oklch(0.55 0.12 160)", // brand green; #118659
+    // The deep half is 1.75:1 against blueAlliance, under the 3:1 the theme
+    // check wants, so the console will say so. Chosen from screenshots with
+    // blue cards and blue RP badges on it; they read. Same trade the stock
+    // default makes with its own dark blue half.
+    secondary: "oklch(0.38 0.07 205)", // brand teal, deep; #004C53
     // Chrome accent (headers, rules, bars, match label): the logo's mint, light
     // enough for the dark accent ink (12.8:1). It only just clears 3:1 on the
     // red alliance (3.01:1), so the score-bar trim gets a paler tint that
@@ -72,7 +78,7 @@ const profile: ProfileDefinition = {
     livestream: "/pitpodcast.png",
   },
   options: {
-    // Both shutter halves are teal/green rather than red/blue, so plain white
+    // Both shutter halves are teal rather than red/blue, so plain white
     // alliance names on the match preview lose the side cue. Same reason WRC,
     // GRG and BGRC turn this on.
     allianceNameBackground: true,
