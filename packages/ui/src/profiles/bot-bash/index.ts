@@ -25,6 +25,9 @@ const profile: ProfileDefinition = {
   eventInfoUrl: "https://www.first-glbr.org/great-lakes-bay-bot-bash.html",
   theme: {
     ...defaultProfile.theme,
+    // Rounder cards than stock (8px), to sit with the soft mitten and the
+    // cartoon robots. Same radius Goonettes uses. Filip, 2026-10-06.
+    radius: "16px",
     // Chrome accent: the host region's lime off the FIRST-GLBR mitten, Filip's
     // call 2026-10-06, in place of the stock gold. Light enough for the dark
     // accent ink (12.8:1); it only just clears 3:1 on the red alliance
@@ -34,11 +37,12 @@ const profile: ProfileDefinition = {
     scoreBarAccent: "oklch(0.92 0.08 130)",
   },
   assets: {
-    // The 2026 event logo off the GLBR site (1100px JPG), white border keyed
-    // off by flood fill from the edges so the robots' white bodies stay, and
-    // the black "BOT BASH 2026" wordmark (rows 524-586 of the 586px file)
-    // flipped to white: the art was drawn for a white page and the black text
-    // vanished on the shutter. It is also the glint mask on scores-ready.
+    // The FIRST-GLBR mark without its words: the mitten and the FIRST icon,
+    // composed from the region's horizontal lockup (first-glbr.org, 1867px)
+    // into the vertical arrangement they use elsewhere. Filip picked it over
+    // the event's own boxing-robots art on 2026-10-06: that art is black ink
+    // on a white page and died on the shutter. It is also the glint mask on
+    // scores-ready; its background is alpha, so the sweep follows the mark.
     event: "/bot-bash/logo.png",
     // FIRST-GLBR's "Financial Sponsors" from first-glbr.org/our-sponsors
     // (Dow, DuPont, Nexteer), then the host region itself. All four are dark
