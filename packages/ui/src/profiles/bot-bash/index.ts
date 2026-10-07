@@ -9,9 +9,9 @@ import defaultProfile from "../default";
  *
  * Pure re-theme of the default profile (screens: {}). The event's own art is a
  * red boxing robot versus a blue boxing robot, so its brand colours ARE the
- * alliance colours: the stock red/blue shutter and gold accent are the brand
- * here, and the theme is inherited untouched. Only the logo, the sponsor deck
- * and the title change.
+ * alliance colours: the stock red/blue shutter is the brand here. The chrome
+ * accent is the host region's lime (FIRST-GLBR mitten), the one colour that is
+ * theirs and not an alliance's.
  */
 const profile: ProfileDefinition = {
   ...profileMeta("bot-bash"),
@@ -25,6 +25,13 @@ const profile: ProfileDefinition = {
   eventInfoUrl: "https://www.first-glbr.org/great-lakes-bay-bot-bash.html",
   theme: {
     ...defaultProfile.theme,
+    // Chrome accent: the host region's lime off the FIRST-GLBR mitten, Filip's
+    // call 2026-10-06, in place of the stock gold. Light enough for the dark
+    // accent ink (12.8:1); it only just clears 3:1 on the red alliance
+    // (3.01:1), so the score-bar trim gets a paler tint (3.58:1 red, 4.47:1
+    // blue). accentWarn stays the FRC yellow for the under-review card.
+    accent: "oklch(0.86 0.14 130)",
+    scoreBarAccent: "oklch(0.92 0.08 130)",
   },
   assets: {
     // The 2026 event logo off the GLBR site (1100px JPG), white border keyed
