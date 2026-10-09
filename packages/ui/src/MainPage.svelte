@@ -540,7 +540,7 @@
 						type="text"
 						bind:value={row.name}
 						aria-label="Team name"
-						placeholder={row.fmsName ?? "Name"}
+						placeholder={row.fmsName || "Name"}
 						class="min-w-0 rounded px-3 py-2 text-white bg-gray-700 placeholder:text-gray-400"
 					/>
 					<input

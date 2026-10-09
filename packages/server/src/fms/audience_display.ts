@@ -389,6 +389,9 @@ export class AudienceDisplayManager {
   // rankings. Only grows: the "current" schedule narrows to the playoff matches
   // once playoffs start, and a qual-only team is still at the event.
   private eventTeams: Set<number> = new Set();
+  /** FMS's own team list for the active event (GetAllTeamNumbers), replaced on
+   *  every fetch. Empty until FMS answers. */
+  private fmsRoster: number[] = [];
   private eventTeamsFetchedAt = 0;
   private static readonly EVENT_ROSTER_TTL_MS = 60_000;
   // #endregion
@@ -449,12 +452,18 @@ export class AudienceDisplayManager {
       })
     );
 
-    // Team roster for the Team Names editor. FMS has no plain team-name list;
-    // names only arrive inside rank data, previews and results. Rank data
-    // carries every ranked team, so poll it once a minute: the editor fills in
-    // as soon as FMS has the roster, without anyone opening the Rankings screen.
+    // Team roster for the Team Names editor. GetAllTeamNumbers is the event's
+    // team list as soon as teams are loaded into FMS, before any schedule or
+    // match; it carries numbers only. Names only arrive inside rank data,
+    // previews and results, and rank data carries every ranked team. Poll both
+    // once a minute, so the editor lists every team from setup day and the
+    // names fill in as FMS sends them.
+    promises.push(this.refreshTeamNumbers());
     promises.push(this.refreshRankData());
-    this.rosterTimer = setInterval(() => void this.refreshRankData(), 60_000);
+    this.rosterTimer = setInterval(() => {
+      void this.refreshTeamNumbers().then(() => this.broadcastState());
+      void this.refreshRankData();
+    }, 60_000);
 
     Promise.all(promises).then(async () => {
       if (this.teamLineup.blue.length === 0 || this.teamLineup.red.length === 0) {
@@ -810,6 +819,7 @@ export class AudienceDisplayManager {
     // follow it.
     this.fmsConnection.on("activeEventChanged", async () => {
       await this.refreshActiveEvent();
+      await this.refreshTeamNumbers();
       this.broadcastState();
     });
 
@@ -817,6 +827,7 @@ export class AudienceDisplayManager {
       this.connected = true;
       this.notifyFmsStatus();
       await this.refreshActiveEvent();
+      await this.refreshTeamNumbers();
       // Resync everything that can change while disconnected (an FMS restart
       // mid-event must not leave the display on stale state). The connection
       // also refetches the video switch option itself and re-emits videoSwitch.
@@ -911,8 +922,7 @@ export class AudienceDisplayManager {
           captionControl: isCaptionControlEnabled(),
           managed: process.env.FIMAV_MANAGED === "1",
           teamNames: listTeamNames(),
-          // Test-match fillers (teams 1-6) drop out once the roster is known.
-          fmsTeams: listFmsTeams().filter((t) => this.eventTeams.size === 0 || this.eventTeams.has(t.number)),
+          fmsTeams: this.editorTeams(),
           version: pkg.version,
         },
       })
@@ -1418,6 +1428,29 @@ export class AudienceDisplayManager {
       "/api/v1.0/match/get/GetCurrentSchedule",
       "GetCurrentSchedule"
     );
+  }
+
+  /** FMS's team list for the active event, numbers only. A failed fetch keeps
+   *  the last list rather than emptying the editor. */
+  private async refreshTeamNumbers(): Promise<void> {
+    const numbers = await this.fetchJson<number[]>(
+      "/api/v1.0/audience/get/GetAllTeamNumbers",
+      "GetAllTeamNumbers"
+    );
+    if (!Array.isArray(numbers)) return;
+    this.fmsRoster = numbers.filter((n) => Number.isInteger(n) && n > 0).sort((a, b) => a - b);
+    for (const n of this.fmsRoster) this.eventTeams.add(n);
+  }
+
+  /** Teams for the Team Names editor: FMS's event team list, each with the
+   *  name FMS last sent for it ("" until one arrives), plus any named team the
+   *  list lacks. Test-match fillers (teams 1-6) drop out once the roster is
+   *  known. */
+  private editorTeams(): { number: number; name: string }[] {
+    const named = listFmsTeams().filter((t) => this.eventTeams.size === 0 || this.eventTeams.has(t.number));
+    const byNumber = new Map<number, string>(this.fmsRoster.map((n) => [n, getFmsName(n) ?? ""]));
+    for (const t of named) byNumber.set(t.number, t.name);
+    return [...byNumber].map(([number, name]) => ({ number, name })).sort((a, b) => a.number - b.number);
   }
 
   /** Add every team in the published schedule to the event roster. */
