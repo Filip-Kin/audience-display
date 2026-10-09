@@ -77,10 +77,24 @@ const profile: ProfileDefinition = {
     // they lead. Both marks are vector off Wikimedia Commons (public domain as
     // simple text/shapes), rendered at 1600px: Aptiv is orange + black ink,
     // Nissan's 2020 badge is dark grey, so both take the white card.
+    //
+    // The rest came from the organiser, Cameron Beatty, as "DCC 2026 -
+    // Additional Slides" (Google Slides, 2026-10-09), grouped as his slides:
+    // U-M Center for Innovation in Detroit alone; his four-logo slide split
+    // into its two rows (Motor City Alliance + 313 Robotics, Royal Oak
+    // Robotics Foundation + Frank Venegas' RECD), which read better at
+    // display size, Filip's call; Detroit Public Schools Community District
+    // and U of D Jesuit as a pair. Cut from the deck's own images, trimmed and
+    // balanced by area; Royal Oak's name is slide text, so it is a crop of a
+    // 600 dpi render. All built for white.
     sponsors: [
       { src: "/detroit-city/aptiv.png", light: true },
       { src: "/detroit-city/nissan.png", light: true },
       { src: "/detroit-city/mez.png", light: true },
+      { src: "/detroit-city/cid.png", light: true },
+      { src: "/detroit-city/motorcity-313.png", light: true },
+      { src: "/detroit-city/royaloak-recd.png", light: true },
+      { src: "/detroit-city/schools.png", light: true },
     ],
     // Pit Podcast streams the event, so it takes the livestream slot on the
     // reveal and alliance-selection screens.
