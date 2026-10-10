@@ -100,13 +100,25 @@ const profile: ProfileDefinition = {
     // reveal and alliance-selection screens.
     livestream: "/pitpodcast.png",
   },
+  // Win videos, 2026-10-10: Detroit People Mover theme on the logo's teal. A
+  // split-flap "NEXT ARRIVAL" board flips RED / BLUE / TIE and lands on the
+  // result at 2.15s, the train sweeps the alliance colour in out of the left
+  // station, the word slams at 3.4s, and a second train stops under it. 6s
+  // long, synthesised sound at about -12 LUFS. Frame 0 is identical in all
+  // three, so one cover serves them. Sources (renderer, sound synth) are in
+  // Robots/DCC-win-animations next to this repo.
+  animations: {
+    victoryRed: "/animations/detroit-city/redwins.mp4",
+    victoryBlue: "/animations/detroit-city/bluewins.mp4",
+    victoryTie: "/animations/detroit-city/tie.mp4",
+    cover: "/animations/detroit-city/first-frame.png",
+  },
   options: {
     // Both shutter halves are teal rather than red/blue, so plain white
     // alliance names on the match preview lose the side cue. Same reason WRC,
     // GRG and BGRC turn this on.
     allianceNameBackground: true,
   },
-  // No custom victory videos: the stock /animations/default/* pack and cover.
   // Override-only: omitted screens fall back to the default profile.
   screens: {},
 };
