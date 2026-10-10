@@ -46,7 +46,7 @@
 		return {
 			id: newId(),
 			label,
-			address: "http://127.0.0.1:8000",
+			address: "http://127.0.0.1:8888",
 			enabled: true,
 			grid: blankGrid(),
 		};
@@ -294,7 +294,7 @@
 							<input
 								type="text"
 								bind:value={sinks[activeTab].address}
-								placeholder="http://127.0.0.1:8000"
+								placeholder="http://127.0.0.1:8888"
 								class="w-64 rounded bg-gray-700 px-3 py-2 font-mono text-white"
 							/>
 						</label>

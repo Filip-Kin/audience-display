@@ -28,7 +28,7 @@ export interface CompanionButton {
 export interface CompanionSink {
   id: string;
   label: string;
-  /** Base URL incl. port, e.g. "http://127.0.0.1:8000" (Companion default 8000). */
+  /** Base URL incl. port, e.g. "http://127.0.0.1:8888" (FIM default 8888). */
   address: string;
   enabled: boolean;
   /** event id -> button location on THIS sink's Companion layout. */
@@ -140,7 +140,7 @@ function defaultConfig(): CompanionConfig {
       {
         id: "local",
         label: "Local",
-        address: "http://127.0.0.1:8000",
+        address: "http://127.0.0.1:8888",
         enabled: true,
         buttons: {},
       },
