@@ -93,23 +93,25 @@ const profile: ProfileDefinition = {
     // livestream slot on the reveal and alliance-selection screens.
     livestream: "/pitpodcast.png",
   },
-  // Custom victory clips, to be produced (section 6). NONE of these files
-  // exist yet, so the block stays commented out: uncommenting it before the
-  // clips are rendered 404s the video and the cover on every score reveal.
-  // With it commented, the profile falls back to /animations/default/*.
-  // animations: {
-  //   victoryRed: "/animations/goonettes/redwins.mp4",
-  //   victoryBlue: "/animations/goonettes/bluewins.mp4",
-  //   victoryTie: "/animations/goonettes/tie.mp4",
-  //   cover: "/animations/goonettes/first-frame.png",
-  // },
+  // Ribbon-pull victory clips: a purple ribbon tied in the mascot's bow
+  // wiggles, snaps open onto the alliance colour, and the bow spins onto the
+  // skull; "RED ALLIANCE WINS" stamps in, in the team's Goonies lettering.
+  // 8.5 s, 60 fps, synthesised sound. Source (HTML timeline, render.py,
+  // sfx.py) is Robots/Goonettes-win-animations next to this repo. Frame 0 is
+  // the same in all three, so one cover frame serves them.
+  animations: {
+    victoryRed: "/animations/goonettes/redwins.mp4",
+    victoryBlue: "/animations/goonettes/bluewins.mp4",
+    victoryTie: "/animations/goonettes/tie.mp4",
+    cover: "/animations/goonettes/first-frame.png",
+  },
   options: {
     // The shutter is purple, not red/blue, so the alliance sides are not
     // self-evident on the match preview. Same reason WRC turned this on.
     allianceNameBackground: true,
-    // Set once the victory clips exist and their tail is known. WRC uses 1500
-    // because its clip ends on a still; leave at the 500ms default until then.
-    // victoryRevealLeadMs: 600,
+    // The clip's last letter lands at 5.6 s and the chord rings out over a
+    // still hold to 8.5 s, so open onto the results at 7.0 s, like WRC.
+    victoryRevealLeadMs: 1500,
   },
   screens: {
     "match-preview": MatchPreview,

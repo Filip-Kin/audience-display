@@ -35,3 +35,20 @@ export function defaultPackUrl(key: AnimationKey): string {
 export function coverUrl(profile: ProfileDefinition): string {
   return profile.animations?.cover ?? "/animations/first-frame.png";
 }
+
+// Held so the decoded cover stays in memory while the profile is active.
+let preloadedCover: HTMLImageElement | null = null;
+
+/**
+ * Fetch and decode the profile's cover ahead of the first score reveal. The
+ * cover <img> only mounts when a reveal starts, so without this the first
+ * reveal after a page load shows a blank frame while the PNG downloads.
+ */
+export function preloadCover(profile: ProfileDefinition): void {
+  const url = coverUrl(profile);
+  if (preloadedCover?.getAttribute("src") === url) return;
+  const img = new Image();
+  img.src = url;
+  img.decode().catch(() => {});
+  preloadedCover = img;
+}

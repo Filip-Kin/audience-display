@@ -8,7 +8,9 @@
 	import { audioUnlocked } from "./lib/audio";
 	import { settings } from "./lib/settings";
 	import { resolveScreen } from "./profiles";
-	import { coverUrl } from "./lib/animation_pack";
+	import { coverUrl, preloadCover } from "./lib/animation_pack";
+
+	$: preloadCover($activeProfile);
 
 	let transitioning = false;
 	let activeScreen: Screen = "none";
