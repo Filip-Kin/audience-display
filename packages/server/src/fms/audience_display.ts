@@ -872,19 +872,27 @@ export class AudienceDisplayManager {
     // timeout screen's Up Next card among others - always follow FMS without
     // needing a video switch.
     this.fmsConnection.on("matchLoaded", async (data) => {
-      const level = LevelParam[data.level];
+      // The status message carries FMS's active tournament level, not the
+      // loaded match's: during quals a test match (always number 999) arrives
+      // as Qualification 999 and showed as "Qualification 999 of N" at
+      // Goonettes and DCC 2026-10-10. GetCurrentMatchAndPlayNumber names the
+      // loaded match (level None for a test match); the message is only the
+      // fallback when FMS does not answer.
+      const current = await this.getCurrentMatchAndPlayNumber();
+      const level = current?.level ?? LevelParam[data.level];
+      const matchNumber = current?.matchNumber ?? data.matchNumber;
       if (
         level === this.currentLevel &&
-        data.matchNumber === this.match.details.matchNumber &&
-        this.previewFor === `${level}:${data.matchNumber}`
+        matchNumber === this.match.details.matchNumber &&
+        this.previewFor === `${level}:${matchNumber}`
       ) {
         return;
       }
       this.currentLevel = level;
-      this.match.details.matchNumber = data.matchNumber;
+      this.match.details.matchNumber = matchNumber;
       this.match.details.matchType = this.getMatchTypeFromLevel(level);
       this.match.score.winner = undefined;
-      const preview = await this.getMatchPreview(level, data.matchNumber);
+      const preview = await this.getMatchPreview(level, matchNumber);
       if (preview !== null) this.applyMatchPreview(preview);
       this.broadcastState();
     });
