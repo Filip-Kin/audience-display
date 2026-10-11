@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { fade, fly } from "svelte/transition";
 	import { state, activeProfile, eventDisplayName } from "@lib/state";
-	import { createEventDispatcher, onMount, onDestroy } from "svelte";
+	import { createEventDispatcher, onMount, onDestroy, tick } from "svelte";
 	import { matchNameParts } from "@lib/matchNamer";
 	import { settings } from "@lib/settings";
 	import Alliance from "./Alliance.svelte";
@@ -142,7 +142,8 @@
 				if (winner === "Red") animation = "/animations/default/redwins.mp4";
 				else if (winner === "Blue") animation = "/animations/default/bluewins.mp4";
 				else if (winner === "Tie") animation = "/animations/default/tie.mp4";
-				videoElm.load();
+				// Reload once the <source> src has re-rendered, not before.
+				tick().then(() => videoElm.load());
 			} else {
 				// The default animation itself failed; a reveal without video beats
 				// a frozen cover, so clear the cover and open the shutter now.
@@ -223,7 +224,13 @@
 <div class="fixed w-full h-full">
 	<video class="w-full h-full object-contain" bind:this={videoElm}>
 		<track kind="captions" srclang="en" label="English" />
-		<source src={animation} type="video/mp4" />
+		<!-- A failed <source> fires "error" on itself, never on the <video>; hand it
+		     to the video so the default-pack fallback runs instead of a frozen cover. -->
+		<source
+			src={animation}
+			type="video/mp4"
+			on:error={() => videoElm.dispatchEvent(new Event("error"))}
+		/>
 	</video>
 </div>
 
