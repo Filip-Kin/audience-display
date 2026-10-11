@@ -1,5 +1,6 @@
 import { AudienceDisplayManager } from "./fms/audience_display";
-import { ProfileSelector } from "./profile_selector";
+import { ProfileSelector, resolveMarkerDir } from "./profile_selector";
+import { ProfileAssets } from "./profile_assets";
 import { checkForUpdate } from "./auto_update";
 import { initFmsLogger, setFmsLoggingEnabled } from "./fms_logger";
 import { initCaptionControl, setCaptionControlEnabled } from "./caption_control";
@@ -94,6 +95,10 @@ const checkProfileKnown = (id: string): string | null => {
 };
 checkProfileKnown(profileSelector.get());
 
+// Per-profile videos + cover: fetched from the asset bucket in the background,
+// cached next to the exe, default pack served until the set is complete.
+const profileAssets = new ProfileAssets(resolveMarkerDir(), process.env.ASSET_BASE_URL);
+
 // Optional event channel for the FIM AV Assistant (GET /api/events).
 const avEvents = new AvEventHub(
   pkg.version,
@@ -108,6 +113,20 @@ profileSelector.onChange((id) => {
   if (problem) avEvents.error(problem);
 });
 profileSelector.onError((message) => avEvents.error(message));
+profileAssets.onProblem((profile, problem) => {
+  if (profile !== profileSelector.get()) return;
+  if (problem) {
+    if (standingErrors.get("assets") !== problem) avEvents.error(problem);
+    standingErrors.set("assets", problem);
+  } else {
+    standingErrors.delete("assets");
+  }
+});
+profileSelector.onChange(() => {
+  standingErrors.delete("assets");
+  profileAssets.track(() => profileSelector.get());
+});
+profileAssets.track(() => profileSelector.get());
 
 const server = Bun.serve({
   async fetch(request, server) {
@@ -236,6 +255,16 @@ const server = Bun.serve({
       url.pathname === "/bitfocus"
         ? "index.html"
         : url.pathname.replace(/^\/+/, "");
+    const assetPath = profileAssets.resolve(rel, "./.temp/dist");
+    if (assetPath) {
+      if (!existsSync(assetPath)) return new Response("Not found", { status: 404 });
+      // The same URL switches from default-pack bytes to the profile's own once
+      // its download completes, so the browser must revalidate every time.
+      const body = Bun.file(assetPath);
+      return new Response(body, {
+        headers: { "content-type": body.type, "cache-control": "no-cache" },
+      });
+    }
     const filePath = join("./.temp/dist", rel);
 
     if (existsSync(filePath)) {

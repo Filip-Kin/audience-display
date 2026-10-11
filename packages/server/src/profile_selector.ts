@@ -12,7 +12,8 @@ const EVENT_MARKER_FILE = ".active-profile-event";
 const isCompiledExe =
   process.execPath.endsWith(".exe") && !process.execPath.endsWith("bun.exe");
 
-function resolveMarkerDir(): string {
+/** Folder for per-install state: next to the exe, or the server package in dev. */
+export function resolveMarkerDir(): string {
   if (isCompiledExe) {
     return dirname(process.execPath);
   }

@@ -57,3 +57,6 @@ export {
   profileIdForEventCode,
 } from "./profile_index";
 export type { ProfileMeta, ProfileId } from "./profile_index";
+
+export { ASSET_BUCKET, ASSET_BASE_URL, isValidAssetEntry } from "./asset_manifest";
+export type { AssetEntry, AssetManifest } from "./asset_manifest";

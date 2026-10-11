@@ -68,7 +68,37 @@ is left unset so the live FMS event name shows; set it to override. Victory anim
 `animation_pack.ts` resolves victory videos: `packUrl(profile, key)` returns
 `profile.animations[key]` if set, else `/animations/default/<file>`. Keys: `victoryRed`,
 `victoryBlue`, `victoryTie`, `bgIdle`. `ScoresReveal.svelte` picks the video by match winner and, on a
-video error, falls back to the default pack.
+video error, falls back to the default pack; if the default fails too it opens on the results with no
+video. A failed `<source>` fires `error` on the source element only, so each `ScoresReveal` copy
+(default, rainbow-rumble, goonettes) forwards it to the `<video>`; without that the reveal froze on
+the cover.
+
+### Profile media lives in a GCS bucket, not the exe
+
+Only `public/animations/default/` and the stock `public/animations/first-frame.png` ship in the exe.
+Every other `public/animations/<profile>/` folder stays in the repo as the source, is dropped from
+`dist` at build time (`dropProfileMedia` in `packages/ui/vite.config.ts`), and is published to the
+public bucket **`gs://filipkin-ad-assets`** (project `filipkin-com`, us-central1,
+`https://storage.googleapis.com/filipkin-ad-assets/`):
+
+- `manifests/<profile>.json` (no-cache): `{profile, generated, files:[{path, size, sha256, object}]}`,
+  `path` = the URL the UI requests (`animations/<profile>/redwins.mp4`).
+- `files/<sha256>.<ext>` (immutable, content-addressed). Old objects are never deleted, so an exe
+  holding an older manifest keeps working.
+
+Publish after adding or replacing a profile's videos or cover (re-run is idempotent, uploads only new
+hashes, writes the manifest last): `bun tools/publish-assets.ts [<profile>...] [--dry-run]`. Format
+and path rules: `packages/lib/asset_manifest.ts`.
+
+The server (`packages/server/src/profile_assets.ts`) syncs the ACTIVE profile at start, on every
+profile change, and every 5 min while its set is incomplete. Downloads are hash-checked, written to
+`.part` and renamed; the local manifest is written last. Cache: `assets/<profile>/` next to the exe
+(dev: `packages/server/assets/`, gitignored), so a venue runs offline once a profile was fetched.
+`/animations/<profile>/*` is served from the cache only when the WHOLE set is present and verified;
+otherwise every one of those URLs gets the default-pack file (video and stock cover together, so the
+cover always matches the video). Never blocks startup; an incomplete set raises a standing
+`Profile videos unavailable: <id>` error on `/api/events`. `ASSET_BASE_URL` overrides the bucket URL
+(mirror or test). A profile with no manifest (404) needs nothing.
 
 The loading cover is the still shown while the victory video buffers (`ScreenRouter.svelte`, via
 `coverUrl($activeProfile)` in `animation_pack.ts`). It is **per-profile**: `coverUrl(profile)` returns

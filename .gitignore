@@ -8,3 +8,4 @@ audience-display-*.zip
 .active-profile-event
 log-sync.json
 contact-sheets/
+packages/server/assets/
