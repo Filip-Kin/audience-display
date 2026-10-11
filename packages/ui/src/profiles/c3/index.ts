@@ -79,13 +79,27 @@ const profile: ProfileDefinition = {
     // livestream slot on the reveal and alliance-selection screens.
     livestream: "/pitpodcast.png",
   },
-  // No custom victory videos yet, so the default pack and the stock cover apply.
-  // If we produce them, ship /animations/c3/{redwins,bluewins,tie}.mp4 AND
-  // /animations/c3/first-frame.png (never overwrite the shared stock cover).
+  // Spin-up victory clips: the grey gear spins in from nothing and stops with
+  // a clunk, the bite cuts out of the ring, the pink ribbon draws itself in,
+  // the "3" pops, and the alliance colour bursts out from the hub (tie: red
+  // and blue split). "RED ALLIANCE WINS" rises in Outfit. All shapes are the
+  // vector paths from the c3robots.org logo. 7.5 s, 60 fps, synthesised
+  // sound. Source (HTML timeline, render.py, sfx.py) is
+  // Robots/C3-win-animations next to this repo. Frame 0 is the same in all
+  // three, so one cover frame serves them.
+  animations: {
+    victoryRed: "/animations/c3/redwins.mp4",
+    victoryBlue: "/animations/c3/bluewins.mp4",
+    victoryTie: "/animations/c3/tie.mp4",
+    cover: "/animations/c3/first-frame.png",
+  },
   options: {
     // The shutter halves are plum and graphite, not red and blue, so put the
     // alliance names on coloured bars in match preview. Same reason WRC does.
     allianceNameBackground: true,
+    // The text has settled by 5.2 s and the chord holds to 7.5 s, so open onto
+    // the results at 6.0 s, like WRC and Goonettes.
+    victoryRevealLeadMs: 1500,
   },
   // Override-only: omitted screens fall back to the default profile.
   screens: {},
