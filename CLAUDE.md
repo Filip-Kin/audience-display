@@ -89,6 +89,15 @@ The mask must be the **profile's** event logo, passed in via the `--glint-mask` 
 wrapper in `ScoresReady.svelte` (`style="--glint-mask: url('{eventLogo}')"`). Do not hardcode a logo
 path in `app.css` (a stale `/logo.png` there silently masked out the whole effect).
 
+## Awards
+
+Award lower third (`profiles/default/screens/award/`, screen id `award`) driven from `/awards`
+(`AwardsPage.svelte`). The list is ours, per profile in settings.json (`server/src/awards.ts`);
+FMS award data is not read. The server owns what is on air (`showAward` / `revealAward` /
+`clearAward` in `audience_display.ts`), reachable over ws, `POST /api/awards/*` (Companion) and
+the FMS Award / Award Assignment switches. TBA push signs like the uploader and reads FIM-AV
+Assistant's TBA key from its config.json when none is typed. See readme "Awards".
+
 ## Avatars (pixelated + optional avatar store)
 
 FRC avatars come from FMS as 40x40 base64 PNGs and are shown much larger. All

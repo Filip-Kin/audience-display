@@ -62,6 +62,24 @@ browser source works too).
   top), `?transitionAfterMatchEnd=<seconds>` (auto-switch to the waiting screen after the match
   ends; default `-1` keeps the score bar up until scores are committed).
 
+## Awards
+
+`/awards` (linked from the root page) holds the event's awards, per profile: name, TBA type,
+sponsor logo, winners (teams, people, or a person on a team). Each award shows a preview of its
+name and of its reveal. On air it is a lower third: Show puts up the name, Reveal shrinks the bar
+and brings up the winners, Clear takes it down. Winner + Finalist fill from the finished final.
+
+- Companion: `POST /api/awards/next`, `/api/awards/reveal`, `/api/awards/clear`, and
+  `/api/awards/show` with `{"id":"..."}`. Buttons mapped to the `award` / `awardReveal` events
+  are pressed when an award goes up or is revealed; variables `award_name`, `award_winners`.
+- FMS: the Award and Award Assignment video switches show the current award (name / winners).
+- TBA: Push sends the whole list to the trusted `awards/update` endpoint, which replaces every
+  award on the event. TBA keeps one award per type, so give each custom award its own type. The
+  key is read from FIM-AV Assistant's upload settings, or typed on the page; it needs the
+  "event awards" permission.
+- Look: `profiles/default/screens/award/`. Colours come from the theme. A profile can set
+  `assets.awardLogo` for the tile, or override `screens.award`.
+
 ## FMS traffic logging
 
 The server records every SignalR frame and REST response to a SQLite database

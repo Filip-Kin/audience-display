@@ -72,11 +72,13 @@ export function setCaptionControlEnabled(on: boolean): void {
  * switches to the scores-ready / waiting-for-scores gear screen (no score bar) do
  * captions drop back to the bottom like everything else. Excluding match-end here
  * used to make the captions jump to the bottom the instant the match ended, over
- * the still-visible score bar.
+ * the still-visible score bar. The award lower third sits at the bottom too, so
+ * captions go under the top bar while it is up.
  */
 function screenToPosition(screen: Screen): number {
   const isScoreBar = screen.startsWith("match-") && screen !== "match-preview";
   if (isScoreBar) return scorebarAtTop ? 5 : 4;
+  if (screen === "award") return 4;
   return 0;
 }
 
