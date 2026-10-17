@@ -67,20 +67,27 @@ const profile: ProfileDefinition = {
     // livestream slot on the reveal and alliance-selection screens.
     livestream: "/pitpodcast.png",
   },
-  // No custom victory videos yet. Leaving `animations` off means the stock
-  // /animations/default/* pack and the stock cover play. If BGRC clips get
-  // made, drop them at /animations/bgrc/ and uncomment:
-  // animations: {
-  //   victoryRed: "/animations/bgrc/redwins.mp4",
-  //   victoryBlue: "/animations/bgrc/bluewins.mp4",
-  //   victoryTie: "/animations/bgrc/tie.mp4",
-  //   cover: "/animations/bgrc/first-frame.png",
-  // },
+  // Bloom victory clips: on a lavender grid the 2834 gears, the hawk and
+  // flowering vines draw themselves as line art, then one wipe fills in the
+  // alliance colour (tie: red and blue split) and the flowers bloom, with a
+  // few sparkles. "RED ALLIANCE WINS" rises in Roboto. 7.5 s, 60 fps,
+  // synthesised sound. Source (HTML timeline, render.py, sfx.py) is
+  // Robots/BGRC-win-animations next to this repo. Frame 0 is the same in all
+  // three, so one cover frame serves them.
+  animations: {
+    victoryRed: "/animations/bgrc/redwins.mp4",
+    victoryBlue: "/animations/bgrc/bluewins.mp4",
+    victoryTie: "/animations/bgrc/tie.mp4",
+    cover: "/animations/bgrc/first-frame.png",
+  },
   options: {
     // Both shutter halves are purple/graphite rather than red/blue, so plain
     // white alliance names on the match preview are ambiguous. Same reason WRC
     // turns this on for its navy theme.
     allianceNameBackground: true,
+    // The text has settled by 4.0 s and the chord holds to 7.5 s, so open onto
+    // the results at 6.0 s, like WRC, Goonettes and C3.
+    victoryRevealLeadMs: 1500,
   },
   // Override-only: omitted screens fall back to the default profile.
   screens: {},
