@@ -5,7 +5,7 @@
 	// variables (primary/secondary gradient, accent rule, radius), so a re-themed
 	// profile needs no work; a profile can swap the tile art with
 	// `assets.awardLogo` or replace the whole screen via `screens.award`.
-	import { onMount, tick } from "svelte";
+	import { tick } from "svelte";
 	import type { Award } from "lib";
 	import Avatar from "@lib/components/Avatar.svelte";
 
@@ -37,8 +37,11 @@
 		await tick();
 		if (!bar || !titleEl) return;
 		await document.fonts?.ready;
+		// Always against the preview layout: revealed, the bar's right padding is
+		// smaller, and fitting to that made the title jump. The sponsor's layout
+		// width does not change with its scale.
 		const cs = getComputedStyle(bar);
-		const pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+		const pad = parseFloat(cs.paddingLeft) + HEIGHT / 4 + 30;
 		const gap = sponsorEl ? parseFloat(cs.columnGap) || 0 : 0;
 		const avail = bar.clientWidth - pad - (sponsorEl?.offsetWidth ?? 0) - gap;
 		// Measured off-DOM so the live element is never resized to measure it.
@@ -51,8 +54,14 @@
 		fitted = true;
 	}
 
-	onMount(fit);
-	$: award.name, award.sponsor, fit();
+	// Re-fit only when the text or the sponsor changes. State arrives every 2s
+	// as a new award object, and a re-fit on each one restarted the title scale.
+	let fittedFor = "";
+	$: fitKey = `${award.name}\u0000${award.sponsor ?? ""}`;
+	$: if (fitKey !== fittedFor) {
+		fittedFor = fitKey;
+		fit();
+	}
 
 	$: winners = award.winners;
 	$: many = winners.length > 2;
