@@ -96,7 +96,7 @@
 						VS
 					</div>
 					<div class="bg-accent h-2 w-40"></div>
-                    <Logo class="size-64" />
+                    <Logo class="size-64 object-contain" />
 				</div>
 
 				<!-- Right alliance (mirrored) -->
