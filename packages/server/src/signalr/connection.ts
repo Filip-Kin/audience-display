@@ -20,7 +20,10 @@ import { LevelParam, type VideoSwitchOption } from "lib/types/FMS_API_audience";
  * it is the internal request to run the scores-ready -> score-reveal flow with
  * whatever results are currently loaded (FMS option MatchResult).
  */
-export type VideoSwitchScreen = Screen | "match-reveal";
+/** "award-preview" / "award-reveal" are the FMS Award and Award Assignment
+ *  options: they put up the award lower third for the award picked on the
+ *  Awards page (FMS award data is not read). */
+export type VideoSwitchScreen = Screen | "match-reveal" | "award-preview" | "award-reveal";
 
 export type ShowResultsData = {
   matchNumber: number;
@@ -87,8 +90,8 @@ const VIDEO_SWITCH_SCREENS: Record<VideoSwitchOption, VideoSwitchScreen> = {
   AllianceFullscreen: "alliance-selection",
   Bracket: "playoff-bracket",
   Timeout: "timeout",
-  Award: "none",
-  AwardAssignment: "none",
+  Award: "award-preview",
+  AwardAssignment: "award-reveal",
   WifiReminder: "none",
   Message: "none",
   // The FMS alliance-selection wizard's "Break Timer" button starts the

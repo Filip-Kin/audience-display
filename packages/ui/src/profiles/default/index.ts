@@ -11,6 +11,7 @@ import PlayoffBracket from "./screens/playoff-bracket/PlayoffBracket.svelte";
 import Rankings from "./screens/rankings/Rankings.svelte";
 import Background from "./screens/background/Background.svelte";
 import Schedule from "./screens/schedule/Schedule.svelte";
+import Award from "./screens/award/Award.svelte";
 
 const profile: ProfileDefinition = {
   ...profileMeta("default"),
@@ -54,6 +55,7 @@ const profile: ProfileDefinition = {
     timeout: Timeout,
     background: Background,
     schedule: Schedule,
+    award: Award,
   },
 };
 

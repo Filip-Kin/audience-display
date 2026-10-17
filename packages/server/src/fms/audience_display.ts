@@ -31,9 +31,11 @@ import {
   type FMSRankingTeam,
 } from "lib/types/FMS_API_audience";
 import type { AllianceSelection, QualRanking, Team } from "lib/types/audience_display";
+import type { AwardDisplay } from "lib/types/awards";
 import { getTeamName, getTeamDesignation, getFmsName, listTeamNames, listFmsTeams } from "../team_name";
 import { logRest, isFmsLoggingEnabled } from "../fms_logger";
 import { isCaptionControlEnabled, syncCaptionScreen } from "../caption_control";
+import { listAwards, findAward, tbaStatus } from "../awards";
 import { syncCompanion } from "../companion";
 import { getRealAlliances } from "../playoff_config";
 import { syncFmsLog } from "../log_sync";
@@ -352,6 +354,10 @@ export class AudienceDisplayManager {
   // Bumped on every screen-changing command (video switch, results, match end/commit)
   // so in-flight async handlers can tell they were superseded and stop touching state.
   private screenCommandSeq = 0;
+  /** The award lower third: what is up and whether its winners are shown. */
+  private awardDisplay: AwardDisplay | null = null;
+  /** The award Show/Next starts from (last one shown, or picked on the page). */
+  private awardCursor: string | null = null;
   private scoreRevealFlipTimer: ReturnType<typeof setTimeout> | null = null;
 
   // advantageAchieved is live-event-only; cache it across the match so we can
@@ -524,6 +530,27 @@ export class AudienceDisplayManager {
       const seq = ++this.screenCommandSeq;
       const isCurrent = () => seq === this.screenCommandSeq;
       this.cancelScoreRevealFlip();
+
+      if (screen === "award-preview" || screen === "award-reveal") {
+        // FMS Award / Award Assignment: the award picked on the Awards page.
+        // With none picked there is nothing to show, so the display idles.
+        this.stopBracketRefresh();
+        this.resetPickClock();
+        const award = this.awardCursor ? findAward(this.awardCursor) : listAwards()[0];
+        if (!award) {
+          this.awardDisplay = null;
+          this.screen = "none";
+        } else {
+          this.awardCursor = award.id;
+          this.awardDisplay = { award: structuredClone(award), revealed: screen === "award-reveal" };
+          this.screen = "award";
+        }
+        this.screenEstablished = true;
+        this.broadcastState();
+        return;
+      }
+      // Any other screen takes the lower third down.
+      this.awardDisplay = null;
 
       if (screen === "match-reveal") {
         // FMS option MatchResult: re-show the currently loaded results by routing
@@ -931,6 +958,10 @@ export class AudienceDisplayManager {
           managed: process.env.FIMAV_MANAGED === "1",
           teamNames: listTeamNames(),
           fmsTeams: this.editorTeams(),
+          awards: listAwards(),
+          award: this.screen === "award" ? this.awardDisplay : null,
+          awardCursor: this.awardCursor,
+          awardsTba: tbaStatus(),
           version: pkg.version,
         },
       })
@@ -947,8 +978,83 @@ export class AudienceDisplayManager {
       fmsMatchState: this.currentMatchState,
       match: this.match,
       results: this.results,
+      award: this.screen === "award" ? this.awardDisplay : null,
     });
   }
+
+  // #region award lower third (Awards page, Companion HTTP actions, FMS Award)
+  /** Put up an award's name. Without an id, the current one (or the first). */
+  showAward(id?: string): boolean {
+    const award = id ? findAward(id) : (this.awardCursor && findAward(this.awardCursor)) || listAwards()[0];
+    if (!award) return false;
+    this.takeScreen();
+    this.awardCursor = award.id;
+    this.awardDisplay = { award: structuredClone(award), revealed: false };
+    this.screen = "award";
+    this.broadcastState();
+    return true;
+  }
+
+  /** Show the award after the current one (wraps to the first). */
+  nextAward(): boolean {
+    const list = listAwards();
+    if (!list.length) return false;
+    const i = list.findIndex((a) => a.id === this.awardCursor);
+    // Nothing up yet: the cursor award itself is next, not the one after it.
+    const onAir = this.screen === "award" && this.awardDisplay?.award.id === this.awardCursor;
+    const next = i < 0 ? list[0] : onAir ? list[(i + 1) % list.length] : list[i];
+    return this.showAward(next.id);
+  }
+
+  /** Reveal the winners of the award that is up, or of the current award. */
+  revealAward(id?: string): boolean {
+    if (id && this.awardDisplay?.award.id !== id) {
+      if (!this.showAward(id)) return false;
+    } else if (this.screen !== "award" || !this.awardDisplay) {
+      if (!this.showAward()) return false;
+    }
+    // Reveal re-reads the award so winners typed after Show still make it on.
+    const fresh = findAward(this.awardDisplay!.award.id);
+    this.awardDisplay = { award: structuredClone(fresh ?? this.awardDisplay!.award), revealed: true };
+    this.broadcastState();
+    return true;
+  }
+
+  /** Take the lower third down. */
+  clearAward(): void {
+    if (this.screen === "award") {
+      this.takeScreen();
+      this.screen = "none";
+    }
+    this.awardDisplay = null;
+    this.broadcastState();
+  }
+
+  /** Pick the award Show/Next/FMS Award uses, without putting it on air. */
+  setAwardCursor(id: string | null): void {
+    this.awardCursor = id && findAward(id) ? id : null;
+    this.broadcastState();
+  }
+
+  /** The award list changed: an award on air that was deleted comes down. */
+  awardsChanged(): void {
+    if (this.awardCursor && !findAward(this.awardCursor)) this.awardCursor = null;
+    if (this.screen === "award" && this.awardDisplay && !findAward(this.awardDisplay.award.id)) {
+      this.clearAward();
+      return;
+    }
+    this.broadcastState();
+  }
+
+  /** An operator screen command supersedes any FMS one still in flight. */
+  private takeScreen(): void {
+    ++this.screenCommandSeq;
+    this.cancelScoreRevealFlip();
+    this.stopBracketRefresh();
+    this.resetPickClock();
+    this.screenEstablished = true;
+  }
+  // #endregion
 
   /** Re-run the team name overrides over everything already on screen, so an
    *  edit in Settings shows now instead of at the next FMS fetch. */

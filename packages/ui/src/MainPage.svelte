@@ -287,6 +287,11 @@
 			<h1 class="text-2xl font-bold">Audience Display</h1>
 			<div class="flex items-center gap-3">
 				<a
+					href="/awards"
+					class="rounded bg-gray-700 px-4 py-2 font-semibold text-white hover:bg-gray-600"
+					>Awards</a
+				>
+				<a
 					href="/bitfocus"
 					class="rounded bg-gray-700 px-4 py-2 font-semibold text-white hover:bg-gray-600"
 					>Bitfocus</a

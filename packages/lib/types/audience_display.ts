@@ -4,6 +4,7 @@ import type {
 import type { MatchPhase } from "./match_phase";
 import type { GameConfig } from "./game_config";
 import type { BracketData, PlayoffTiebreakType } from "./bracket";
+import type { Award, AwardDisplay, TbaCredentialsStatus } from "./awards";
 
 export type Screen =
   | "none"
@@ -26,7 +27,8 @@ export type Screen =
   | "rankings"
   | "timeout"
   | "background"
-  | "schedule";
+  | "schedule"
+  | "award";
 
 export type AllianceScore = {
   score: number;
@@ -186,6 +188,14 @@ export type AudienceDisplayState = {
   teamNames: TeamNameEntry[];
   /** Every team FMS has named so far, with its FMS (default) name. */
   fmsTeams: { number: number; name: string }[];
+  /** The active profile's awards, for the Awards page and the lower third. */
+  awards: Award[];
+  /** The award on the lower third, or null when none is up. */
+  award: AwardDisplay | null;
+  /** The award the next Show / Companion "next" starts from. */
+  awardCursor: string | null;
+  /** Where the TBA key for the award push comes from (never the secret). */
+  awardsTba: TbaCredentialsStatus;
   /** Running app version. Clients reload when it changes so a display picks up a
    *  new UI bundle after the exe auto-updates, without a manual refresh. */
   version: string;

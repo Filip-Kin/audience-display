@@ -1,13 +1,13 @@
 import { writeFileSync, readFileSync, mkdirSync } from "fs";
 import { join } from "path";
-import type { MatchState, MatchType, Screen } from "lib";
+import type { AwardDisplay, MatchState, MatchType, Screen } from "lib";
 import { appDataDir } from "./fms_logger";
 
 // Bitfocus Companion integration. Mirrors what FIRST's official audience display
 // does (press a Companion button on each match-state change, via Companion's 3.x
 // HTTP API `POST /api/location/<page>/<row>/<column>/press`), and improves on it:
 //  - fires an Endgame Start event the official offers but never triggers,
-//  - drops the official's dead award events (we only expose events we fire),
+//  - fires award events from our own award lower third (the official reads FMS awards),
 //  - sets a RICH variable feed (scores, winner incl. TIE, teams, alliances,
 //    match number/level/state) instead of the official's single match-name var,
 //  - supports MULTIPLE sinks (e.g. a local Companion + the AV computer's).
@@ -46,7 +46,8 @@ export interface CompanionConfig {
 }
 
 /** Only events we actually detect + fire (no dead options like the official's
- *  "Endgame Start" / award events). Order = display order in the config UI. */
+ *  "Endgame Start"). Award events come from our award lower third. Order =
+ *  display order in the config UI. */
 export const COMPANION_EVENTS = [
   { id: "prestart", label: "Prestart" },
   { id: "scoreBar", label: "Score Bar" },
@@ -63,6 +64,8 @@ export const COMPANION_EVENTS = [
   { id: "redWins", label: "Red Wins" },
   { id: "blueWins", label: "Blue Wins" },
   { id: "tieMatch", label: "Tie Match" },
+  { id: "award", label: "Award" },
+  { id: "awardReveal", label: "Award Reveal" },
 ] as const;
 type CompanionEventId = (typeof COMPANION_EVENTS)[number]["id"];
 
@@ -98,6 +101,8 @@ export const COMPANION_VARIABLES = [
   { name: "blue_climb", description: "Blue total climb points", example: "20" },
   { name: "red_high_score", description: "Red set a new event high score", example: "false" },
   { name: "blue_high_score", description: "Blue set a new event high score", example: "true" },
+  { name: "award_name", description: "Award on the lower third (empty when none)", example: "Excellence in Engineering" },
+  { name: "award_winners", description: "Its winners once revealed: team numbers and names", example: "2834, Jane Doe (2834)" },
 ] as const;
 
 export interface CompanionSnapshot {
@@ -106,6 +111,8 @@ export interface CompanionSnapshot {
   fmsMatchState: string;
   match: MatchState | null;
   results: MatchState | null;
+  /** The award lower third, null when it is not up. */
+  award: AwardDisplay | null;
 }
 // #endregion
 
@@ -326,6 +333,7 @@ function matchNameOf(m: MatchState): string {
 let lastMatchStateEvent: CompanionEventId | null = null;
 let lastScreenEvent: CompanionEventId | null = null;
 let lastWinnerKey: string | null = null;
+let lastAwardKey: string | null = null;
 let lastVars: Record<string, string> = {};
 // Variable feed is throttled to <=1/sec (leading + trailing) so live scoring
 // (which can change many times a second) never floods Companion; the trailing
@@ -338,6 +346,7 @@ function resetEdgeState(): void {
   lastMatchStateEvent = null;
   lastScreenEvent = null;
   lastWinnerKey = null;
+  lastAwardKey = null;
   lastVars = {};
   latestVarSnap = null;
   lastVarFlush = 0;
@@ -378,6 +387,12 @@ export function syncCompanion(snap: CompanionSnapshot): void {
     }
   }
   lastScreenEvent = sEvent;
+
+  // Award lower third: a press when an award goes up and when it is revealed,
+  // keyed by award so the heartbeat and repeat broadcasts never re-fire.
+  const awardKey = snap.award ? `${snap.award.award.id}:${snap.award.revealed ? "reveal" : "show"}` : null;
+  if (awardKey && awardKey !== lastAwardKey) fireEvent(sinks, snap.award!.revealed ? "awardReveal" : "award");
+  lastAwardKey = awardKey;
 
   // 2) Variable feed, throttled to <=1/sec and only pushing changed values.
   if (config.variablesEnabled) queueVariables(snap);
@@ -445,6 +460,13 @@ function flushVariables(): void {
     const w = onResult ? snap.results?.score.winner : undefined;
     vars["winner"] = w === "Red" ? "red" : w === "Blue" ? "blue" : w === "Tie" ? "tie" : "";
   }
+
+  vars["award_name"] = snap.award?.award.name ?? "";
+  vars["award_winners"] = snap.award?.revealed
+    ? snap.award.award.winners
+        .map((w) => (w.person ? (w.team ? `${w.person} (${w.team})` : w.person) : String(w.team)))
+        .join(", ")
+    : "";
 
   for (const [name, value] of Object.entries(vars)) {
     if (lastVars[name] === value) continue;

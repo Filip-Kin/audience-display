@@ -5,6 +5,14 @@ import { initFmsLogger, setFmsLoggingEnabled } from "./fms_logger";
 import { initCaptionControl, setCaptionControlEnabled } from "./caption_control";
 import { initTeamNames, saveTeamNames } from "./team_name";
 import {
+  initAwards,
+  saveAwards,
+  saveAwardLogo,
+  awardLogoPath,
+  saveTbaCredentials,
+  pushAwardsToTba,
+} from "./awards";
+import {
   initCompanion,
   getCompanionConfig,
   setCompanionConfig,
@@ -78,6 +86,7 @@ if (!standingErrors.has("ui") && !existsSync(join("./.temp/dist", "index.html"))
 const profileSelector = new ProfileSelector();
 console.log(`Active profile: ${profileSelector.get()}`);
 initTeamNames(() => profileSelector.get());
+initAwards(() => profileSelector.get());
 
 const profileState = (): ProfileState => {
   const { id, source } = profileSelector.getSelection();
@@ -229,11 +238,54 @@ const server = Bun.serve({
       return json({ ok: false, error: "unknown companion endpoint" }, 404);
     }
 
+    // Awards: the lower-third controls (also what a Companion button calls),
+    // logo upload and the TBA push. Fail soft like the routes above.
+    if (url.pathname.startsWith("/api/awards/")) {
+      try {
+        const body = request.method === "POST" ? ((await request.json().catch(() => ({}))) as Record<string, unknown>) : {};
+        const id = typeof body.id === "string" ? body.id : undefined;
+        if (url.pathname === "/api/awards/show" && request.method === "POST") {
+          return json({ ok: audienceDisplay.showAward(id) });
+        }
+        if (url.pathname === "/api/awards/next" && request.method === "POST") {
+          return json({ ok: audienceDisplay.nextAward() });
+        }
+        if (url.pathname === "/api/awards/reveal" && request.method === "POST") {
+          return json({ ok: audienceDisplay.revealAward(id) });
+        }
+        if (url.pathname === "/api/awards/clear" && request.method === "POST") {
+          audienceDisplay.clearAward();
+          return json({ ok: true });
+        }
+        if (url.pathname === "/api/awards/logo" && request.method === "POST") {
+          if (typeof body.dataUrl !== "string") return json({ ok: false, error: "dataUrl required" }, 400);
+          return json({ ok: true, url: saveAwardLogo(body.dataUrl) });
+        }
+        if (url.pathname === "/api/awards/tba/credentials" && request.method === "POST") {
+          const status = saveTbaCredentials(body);
+          audienceDisplay.broadcastState();
+          return json({ ok: true, status });
+        }
+        if (url.pathname === "/api/awards/tba/push" && request.method === "POST") {
+          const eventKey = typeof body.eventKey === "string" ? body.eventKey : undefined;
+          return json(await pushAwardsToTba(eventKey));
+        }
+      } catch (e) {
+        return json({ ok: false, error: String(e) }, 500);
+      }
+      return json({ ok: false, error: "unknown awards endpoint" }, 404);
+    }
+
+    if (url.pathname.startsWith("/award-logos/")) {
+      const path = awardLogoPath(url.pathname);
+      return path ? new Response(Bun.file(path)) : new Response("Not found", { status: 404 });
+    }
 
     const rel =
       url.pathname === "/" ||
       url.pathname.startsWith("/display") ||
-      url.pathname === "/bitfocus"
+      url.pathname === "/bitfocus" ||
+      url.pathname === "/awards"
         ? "index.html"
         : url.pathname.replace(/^\/+/, "");
     const filePath = join("./.temp/dist", rel);
@@ -261,6 +313,27 @@ const server = Bun.serve({
           audienceDisplay.broadcastState();
           return;
         }
+        if (payload && payload.type === "setAwards" && Array.isArray(payload.awards)) {
+          saveAwards(payload.awards);
+          audienceDisplay.awardsChanged();
+          return;
+        }
+        if (payload && payload.type === "showAward") {
+          audienceDisplay.showAward(typeof payload.id === "string" ? payload.id : undefined);
+          return;
+        }
+        if (payload && payload.type === "revealAward") {
+          audienceDisplay.revealAward(typeof payload.id === "string" ? payload.id : undefined);
+          return;
+        }
+        if (payload && payload.type === "clearAward") {
+          audienceDisplay.clearAward();
+          return;
+        }
+        if (payload && payload.type === "setAwardCursor") {
+          audienceDisplay.setAwardCursor(typeof payload.id === "string" ? payload.id : null);
+          return;
+        }
         if (payload && payload.type === "setTeamNames" && Array.isArray(payload.teams)) {
           saveTeamNames(payload.teams);
           audienceDisplay.reapplyTeamNames();
@@ -286,7 +359,7 @@ const server = Bun.serve({
 
 console.log("Fake FMS:", FAKE_FMS);
 
-const audienceDisplay = new AudienceDisplayManager(
+const audienceDisplay: AudienceDisplayManager = new AudienceDisplayManager(
   server,
   RESOLVED_FMS_URL,
   profileSelector

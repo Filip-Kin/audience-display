@@ -3,6 +3,7 @@ import type { AudienceDisplayState } from "lib";
 import { controlSound, playSound } from "./audio";
 import { settings, applyProfileDefaults } from "./settings";
 import type { Screen, TeamNameEntry } from "../../../lib/types/audience_display";
+import type { Award } from "../../../lib/types/awards";
 import { applyTheme } from "./theme";
 import { displayEventName } from "./matchNamer";
 import { getProfile, DEFAULT_PROFILE_ID } from "../profiles";
@@ -31,6 +32,10 @@ const defaultState: AudienceDisplayState = {
   managed: false,
   teamNames: [],
   fmsTeams: [],
+  awards: [],
+  award: null,
+  awardCursor: null,
+  awardsTba: { eventKey: "", authId: "", hasSecret: false, source: "none" },
 };
 
 let socket: WebSocket | null = null;
@@ -258,3 +263,14 @@ export function sendSetTeamNames(teams: TeamNameEntry[]): void {
   if (!socket || socket.readyState !== WebSocket.OPEN) return;
   socket.send(JSON.stringify({ type: "setTeamNames", teams }));
 }
+
+function send(message: Record<string, unknown>): void {
+  if (!socket || socket.readyState !== WebSocket.OPEN) return;
+  socket.send(JSON.stringify(message));
+}
+
+export const sendSetAwards = (awards: Award[]) => send({ type: "setAwards", awards });
+export const sendShowAward = (id?: string) => send({ type: "showAward", id });
+export const sendRevealAward = (id?: string) => send({ type: "revealAward", id });
+export const sendClearAward = () => send({ type: "clearAward" });
+export const sendSetAwardCursor = (id: string | null) => send({ type: "setAwardCursor", id });

@@ -69,6 +69,11 @@ export type ProfileAssets = {
    * carousel. Rendered on a white card with its label beneath.
    */
   feedbackQr?: { src: string; label: string };
+  /**
+   * Art for the tile at the left of the award lower third. Falls back to
+   * `event`. Set it when the event logo does not read on the black tile.
+   */
+  awardLogo?: string;
 };
 
 export type ProfileLayout = {
