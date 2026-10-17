@@ -2,11 +2,11 @@
 	// The award lower third: logo tile + slanted name bar, then the winners in a
 	// band under it. Pure presentation, driven by `visible` and `revealed`, so the live screen and
 	// the Awards page previews draw the same thing. Colours come from the theme
-	// variables (primary/secondary gradient, accent rule, radius), so a re-themed
+	// variables (primary/secondary gradient, accent rule), so a re-themed
 	// profile needs no work; a profile can swap the tile art with
 	// `assets.awardLogo` or replace the whole screen via `screens.award`.
 	import { tick } from "svelte";
-	import type { Award } from "lib";
+	import { filledWinners, type Award } from "lib";
 	import Avatar from "@lib/components/Avatar.svelte";
 
 	export let award: Award;
@@ -63,7 +63,7 @@
 		fit();
 	}
 
-	$: winners = award.winners;
+	$: winners = filledWinners(award);
 	$: many = winners.length > 2;
 	$: cols = Math.max(1, winners.length);
 </script>
@@ -137,7 +137,6 @@
 		place-items: center;
 		padding: 20px;
 		background: #000;
-		border-radius: var(--radius) 0 0 var(--radius);
 		transition: translate 550ms cubic-bezier(0.2, 0.7, 0.2, 1), opacity 550ms cubic-bezier(0.2, 0.7, 0.2, 1);
 	}
 	.tile img {
@@ -203,7 +202,6 @@
 	.sponsor.plate {
 		padding: 12px 22px;
 		background: #fff;
-		border-radius: calc(var(--radius) - 2px);
 	}
 	.sponsor img {
 		height: 100%;
@@ -211,32 +209,39 @@
 		object-fit: contain;
 	}
 
+	/* Winners: one white slab under the bar. Its right edge carries on the bar's
+	   slant, so bar and slab read as one shape: the bar's bottom-right corner is
+	   the slab's top-right, and the slab ends a quarter of the full height in,
+	   where the preview bar's slant ends. */
 	.band {
 		flex: none;
 		height: 0;
 		overflow: hidden;
 		display: grid;
 		grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
-		gap: 12px;
-		padding: 0 12px;
-		background: #000;
-		border-radius: 0 0 var(--radius) 0;
+		background: #fff;
+		clip-path: polygon(0 0, calc(100% - var(--h) / 4) 0, calc(100% - var(--h) / 4) 100%, 0 100%);
 		transition:
 			height 700ms cubic-bezier(0.65, 0, 0.35, 1),
-			padding 700ms cubic-bezier(0.65, 0, 0.35, 1);
+			clip-path 700ms cubic-bezier(0.65, 0, 0.35, 1);
 	}
 	.card {
 		min-width: 0;
 		display: flex;
 		align-items: center;
 		gap: 18px;
-		padding: 8px 18px;
-		background: #fff;
+		padding: 8px 22px;
 		color: #111;
-		border-radius: calc(var(--radius) - 2px);
 		transition:
 			opacity 500ms cubic-bezier(0.2, 0.7, 0.2, 1),
 			translate 500ms cubic-bezier(0.2, 0.7, 0.2, 1);
+	}
+	.card + .card {
+		border-left: 2px solid #ddd;
+	}
+	/* Clear of the slant. */
+	.band .card:last-child {
+		padding-right: calc(var(--h) / 4 + 14px);
 	}
 	.card :global(.avatar) {
 		flex: none;
@@ -350,8 +355,7 @@
 	}
 	.rev .band {
 		height: calc(var(--h) - var(--bar-rev));
-		padding-top: 12px;
-		padding-bottom: 12px;
+		clip-path: polygon(0 0, calc(100% - var(--bar-rev) / 4) 0, calc(100% - var(--h) / 4) 100%, 0 100%);
 	}
 	.on.rev .card {
 		opacity: 1;

@@ -1,6 +1,6 @@
 import { writeFileSync, readFileSync, mkdirSync } from "fs";
 import { join } from "path";
-import type { AwardDisplay, MatchState, MatchType, Screen } from "lib";
+import { filledWinners, type AwardDisplay, type MatchState, type MatchType, type Screen } from "lib";
 import { appDataDir } from "./fms_logger";
 
 // Bitfocus Companion integration. Mirrors what FIRST's official audience display
@@ -463,7 +463,7 @@ function flushVariables(): void {
 
   vars["award_name"] = snap.award?.award.name ?? "";
   vars["award_winners"] = snap.award?.revealed
-    ? snap.award.award.winners
+    ? filledWinners(snap.award.award)
         .map((w) => (w.person ? (w.team ? `${w.person} (${w.team})` : w.person) : String(w.team)))
         .join(", ")
     : "";

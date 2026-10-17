@@ -37,5 +37,5 @@ function newId(): string {
 }
 
 export function newAward(partial: Partial<Award> = {}): Award {
-  return { id: newId(), name: "", tbaType: null, winners: [], ...partial };
+  return { id: newId(), name: "", tbaType: null, winners: [{}], ...partial };
 }

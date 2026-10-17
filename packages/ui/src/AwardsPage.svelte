@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
-	import { TBA_AWARD_TYPES, type Award, type AwardWinner } from "lib";
+	import { TBA_AWARD_TYPES, filledWinners, type Award, type AwardWinner } from "lib";
 	import {
 		state,
 		activeProfile,
@@ -28,11 +28,18 @@
 	function adopt(list: Award[], profileId: string | null) {
 		if (profileId !== scope) {
 			scope = profileId;
-			awards = structuredClone(list);
+			awards = withSlot(list);
 			return;
 		}
 		if (saveTimer || Date.now() - lastEdit < 2500) return;
-		if (JSON.stringify(list) !== JSON.stringify(awards)) awards = structuredClone(list);
+		const next = withSlot(list);
+		if (JSON.stringify(next) !== JSON.stringify(awards)) awards = next;
+	}
+
+	// Every award shows at least one winner row to type into. Rows only go away
+	// with their X.
+	function withSlot(list: Award[]): Award[] {
+		return structuredClone(list).map((a) => (a.winners.length ? a : { ...a, winners: [{}] }));
 	}
 
 	function changed() {
@@ -248,7 +255,7 @@
 		}
 		tbaBusy = false;
 	}
-	$: pushable = awards.filter((a) => a.tbaType !== null && a.name && a.winners.length).length;
+	$: pushable = awards.filter((a) => a.tbaType !== null && a.name && filledWinners(a).length).length;
 	// #endregion
 
 	$: logo = $activeProfile.assets.awardLogo ?? $activeProfile.assets.event;
@@ -311,7 +318,7 @@
 					/>
 					<div class="flex gap-2">
 						<button class="rounded bg-gray-700 px-4 py-2 font-semibold hover:bg-gray-600" on:click={() => show(a)}>Show</button>
-						<button class="rounded bg-blue-600 px-4 py-2 font-semibold hover:bg-blue-500 disabled:opacity-40" on:click={() => reveal(a)} disabled={!a.winners.length}>Reveal</button>
+						<button class="rounded bg-blue-600 px-4 py-2 font-semibold hover:bg-blue-500 disabled:opacity-40" on:click={() => reveal(a)} disabled={!filledWinners(a).length}>Reveal</button>
 					</div>
 				</div>
 

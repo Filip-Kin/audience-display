@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
-import type { Award, AwardWinner, TbaCredentialsStatus } from "lib";
+import { filledWinners, type Award, type AwardWinner, type TbaCredentialsStatus } from "lib";
 import { appDataDir } from "./fms_logger";
 
 // Awards for the award lower third. The list is ours, typed on the Awards page:
@@ -60,14 +60,16 @@ export function findAward(id: string): Award | undefined {
   return listAwards().find((a) => a.id === id);
 }
 
-function cleanWinner(w: unknown): AwardWinner | null {
+/** An empty winner is kept: it is a slot the operator has not filled in yet,
+ *  and dropping it made the row vanish from the Awards page on the next state. */
+function cleanWinner(w: unknown): AwardWinner {
   const o = (w ?? {}) as Record<string, unknown>;
   const team = Number(o.team);
   const person = typeof o.person === "string" ? o.person.trim() : "";
   const out: AwardWinner = {};
   if (Number.isInteger(team) && team > 0) out.team = team;
   if (person) out.person = person;
-  return out.team || out.person ? out : null;
+  return out;
 }
 
 function cleanAward(a: unknown): Award | null {
@@ -78,7 +80,7 @@ function cleanAward(a: unknown): Award | null {
   const sponsor = typeof o.sponsor === "string" ? o.sponsor.trim() : "";
   // Rows with no name and no winners are blanks the operator has not filled in
   // yet; keep them so the editor does not eat a half-typed award.
-  const winners = (Array.isArray(o.winners) ? o.winners : []).map(cleanWinner).filter((w): w is AwardWinner => !!w);
+  const winners = (Array.isArray(o.winners) ? o.winners : []).map(cleanWinner);
   return {
     id,
     name,
@@ -195,7 +197,7 @@ export function tbaAwardsBody(awards: Award[]): { name_str: string; type_enum: n
   const out: { name_str: string; type_enum: number; team_key: string | null; awardee: string | null }[] = [];
   for (const a of awards) {
     if (a.tbaType === null || !a.name) continue;
-    for (const w of a.winners) {
+    for (const w of filledWinners(a)) {
       out.push({
         name_str: a.name,
         type_enum: a.tbaType,
