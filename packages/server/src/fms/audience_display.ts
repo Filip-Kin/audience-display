@@ -1695,7 +1695,10 @@ export class AudienceDisplayManager {
             data.matchWinner === "Red" || data.matchWinner === "Blue"
               ? data.matchWinner
               : null,
-          tiebreaker:
+          // Finals 1-3 (14-16) are never tie-broken (game manual 10.6.2.2): a
+          // tied score stays a tie, so no tiebreaker banner at all. Only the
+          // overtime matches (17-19) use Table 10-3.
+          tiebreaker: data.matchNumber <= 16 ? undefined :
             data.matchWinner === "Red" || data.matchWinner === "Blue"
               ? this.resolveTiebreak(
                   data.tiebreaker,
