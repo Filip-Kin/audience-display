@@ -14,6 +14,9 @@
 	export let visible = true;
 	/** Winners shown: the bar shrinks and the winner band opens under it. */
 	export let revealed = false;
+	/** Between two awards: the bar retracts into the logo tile, which stays up,
+	 *  and the next award's bar comes back out of it. */
+	export let collapsed = false;
 	export let logo: string | undefined = undefined;
 	export let teamInfo: (team: number) => { name: string; avatar?: string } = () => ({ name: "" });
 
@@ -72,6 +75,7 @@
 	class="lt"
 	class:on={visible}
 	class:rev={revealed}
+	class:collapsed
 	class:fitted
 	style="--h: {HEIGHT}px; --bar-rev: {BAR_REVEALED}px; --ts: {titleScale}; --cols: {cols}"
 >
@@ -362,5 +366,21 @@
 		translate: 0 0;
 		transition-duration: 500ms;
 		transition-delay: calc(500ms + var(--i) * 140ms);
+	}
+
+	/* Collapsed (award to award): the bar and its winners retract into the
+	   tile, slanted edge first, while the tile stays put. The next award's text
+	   and size are swapped in while it is retracted, with no transitions so
+	   nothing is still moving when it comes back out. */
+	.on.collapsed .col {
+		clip-path: polygon(0 0, 0 0, -80px 100%, 0 100%);
+		transition: clip-path 500ms cubic-bezier(0.55, 0, 0.75, 0.2);
+	}
+	.collapsed .bar,
+	.collapsed .band,
+	.collapsed .title,
+	.collapsed .sponsor,
+	.collapsed .card {
+		transition: none;
 	}
 </style>

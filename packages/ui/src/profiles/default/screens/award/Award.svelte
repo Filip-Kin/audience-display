@@ -12,10 +12,13 @@
 
 	// How long the lower third takes to animate away (cards, wipe, tile).
 	const OUT_MS = 700;
+	// How long the bar takes to retract into the tile between two awards.
+	const COLLAPSE_MS = 520;
 
 	let shown: Award | null = null;
 	let revealed = false;
 	let visible = false;
+	let collapsed = false;
 	let swapTimer: ReturnType<typeof setTimeout> | null = null;
 
 	function bringIn() {
@@ -32,8 +35,10 @@
 		}
 	});
 
-	// Follow the server while on air. A different award takes the old one down
-	// first, then brings the new one up; the same award just reveals in place.
+	// Follow the server while on air. A different award retracts the bar into
+	// the logo tile (the tile stays up), swaps the award in while it is
+	// retracted, then brings the new bar back out of the tile. The same award
+	// just reveals in place.
 	$: follow($state.award);
 	function follow(next: typeof $state.award) {
 		if (exit || !next) return;
@@ -49,15 +54,16 @@
 			return;
 		}
 		if (swapTimer) return;
-		visible = false;
+		collapsed = true;
 		swapTimer = setTimeout(() => {
 			swapTimer = null;
 			const latest = $state.award;
 			if (!latest || exit) return;
 			shown = latest.award;
 			revealed = latest.revealed;
-			bringIn();
-		}, OUT_MS);
+			// Two frames retracted with the new award in place, then out.
+			requestAnimationFrame(() => requestAnimationFrame(() => (collapsed = false)));
+		}, COLLAPSE_MS);
 	}
 
 	let exiting = false;
@@ -77,8 +83,8 @@
 
 <div class="fixed inset-0 overflow-hidden">
 	{#if shown}
-		{#key shown.id}
-			<AwardLowerThird award={shown} {visible} {revealed} {logo} {teamInfo} />
-		{/key}
+		<!-- Not keyed by award: the tile has to stay mounted (and up) while one
+		     award's bar retracts and the next one's comes out. -->
+		<AwardLowerThird award={shown} {visible} {revealed} {collapsed} {logo} {teamInfo} />
 	{/if}
 </div>
