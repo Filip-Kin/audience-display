@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from "svelte";
-	import { TBA_AWARD_TYPES, filledWinners, type Award, type AwardWinner } from "lib";
+	import { TBA_AWARD_TYPES, filledWinners, tbaEntries, tbaSig, type Award, type AwardWinner } from "lib";
 	import {
 		state,
 		activeProfile,
@@ -237,25 +237,163 @@
 		tbaBusy = false;
 	}
 
-	async function pushTba() {
+	// #endregion
+
+	// #region publish to TBA
+	// TBA replaces every award on the event with each push, so the server
+	// always sends everything published so far plus the award being published.
+	let publishing: string | null = null;
+	let publishMsg: Record<string, string> = {};
+
+	function tbaError(r: { status: number; message: string }): string {
+		if (r.status === 401) return "TBA 401: key without award permission";
+		return `TBA ${r.status || "error"}: ${r.message}`;
+	}
+
+	async function publish(id: string | null) {
 		flush();
-		tbaBusy = true;
+		publishing = id ?? "all";
 		tbaMsg = "";
+		const key = id ?? "all";
 		try {
 			const r = await (
-				await fetch("/api/awards/tba/push", {
+				await fetch("/api/awards/tba/publish", {
 					method: "POST",
 					headers: { "content-type": "application/json" },
-					body: JSON.stringify({ eventKey: tbaEventKey }),
+					body: JSON.stringify(id ? { id, eventKey: tbaEventKey } : { all: true, eventKey: tbaEventKey }),
 				})
 			).json();
-			tbaMsg = r.ok ? `Pushed ${r.sent}` : r.status === 401 ? "TBA 401: key without award permission" : `TBA ${r.status || "error"}: ${r.message}`;
+			publishMsg = { ...publishMsg, [key]: r.ok ? "" : tbaError(r) };
+			if (!id) tbaMsg = r.ok ? `Published ${r.sent}` : tbaError(r);
 		} catch (e) {
-			tbaMsg = `Error: ${e}`;
+			publishMsg = { ...publishMsg, [key]: `Error: ${e}` };
 		}
-		tbaBusy = false;
+		publishing = null;
 	}
-	$: pushable = awards.filter((a) => a.tbaType !== null && a.name && filledWinners(a).length).length;
+
+	/** off = cannot go to TBA, new = not published, done = on TBA as is,
+	 *  changed = published, then edited. */
+	function tbaState(a: Award): "off" | "new" | "done" | "changed" {
+		if (!tbaEntries(a).length) return a.publishedSig ? "changed" : "off";
+		if (!a.publishedSig) return "new";
+		return a.publishedSig === tbaSig(a) ? "done" : "changed";
+	}
+	$: publishable = awards.filter((a) => tbaEntries(a).length).length;
+	// #endregion
+
+	// #region CSV
+	// One line per winner: award, team, person, TBA type. An award with several
+	// winners takes several lines. Tabs work too, so a paste from a sheet or a
+	// Slack table loads as is. Import replaces the list; an award whose name
+	// matches one already here keeps its sponsor and, with no type given, its
+	// TBA type.
+	let csvText = "";
+	let csvMsg = "";
+	const CSV_HEADER = ["Award", "Team", "Person", "TBA type"];
+
+	function csvCell(v: string): string {
+		return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+	}
+
+	function exportCsv() {
+		const lines = [CSV_HEADER.join(",")];
+		for (const a of awards) {
+			const type = TBA_AWARD_TYPES.find((t) => t.value === a.tbaType)?.label ?? "";
+			const winners = filledWinners(a);
+			for (const w of winners.length ? winners : [{}]) {
+				lines.push([a.name, w.team ? String(w.team) : "", w.person ?? "", type].map(csvCell).join(","));
+			}
+		}
+		csvText = lines.join("\n");
+		csvMsg = "";
+	}
+
+	function parseCsv(text: string): string[][] {
+		const tab = text.includes("\t");
+		const rows: string[][] = [];
+		for (const line of text.split(/\r?\n/)) {
+			if (!line.trim()) continue;
+			if (tab) {
+				rows.push(line.split("\t").map((c) => c.trim()));
+				continue;
+			}
+			const cells: string[] = [];
+			let cur = "";
+			let quoted = false;
+			for (let i = 0; i < line.length; i++) {
+				const ch = line[i];
+				if (quoted) {
+					if (ch === '"' && line[i + 1] === '"') {
+						cur += '"';
+						i++;
+					} else if (ch === '"') quoted = false;
+					else cur += ch;
+				} else if (ch === '"') quoted = true;
+				else if (ch === ",") {
+					cells.push(cur.trim());
+					cur = "";
+				} else cur += ch;
+			}
+			cells.push(cur.trim());
+			rows.push(cells);
+		}
+		return rows;
+	}
+
+	function importCsv() {
+		const rows = parseCsv(csvText);
+		if (rows.length && rows[0][0]?.toLowerCase() === "award") rows.shift();
+		const byName = new Map<string, Award>();
+		const order: Award[] = [];
+		for (const [name = "", team = "", person = "", type = ""] of rows) {
+			if (!name) continue;
+			let a = byName.get(name.toLowerCase());
+			if (!a) {
+				const old = awards.find((x) => x.name.trim().toLowerCase() === name.toLowerCase());
+				const typed = /^\d+$/.test(type)
+					? Number(type)
+					: TBA_AWARD_TYPES.find((t) => t.label.toLowerCase() === type.toLowerCase())?.value;
+				a = old
+					? { ...structuredClone(old), name, winners: [] }
+					: newAward({ name, winners: [] });
+				if (typed !== undefined) a.tbaType = typed;
+				byName.set(name.toLowerCase(), a);
+				order.push(a);
+			}
+			const number = Number(team.replace(/^(frc|team)\s*/i, ""));
+			const w: AwardWinner = {};
+			if (Number.isInteger(number) && number > 0) w.team = number;
+			if (person) w.person = person;
+			if (w.team || w.person) a.winners.push(w);
+		}
+		for (const a of order) {
+			if (!a.winners.length) a.winners = [{}];
+			guessType(a);
+		}
+		awards = order;
+		changed();
+		csvMsg = `Imported ${order.length}`;
+	}
+	// #endregion
+
+	// #region mode
+	// Run: one compact row per award with the on-air controls. Edit: the full
+	// editor. Remembered per browser.
+	let mode: "run" | "edit" = "run";
+	try {
+		const saved = localStorage.getItem("awardsMode");
+		if (saved === "edit" || saved === "run") mode = saved;
+	} catch {
+		// storage blocked: start in Run
+	}
+	function setMode(m: "run" | "edit") {
+		mode = m;
+		try {
+			localStorage.setItem("awardsMode", m);
+		} catch {
+			// not remembered
+		}
+	}
 	// #endregion
 
 	$: logo = $activeProfile.assets.awardLogo ?? $activeProfile.assets.event;
@@ -269,14 +407,20 @@
 	$: previewScale = previewWidth ? previewWidth / STAGE_W : 0;
 </script>
 
-<div class="h-full overflow-y-auto bg-gray-900 text-gray-100">
+<div class="h-full min-h-screen overflow-y-auto bg-gray-900 text-gray-100">
 	<div class="max-w-5xl mx-auto px-4 py-6 sm:p-8 space-y-6">
-		<header class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+		<header class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
 			<div class="flex items-baseline gap-3 shrink-0">
 				<a href="/" class="text-gray-400 hover:text-white">Audience Display</a>
 				<h1 class="text-2xl font-bold">Awards</h1>
 			</div>
-			<span class="min-w-0 text-sm text-gray-400 truncate">{$activeProfile.name}</span>
+			<div class="flex items-center gap-3 min-w-0">
+				<span class="min-w-0 text-sm text-gray-400 truncate">{$activeProfile.name}</span>
+				<div class="flex shrink-0 rounded bg-gray-800 p-1" role="group" aria-label="Mode">
+					<button class="rounded px-3 py-1 text-sm font-semibold {mode === 'run' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'}" aria-pressed={mode === "run"} on:click={() => setMode("run")}>Run</button>
+					<button class="rounded px-3 py-1 text-sm font-semibold {mode === 'edit' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'}" aria-pressed={mode === "edit"} on:click={() => setMode("edit")}>Edit</button>
+				</div>
+			</div>
 		</header>
 
 		<!-- On-air controls stay in reach while scrolling the list. -->
@@ -303,10 +447,53 @@
 			<p class="text-gray-400">No awards yet</p>
 		{/if}
 
-		{#each awards as a, i (a.id)}
-			{@const live = onAir?.award.id === a.id}
-			<section class="rounded-lg bg-gray-800 p-4 sm:p-6 space-y-4 ring-2 {live ? 'ring-red-600' : cursor === a.id ? 'ring-blue-600' : 'ring-transparent'}">
-				<div class="flex flex-wrap items-center gap-3">
+		{#if mode === "run"}
+			<!-- Run: one row per award. -->
+			<div class="divide-y divide-gray-700/60 rounded-lg bg-gray-800">
+				{#each awards as a (a.id)}
+					{@const live = onAir?.award.id === a.id}
+					{@const st = tbaState(a)}
+					{@const winners = filledWinners(a)}
+					<div class="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-2 px-4 py-3 {live ? 'bg-red-950/40' : ''}">
+						<span
+							class="size-2.5 shrink-0 rounded-full {live ? (onAir?.revealed ? 'bg-red-500' : 'bg-red-500 animate-pulse') : cursor === a.id ? 'bg-blue-500' : 'bg-gray-600'}"
+							aria-hidden="true"
+						></span>
+						<div class="min-w-0 flex-1 basis-40">
+							<div class="font-semibold truncate">{a.name || "Untitled"}</div>
+							<div class="text-sm text-gray-400 truncate">
+								{winners.length
+									? winners.map((w) => (w.person ? (w.team ? `${w.person} (${w.team})` : w.person) : `${w.team}${teamInfo(w.team ?? 0).name ? " " + teamInfo(w.team ?? 0).name : ""}`)).join(", ")
+									: "No winners"}
+							</div>
+						</div>
+						<div class="flex shrink-0 gap-2">
+							<button class="rounded bg-gray-700 px-3 py-1.5 font-semibold hover:bg-gray-600" on:click={() => show(a)}>Show</button>
+							<button class="rounded bg-blue-600 px-3 py-1.5 font-semibold hover:bg-blue-500 disabled:opacity-40" on:click={() => reveal(a)} disabled={!winners.length}>Reveal</button>
+							{#if st === "off"}
+								<span class="w-28 rounded px-3 py-1.5 text-center text-sm text-gray-500">Not on TBA</span>
+							{:else}
+								<button
+									class="w-28 rounded px-3 py-1.5 font-semibold disabled:opacity-60 {st === 'done' ? 'bg-emerald-900/60 text-emerald-300 hover:bg-emerald-900' : st === 'changed' ? 'bg-amber-700 hover:bg-amber-600' : 'bg-emerald-700 hover:bg-emerald-600'}"
+									on:click={() => publish(a.id)}
+									disabled={publishing !== null || !tba?.hasSecret}
+								>{publishing === a.id ? "Publishing…" : st === "done" ? "Published" : st === "changed" ? "Republish" : "Publish"}</button>
+							{/if}
+						</div>
+						{#if publishMsg[a.id]}
+							<div class="basis-full text-sm text-red-300" role="status">{publishMsg[a.id]}</div>
+						{/if}
+					</div>
+				{/each}
+			</div>
+			<div class="flex flex-wrap items-center gap-3 text-sm text-gray-400">
+				<span>{tba?.source === "fimav" ? "TBA key from AV Assistant" : tba?.source === "awards" ? "TBA key saved" : "No TBA key"}</span>
+				{#if tbaEventKey}<span class="font-mono">{tbaEventKey}</span>{/if}
+			</div>
+		{:else}
+			{#each awards as a, i (a.id)}
+				{@const live = onAir?.award.id === a.id}
+				<section class="rounded-lg bg-gray-800 p-4 sm:p-6 space-y-4 ring-2 {live ? 'ring-red-600' : cursor === a.id ? 'ring-blue-600' : 'ring-transparent'}">
 					<input
 						type="text"
 						bind:value={a.name}
@@ -314,166 +501,181 @@
 						on:blur={() => guessType(a)}
 						aria-label="Award name"
 						placeholder="Award name"
-						class="flex-1 min-w-[12rem] rounded bg-gray-700 px-3 py-2 text-lg font-semibold text-white placeholder:text-gray-500"
+						class="w-full rounded bg-gray-700 px-3 py-2 text-lg font-semibold text-white placeholder:text-gray-500"
 					/>
-					<div class="flex gap-2">
-						<button class="rounded bg-gray-700 px-4 py-2 font-semibold hover:bg-gray-600" on:click={() => show(a)}>Show</button>
-						<button class="rounded bg-blue-600 px-4 py-2 font-semibold hover:bg-blue-500 disabled:opacity-40" on:click={() => reveal(a)} disabled={!filledWinners(a).length}>Reveal</button>
-					</div>
-				</div>
 
-				<div class="grid gap-4 sm:grid-cols-2">
-					<label class="flex flex-col gap-1 text-sm">
-						<span class="text-gray-400">TBA type</span>
-						<select
-							class="rounded bg-gray-700 px-3 py-2 text-white"
-							value={a.tbaType ?? ""}
-							on:change={(e) => {
-								a.tbaType = e.currentTarget.value === "" ? null : Number(e.currentTarget.value);
-								changed();
-							}}
-						>
-							<option value="">Not on TBA</option>
-							{#each TBA_AWARD_TYPES as t}
-								<option value={t.value}>{t.label}</option>
-							{/each}
-						</select>
-						{#if a.tbaType !== null && (typeCounts.get(a.tbaType) ?? 0) > 1}
-							<span class="text-amber-400">Duplicate TBA type</span>
-						{/if}
-					</label>
-					<div class="flex flex-col gap-1 text-sm">
-						<span class="text-gray-400">Sponsor</span>
-						<div class="flex gap-2">
+					<div class="grid gap-4 sm:grid-cols-2">
+						<label class="flex flex-col gap-1 text-sm">
+							<span class="text-gray-400">TBA type</span>
 							<select
-								class="flex-1 min-w-0 rounded bg-gray-700 px-3 py-2 text-white"
-								value={a.sponsor ?? ""}
-								on:change={(e) => pickSponsor(a, e.currentTarget.value)}
-								aria-label="Sponsor"
+								class="rounded bg-gray-700 px-3 py-2 text-white"
+								value={a.tbaType ?? ""}
+								on:change={(e) => {
+									a.tbaType = e.currentTarget.value === "" ? null : Number(e.currentTarget.value);
+									changed();
+								}}
 							>
-								<option value="">None</option>
-								{#if a.sponsor && !profileLogos.some((l) => l.src === a.sponsor) && !uploadedLogos.includes(a.sponsor)}
-									<option value={a.sponsor}>{a.sponsor.split("/").pop()}</option>
-								{/if}
-								{#each profileLogos as l}
-									<option value={l.src}>{l.src.split("/").pop()}</option>
-								{/each}
-								{#each uploadedLogos as src, k}
-									<option value={src}>Upload {k + 1}</option>
+								<option value="">Not on TBA</option>
+								{#each TBA_AWARD_TYPES as t}
+									<option value={t.value}>{t.label}</option>
 								{/each}
 							</select>
-							<label class="cursor-pointer rounded bg-gray-700 px-3 py-2 font-semibold hover:bg-gray-600">
-								Upload
-								<input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="hidden" on:change={(e) => uploadSponsor(a, e.currentTarget)} />
-							</label>
-						</div>
-						{#if a.sponsor}
-							<label class="flex items-center gap-2 text-gray-300">
-								<input
-									type="checkbox"
-									class="h-4 w-4 accent-blue-500"
-									checked={!!a.sponsorLight}
-									on:change={(e) => {
-										a.sponsorLight = e.currentTarget.checked || undefined;
-										changed();
-									}}
-								/>
-								White card
-							</label>
-						{/if}
-					</div>
-				</div>
-
-				<div class="space-y-2">
-					<div class="text-sm text-gray-400">Winners</div>
-					{#each a.winners as w, k}
-						<div class="grid grid-cols-[6rem_minmax(0,1fr)_1.5rem] sm:grid-cols-[6rem_minmax(0,1fr)_minmax(0,1fr)_1.5rem] items-center gap-2">
-							<input
-								type="number"
-								min="1"
-								value={w.team ?? ""}
-								on:input={(e) => setTeam(w, e.currentTarget.value)}
-								aria-label="Team number"
-								placeholder="Team"
-								class="min-w-0 rounded bg-gray-700 px-3 py-2 text-white tabular-nums placeholder:text-gray-500"
-							/>
-							<span class="truncate text-gray-300 sm:order-none order-last col-span-3 sm:col-span-1 -mt-1 sm:mt-0 text-sm sm:text-base">{w.team ? teamInfo(w.team).name : ""}</span>
-							<input
-								type="text"
-								value={w.person ?? ""}
-								on:input={(e) => setPerson(w, e.currentTarget.value)}
-								aria-label="Person"
-								placeholder="Person"
-								class="min-w-0 rounded bg-gray-700 px-3 py-2 text-white placeholder:text-gray-500"
-							/>
-							<button class="text-gray-400 hover:text-white text-2xl leading-none" aria-label="Remove winner" on:click={() => removeWinner(a, k)}>&times;</button>
-						</div>
-					{/each}
-					<button class="rounded bg-gray-700 px-3 py-1.5 text-sm font-semibold hover:bg-gray-600" on:click={() => addWinner(a)}>Add winner</button>
-				</div>
-
-				<div class="grid gap-3 sm:grid-cols-2">
-					{#each [false, true] as revealed}
-						<div class="overflow-hidden rounded bg-black" bind:clientWidth={previewWidth} style="height: {STAGE_H * previewScale}px">
-							<div class="relative origin-top-left" style="width: {STAGE_W}px; height: {STAGE_H}px; transform: scale({previewScale})">
-								<AwardLowerThird award={a} {revealed} {logo} {teamInfo} />
+							{#if a.tbaType !== null && (typeCounts.get(a.tbaType) ?? 0) > 1}
+								<span class="text-amber-400">Duplicate TBA type</span>
+							{/if}
+						</label>
+						<div class="flex flex-col gap-1 text-sm">
+							<span class="text-gray-400">Sponsor</span>
+							<div class="flex gap-2">
+								<select
+									class="flex-1 min-w-0 rounded bg-gray-700 px-3 py-2 text-white"
+									value={a.sponsor ?? ""}
+									on:change={(e) => pickSponsor(a, e.currentTarget.value)}
+									aria-label="Sponsor"
+								>
+									<option value="">None</option>
+									{#if a.sponsor && !profileLogos.some((l) => l.src === a.sponsor) && !uploadedLogos.includes(a.sponsor)}
+										<option value={a.sponsor}>{a.sponsor.split("/").pop()}</option>
+									{/if}
+									{#each profileLogos as l}
+										<option value={l.src}>{l.src.split("/").pop()}</option>
+									{/each}
+									{#each uploadedLogos as src, k}
+										<option value={src}>Upload {k + 1}</option>
+									{/each}
+								</select>
+								<label class="cursor-pointer rounded bg-gray-700 px-3 py-2 font-semibold hover:bg-gray-600">
+									Upload
+									<input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="hidden" on:change={(e) => uploadSponsor(a, e.currentTarget)} />
+								</label>
 							</div>
+							{#if a.sponsor}
+								<label class="flex items-center gap-2 text-gray-300">
+									<input
+										type="checkbox"
+										class="h-4 w-4 accent-blue-500"
+										checked={!!a.sponsorLight}
+										on:change={(e) => {
+											a.sponsorLight = e.currentTarget.checked || undefined;
+											changed();
+										}}
+									/>
+									White card
+								</label>
+							{/if}
 						</div>
-					{/each}
-				</div>
+					</div>
 
-				<div class="flex flex-wrap items-center gap-2 text-sm">
-					<button class="rounded bg-gray-700 px-3 py-1.5 font-semibold hover:bg-gray-600 disabled:opacity-40" on:click={() => move(i, -1)} disabled={i === 0} aria-label="Move up">&uarr;</button>
-					<button class="rounded bg-gray-700 px-3 py-1.5 font-semibold hover:bg-gray-600 disabled:opacity-40" on:click={() => move(i, 1)} disabled={i === awards.length - 1} aria-label="Move down">&darr;</button>
-					<button class="rounded bg-gray-700 px-3 py-1.5 font-semibold hover:bg-gray-600" on:click={() => sendSetAwardCursor(a.id)} disabled={cursor === a.id}>{cursor === a.id ? "Next up" : "Set next"}</button>
-					<span class="flex-1"></span>
-					<button class="rounded px-3 py-1.5 font-semibold text-red-300 hover:bg-red-900/40 disabled:opacity-40" on:click={() => removeAward(i)} disabled={live}>Delete</button>
+					<div class="space-y-2">
+						<div class="text-sm text-gray-400">Winners</div>
+						{#each a.winners as w, k}
+							<div class="grid grid-cols-[6rem_minmax(0,1fr)_1.5rem] sm:grid-cols-[6rem_minmax(0,1fr)_minmax(0,1fr)_1.5rem] items-center gap-2">
+								<input
+									type="number"
+									min="1"
+									value={w.team ?? ""}
+									on:input={(e) => setTeam(w, e.currentTarget.value)}
+									aria-label="Team number"
+									placeholder="Team"
+									class="min-w-0 rounded bg-gray-700 px-3 py-2 text-white tabular-nums placeholder:text-gray-500"
+								/>
+								<span class="truncate text-gray-300 sm:order-none order-last col-span-3 sm:col-span-1 -mt-1 sm:mt-0 text-sm sm:text-base">{w.team ? teamInfo(w.team).name : ""}</span>
+								<input
+									type="text"
+									value={w.person ?? ""}
+									on:input={(e) => setPerson(w, e.currentTarget.value)}
+									aria-label="Person"
+									placeholder="Person"
+									class="min-w-0 rounded bg-gray-700 px-3 py-2 text-white placeholder:text-gray-500"
+								/>
+								<button class="text-gray-400 hover:text-white text-2xl leading-none" aria-label="Remove winner" on:click={() => removeWinner(a, k)}>&times;</button>
+							</div>
+						{/each}
+						<button class="rounded bg-gray-700 px-3 py-1.5 text-sm font-semibold hover:bg-gray-600" on:click={() => addWinner(a)}>Add winner</button>
+					</div>
+
+					<div class="grid gap-3 sm:grid-cols-2">
+						{#each [false, true] as revealed}
+							<div class="overflow-hidden rounded bg-black" bind:clientWidth={previewWidth} style="height: {STAGE_H * previewScale}px">
+								<div class="relative origin-top-left" style="width: {STAGE_W}px; height: {STAGE_H}px; transform: scale({previewScale})">
+									<AwardLowerThird award={a} {revealed} {logo} {teamInfo} />
+								</div>
+							</div>
+						{/each}
+					</div>
+
+					<div class="flex flex-wrap items-center gap-2 text-sm">
+						<button class="rounded bg-gray-700 px-3 py-1.5 font-semibold hover:bg-gray-600 disabled:opacity-40" on:click={() => move(i, -1)} disabled={i === 0} aria-label="Move up">&uarr;</button>
+						<button class="rounded bg-gray-700 px-3 py-1.5 font-semibold hover:bg-gray-600 disabled:opacity-40" on:click={() => move(i, 1)} disabled={i === awards.length - 1} aria-label="Move down">&darr;</button>
+						<button class="rounded bg-gray-700 px-3 py-1.5 font-semibold hover:bg-gray-600" on:click={() => sendSetAwardCursor(a.id)} disabled={cursor === a.id}>{cursor === a.id ? "Next up" : "Set next"}</button>
+						<span class="flex-1"></span>
+						<button class="rounded px-3 py-1.5 font-semibold text-red-300 hover:bg-red-900/40 disabled:opacity-40" on:click={() => removeAward(i)} disabled={live}>Delete</button>
+					</div>
+				</section>
+			{/each}
+
+			{#if uploadError}<p class="text-sm text-red-300">{uploadError}</p>{/if}
+
+			<div class="flex flex-wrap gap-3">
+				<button class="rounded bg-blue-600 px-4 py-2 font-semibold hover:bg-blue-500" on:click={addAward}>Add award</button>
+				<button class="rounded bg-gray-700 px-4 py-2 font-semibold hover:bg-gray-600 disabled:opacity-40" on:click={fillFinals} disabled={!finals}>Winner + Finalist from finals</button>
+			</div>
+
+			<section class="rounded-lg bg-gray-800 p-4 sm:p-6 space-y-3">
+				<h2 class="text-lg font-semibold">CSV</h2>
+				<label class="flex flex-col gap-1 text-sm">
+					<span class="text-gray-400 font-mono">{CSV_HEADER.join(", ")}</span>
+					<textarea
+						bind:value={csvText}
+						rows="8"
+						spellcheck="false"
+						aria-label="CSV"
+						class="w-full rounded bg-gray-700 px-3 py-2 font-mono text-sm text-white"
+					></textarea>
+				</label>
+				<div class="flex flex-wrap items-center gap-3">
+					<button class="rounded bg-blue-600 px-4 py-2 font-semibold hover:bg-blue-500 disabled:opacity-40" on:click={importCsv} disabled={!csvText.trim()}>Import</button>
+					<button class="rounded bg-gray-700 px-4 py-2 font-semibold hover:bg-gray-600" on:click={exportCsv}>Export</button>
+					{#if csvMsg}<span class="text-sm text-gray-300" role="status">{csvMsg}</span>{/if}
 				</div>
 			</section>
-		{/each}
 
-		{#if uploadError}<p class="text-sm text-red-300">{uploadError}</p>{/if}
+			<section class="rounded-lg bg-gray-800 p-4 sm:p-6 space-y-4">
+				<div class="flex items-baseline justify-between gap-4">
+					<h2 class="text-lg font-semibold">The Blue Alliance</h2>
+					<span class="text-sm text-gray-400">
+						{tba?.source === "fimav" ? "Key from AV Assistant" : tba?.source === "awards" ? "Key saved" : "No key"}
+					</span>
+				</div>
+				<div class="grid gap-3 sm:grid-cols-3">
+					<label class="flex flex-col gap-1 text-sm">
+						<span class="text-gray-400">Event key</span>
+						<input type="text" bind:value={tbaEventKey} on:input={() => (tbaTouched = true)} placeholder="2026mibg" class="rounded bg-gray-700 px-3 py-2 font-mono text-white placeholder:text-gray-500" />
+					</label>
+					<label class="flex flex-col gap-1 text-sm">
+						<span class="text-gray-400">Auth ID</span>
+						<input type="text" bind:value={tbaAuthId} on:input={() => (tbaTouched = true)} placeholder={tba?.source === "fimav" ? tba.authId : ""} class="rounded bg-gray-700 px-3 py-2 font-mono text-white placeholder:text-gray-500" />
+					</label>
+					<label class="flex flex-col gap-1 text-sm">
+						<span class="text-gray-400">Secret</span>
+						<input type="password" bind:value={tbaSecret} on:input={() => (tbaTouched = true)} placeholder={tba?.hasSecret ? "••••••••" : ""} class="rounded bg-gray-700 px-3 py-2 font-mono text-white placeholder:text-gray-500" />
+					</label>
+				</div>
+				<div class="flex flex-wrap items-center gap-3">
+					<button class="rounded bg-gray-700 px-4 py-2 font-semibold hover:bg-gray-600 disabled:opacity-40" on:click={saveTba} disabled={tbaBusy || !tbaTouched}>Save</button>
+					<button class="rounded bg-emerald-700 px-4 py-2 font-semibold hover:bg-emerald-600 disabled:opacity-40" on:click={() => publish(null)} disabled={publishing !== null || !tba?.hasSecret || !publishable}>Publish all {publishable}</button>
+					{#if tbaMsg}<span class="text-sm text-gray-300" role="status">{tbaMsg}</span>{/if}
+				</div>
+			</section>
 
-		<div class="flex flex-wrap gap-3">
-			<button class="rounded bg-blue-600 px-4 py-2 font-semibold hover:bg-blue-500" on:click={addAward}>Add award</button>
-			<button class="rounded bg-gray-700 px-4 py-2 font-semibold hover:bg-gray-600 disabled:opacity-40" on:click={fillFinals} disabled={!finals}>Winner + Finalist from finals</button>
-		</div>
-
-		<section class="rounded-lg bg-gray-800 p-4 sm:p-6 space-y-4">
-			<div class="flex items-baseline justify-between gap-4">
-				<h2 class="text-lg font-semibold">The Blue Alliance</h2>
-				<span class="text-sm text-gray-400">
-					{tba?.source === "fimav" ? "Key from AV Assistant" : tba?.source === "awards" ? "Key saved" : "No key"}
-				</span>
-			</div>
-			<div class="grid gap-3 sm:grid-cols-3">
-				<label class="flex flex-col gap-1 text-sm">
-					<span class="text-gray-400">Event key</span>
-					<input type="text" bind:value={tbaEventKey} on:input={() => (tbaTouched = true)} placeholder="2026mibg" class="rounded bg-gray-700 px-3 py-2 font-mono text-white placeholder:text-gray-500" />
-				</label>
-				<label class="flex flex-col gap-1 text-sm">
-					<span class="text-gray-400">Auth ID</span>
-					<input type="text" bind:value={tbaAuthId} on:input={() => (tbaTouched = true)} placeholder={tba?.source === "fimav" ? tba.authId : ""} class="rounded bg-gray-700 px-3 py-2 font-mono text-white placeholder:text-gray-500" />
-				</label>
-				<label class="flex flex-col gap-1 text-sm">
-					<span class="text-gray-400">Secret</span>
-					<input type="password" bind:value={tbaSecret} on:input={() => (tbaTouched = true)} placeholder={tba?.hasSecret ? "••••••••" : ""} class="rounded bg-gray-700 px-3 py-2 font-mono text-white placeholder:text-gray-500" />
-				</label>
-			</div>
-			<div class="flex flex-wrap items-center gap-3">
-				<button class="rounded bg-gray-700 px-4 py-2 font-semibold hover:bg-gray-600 disabled:opacity-40" on:click={saveTba} disabled={tbaBusy || !tbaTouched}>Save</button>
-				<button class="rounded bg-blue-600 px-4 py-2 font-semibold hover:bg-blue-500 disabled:opacity-40" on:click={pushTba} disabled={tbaBusy || !tba?.hasSecret || !pushable}>Push {pushable} to TBA</button>
-				{#if tbaMsg}<span class="text-sm text-gray-300">{tbaMsg}</span>{/if}
-			</div>
-		</section>
-
-		<section class="rounded-lg bg-gray-800 p-4 sm:p-6 space-y-2 text-sm">
-			<h2 class="text-lg font-semibold">Companion</h2>
-			<div class="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 font-mono text-gray-300">
-				<span>POST /api/awards/next</span><span class="text-gray-500 font-sans">Next</span>
-				<span>POST /api/awards/reveal</span><span class="text-gray-500 font-sans">Reveal</span>
-				<span>POST /api/awards/clear</span><span class="text-gray-500 font-sans">Clear</span>
-			</div>
-		</section>
+			<section class="rounded-lg bg-gray-800 p-4 sm:p-6 space-y-2 text-sm">
+				<h2 class="text-lg font-semibold">Companion</h2>
+				<div class="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 font-mono text-gray-300">
+					<span>POST /api/awards/next</span><span class="text-gray-500 font-sans">Next</span>
+					<span>POST /api/awards/reveal</span><span class="text-gray-500 font-sans">Reveal</span>
+					<span>POST /api/awards/clear</span><span class="text-gray-500 font-sans">Clear</span>
+				</div>
+			</section>
+		{/if}
 	</div>
 </div>

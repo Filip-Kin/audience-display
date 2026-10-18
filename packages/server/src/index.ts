@@ -10,7 +10,7 @@ import {
   saveAwardLogo,
   awardLogoPath,
   saveTbaCredentials,
-  pushAwardsToTba,
+  publishAwards,
 } from "./awards";
 import {
   initCompanion,
@@ -266,9 +266,12 @@ const server = Bun.serve({
           audienceDisplay.broadcastState();
           return json({ ok: true, status });
         }
-        if (url.pathname === "/api/awards/tba/push" && request.method === "POST") {
+        // Publish one award (with every award already published), or all.
+        if (url.pathname === "/api/awards/tba/publish" && request.method === "POST") {
           const eventKey = typeof body.eventKey === "string" ? body.eventKey : undefined;
-          return json(await pushAwardsToTba(eventKey));
+          const result = await publishAwards({ ids: id ? [id] : [], all: body.all === true, eventKey });
+          audienceDisplay.broadcastState();
+          return json(result);
         }
       } catch (e) {
         return json({ ok: false, error: String(e) }, 500);

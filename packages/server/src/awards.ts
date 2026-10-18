@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
-import { filledWinners, type Award, type AwardWinner, type TbaCredentialsStatus } from "lib";
+import { tbaEntries, tbaSig, type Award, type AwardWinner, type TbaAwardEntry, type TbaCredentialsStatus } from "lib";
 import { appDataDir } from "./fms_logger";
 
 // Awards for the award lower third. The list is ours, typed on the Awards page:
@@ -91,9 +91,22 @@ function cleanAward(a: unknown): Award | null {
   };
 }
 
-/** Replace the active profile's award list (the Awards page sends it whole). */
+/** Replace the active profile's award list (the Awards page sends it whole).
+ *  The TBA publish record is the server's, never the page's: a page copy sent
+ *  just after a publish would otherwise wipe it. */
 export function saveAwards(list: unknown): Award[] {
-  const awards = (Array.isArray(list) ? list : []).map(cleanAward).filter((a): a is Award => !!a);
+  const published = new Map(listAwards().map((a) => [a.id, a.publishedSig]));
+  const awards = (Array.isArray(list) ? list : [])
+    .map(cleanAward)
+    .filter((a): a is Award => !!a)
+    .map((a) => {
+      const sig = published.get(a.id);
+      return sig ? { ...a, publishedSig: sig } : a;
+    });
+  return setAwards(awards);
+}
+
+function setAwards(awards: Award[]): Award[] {
   const next = { ...awardsByProfile };
   if (awards.length) next[activeProfile()] = awards;
   else delete next[activeProfile()];
@@ -191,35 +204,30 @@ export function saveTbaCredentials(body: { eventKey?: unknown; authId?: unknown;
   return tbaStatus();
 }
 
-/** TBA's trusted awards body: one entry per recipient. TBA groups entries by
- *  type, so every recipient of one award shares its type and name. */
-export function tbaAwardsBody(awards: Award[]): { name_str: string; type_enum: number; team_key: string | null; awardee: string | null }[] {
-  const out: { name_str: string; type_enum: number; team_key: string | null; awardee: string | null }[] = [];
-  for (const a of awards) {
-    if (a.tbaType === null || !a.name) continue;
-    for (const w of filledWinners(a)) {
-      out.push({
-        name_str: a.name,
-        type_enum: a.tbaType,
-        team_key: w.team ? `frc${w.team}` : null,
-        awardee: w.person ?? null,
-      });
-    }
-  }
-  return out;
-}
-
 /**
- * Replace the event's awards on TBA with ours (TBA deletes every award on the
- * event, then writes the list it was sent). Signed the same way as the
- * uploader's match-video posts: md5(secret + path + body).
+ * Publish to TBA. TBA replaces every award on the event with each push, so a
+ * push always sends every award published so far plus the ones being
+ * published now (`ids`, or every award that can go to TBA with `all`).
+ * Signed the same way as the uploader's match-video posts:
+ * md5(secret + path + body). On success each sent award records what TBA now
+ * holds for it; an award that can no longer go to TBA (type cleared, winners
+ * emptied) is dropped from TBA by the same push and loses its record.
  */
-export async function pushAwardsToTba(eventKeyOverride?: string): Promise<{ ok: boolean; status: number; message: string; sent: number }> {
+export async function publishAwards(opts: {
+  ids?: string[];
+  all?: boolean;
+  eventKey?: string;
+}): Promise<{ ok: boolean; status: number; message: string; sent: number }> {
   const c = resolveCredentials();
   if (!c) return { ok: false, status: 0, message: "No TBA key", sent: 0 };
-  const eventKey = (eventKeyOverride || tbaByProfile[activeProfile()]?.eventKey || c.eventKey || "").trim().toLowerCase();
+  const eventKey = (opts.eventKey || tbaByProfile[activeProfile()]?.eventKey || c.eventKey || "").trim().toLowerCase();
   if (!/^\d{4}[a-z0-9]+$/.test(eventKey)) return { ok: false, status: 0, message: "No TBA event key", sent: 0 };
-  const body = JSON.stringify(tbaAwardsBody(listAwards()));
+
+  const awards = listAwards();
+  const wanted = new Set(opts.ids ?? []);
+  const sending = awards.filter((a) => tbaEntries(a).length && (opts.all || a.publishedSig || wanted.has(a.id)));
+  const entries: TbaAwardEntry[] = sending.flatMap(tbaEntries);
+  const body = JSON.stringify(entries);
   const path = `/api/trusted/v1/event/${eventKey}/awards/update`;
   const sig = createHash("md5").update(c.secret + path + body).digest("hex");
   const base = process.env.TBA_URL || "https://www.thebluealliance.com";
@@ -231,7 +239,16 @@ export async function pushAwardsToTba(eventKeyOverride?: string): Promise<{ ok: 
       signal: AbortSignal.timeout(20_000),
     });
     const text = (await res.text()).slice(0, 500);
-    return { ok: res.ok, status: res.status, message: text, sent: JSON.parse(body).length };
+    if (res.ok) {
+      const sent = new Set(sending.map((a) => a.id));
+      setAwards(
+        awards.map((a) => {
+          const { publishedSig: _, ...rest } = a;
+          return sent.has(a.id) ? { ...rest, publishedSig: tbaSig(a) } : rest;
+        })
+      );
+    }
+    return { ok: res.ok, status: res.status, message: text, sent: entries.length };
   } catch (e) {
     return { ok: false, status: 0, message: String(e), sent: 0 };
   }

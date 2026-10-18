@@ -25,6 +25,12 @@ export type Award = {
   /** Sponsor logo is dark art that needs the white card behind it. */
   sponsorLight?: boolean;
   winners: AwardWinner[];
+  /**
+   * Set by the server after a successful TBA push: what TBA then held for this
+   * award (`tbaSig`). Present = published; different from the award's current
+   * `tbaSig` = edited since. The server keeps its own copy over the page's.
+   */
+  publishedSig?: string;
 };
 
 /** What the award lower third is showing. `award` is a copy taken when it was

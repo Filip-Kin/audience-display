@@ -60,4 +60,5 @@ export type { ProfileMeta, ProfileId } from "./profile_index";
 
 export type { Award, AwardWinner, AwardDisplay, TbaCredentialsStatus } from "./types/awards";
 export { TBA_AWARD_TYPES } from "./tba_award_types";
-export { filledWinners } from "./award_winners";
+export { filledWinners, tbaEntries, tbaSig } from "./award_winners";
+export type { TbaAwardEntry } from "./award_winners";
