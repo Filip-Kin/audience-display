@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { state } from "@lib/state";
+	import { state, activeProfile } from "@lib/state";
 	import { settings } from "@lib/settings";
 	import type { AllianceScore } from "lib";
 	import { createEventDispatcher, onMount } from "svelte";
@@ -96,6 +96,7 @@
 	// #endregion
 
 	$: top = $settings.top;
+	$: barBottom = $activeProfile.options?.scoreBarBottom ?? 60;
 </script>
 
 {#if $state.match}
@@ -106,14 +107,14 @@
 		class="fixed left-0 right-0 h-[70px]"
 		style="{top ? `bottom: ${$topSpring}px;` : `top: ${$topSpring}px;`}"
 	>
-		<TopBar atBottom={top} />
+		<TopBar atBottom={top} showArt={ready} />
 	</div>
 
 	{#if ready && leftScore && rightScore}
 		<!-- Score bar — slides up from bottom -->
 		<div
 			class="fixed left-1/2 -translate-x-1/2 w-[min(1440px,calc(100%-80px))]"
-			style="{top ? `top: 60px;` : `bottom: calc(60px + ${$barSpring}px);`}"
+			style="{top ? `top: 60px;` : `bottom: calc(${barBottom}px + ${$barSpring}px);`}"
 			in:fade={{ duration: 150 }}
 			out:fade={{ duration: 150 }}
 		>

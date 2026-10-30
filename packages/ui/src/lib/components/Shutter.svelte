@@ -6,8 +6,12 @@
 	export let startOpen = true;
 	export let leftColor = "var(--secondary)";
 	export let rightColor = "var(--primary)";
+	/** 0 to 1. Below 1 the shutter is see-through, for the camera feed behind it. */
+	export let opacity = 1;
 
 	const dispatcher = createEventDispatcher();
+	const fill = (color: string, alpha: number) =>
+		alpha >= 1 ? color : `color-mix(in srgb, ${color} ${alpha * 100}%, transparent)`;
 	const shutterSpring = spring(120, { stiffness: 0.1, damping: 0.5 });
 
 	let opened = false;
@@ -42,9 +46,9 @@
      canvas so the seam is centred at any resolution. -->
 <div
 	class="w-full h-full fixed -skew-x-12 flex flex-row justify-end"
-	style="background: {leftColor}; right: {$shutterSpring}%;"
+	style="background: {fill(leftColor, opacity)}; right: {$shutterSpring}%;"
 ></div>
 <div
 	class="w-full h-full fixed -skew-x-12 flex flex-row justify-start"
-	style="background: {rightColor}; left: {$shutterSpring}%;"
+	style="background: {fill(rightColor, opacity)}; left: {$shutterSpring}%;"
 ></div>

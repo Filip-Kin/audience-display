@@ -45,6 +45,7 @@
 	// Four of the five 2026 offseason profiles have no broadcaster. Without this
 	// the reveal painted a "Livestream Partner" heading over an empty box.
 	$: hasLivestream = !!$activeProfile.assets.livestream;
+	$: shutterOpacity = $activeProfile.options?.shutterOpacity ?? 1;
 	let canPlay = false;
 	let started = false;
 	let unsubAudio: (() => void) | undefined;
@@ -221,7 +222,8 @@
 {/if}
 
 <div class="fixed w-full h-full">
-	<video class="w-full h-full object-contain" bind:this={videoElm}>
+	<!-- A see-through shutter would show the clip's last frame, not the cameras. -->
+	<video class="w-full h-full object-contain transition-opacity duration-300" class:opacity-0={ready && shutterOpacity < 1} bind:this={videoElm}>
 		<track kind="captions" srclang="en" label="English" />
 		<source src={animation} type="video/mp4" />
 	</video>
@@ -230,6 +232,7 @@
 <Shutter
 	{exit}
 	startOpen={videoReady}
+	opacity={shutterOpacity}
 	leftColor={$settings.invert ? "var(--primary)" : "var(--secondary)"}
 	rightColor={$settings.invert ? "var(--secondary)" : "var(--primary)"}
 	on:ready={() => { ready = true; }}
@@ -305,7 +308,7 @@
 
 			{#if hasSponsors}
 				<div class="flex items-end justify-center min-h-0" in:fly={{ y: 200, duration: 500 }} out:fly={{ y: -400, duration: 200 }}>
-					<Logo alt="logo" class="max-h-[300px] max-w-full object-contain" />
+					<Logo type="large" alt="logo" class="max-h-[300px] max-w-full object-contain" />
 				</div>
 			{:else}
 				<div></div>

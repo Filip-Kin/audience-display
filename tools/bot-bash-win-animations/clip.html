@@ -1,0 +1,187 @@
+<!doctype html>
+<!-- Great Lakes Bay Bot Bash win clips: one deterministic draw(t), rendered by
+     render.ts. Night graveyard, a jack-o-lantern robot wakes up, lightning, the
+     alliance colour slimes down the screen, "RED ALLIANCE WINS". Frame 0 is the
+     same for all three clips, so one cover serves them. -->
+<style>
+@font-face { font-family: "BB Display"; src: url("../../packages/ui/public/bot-bash/fonts/lilita-one-latin.woff2"); }
+html, body { margin: 0; background: #000; }
+</style>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script>
+const W = 1920, H = 1080, cx = canvas();
+function canvas() { return document.getElementById("c").getContext("2d"); }
+const LIME = "#a8e05f", PUMPKIN = "#f08a1d", INK = "#0b0614";
+const COL = { red: ["#c8102e", "#ff3b4e"], blue: ["#0a3fc4", "#3f7bff"] };
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const ease = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
+const back = (x) => { x = clamp(x); const c = 2.2; return 1 + (c + 1) * (x - 1) ** 3 + c * (x - 1) ** 2; };
+function rng(seed) { return () => (seed = (seed * 16807) % 2147483647) / 2147483647; }
+
+function bat(x, y, s, flap, color = "#05030a") {
+  const w = s * (0.55 + 0.45 * Math.abs(Math.sin(flap)));
+  cx.fillStyle = color; cx.beginPath();
+  cx.moveTo(x, y - s * 0.12);
+  cx.quadraticCurveTo(x - w * 0.5, y - s * 0.55 * Math.sin(flap), x - w, y - s * 0.2 * Math.sin(flap));
+  cx.quadraticCurveTo(x - w * 0.6, y + s * 0.02, x - w * 0.42, y + s * 0.18);
+  cx.quadraticCurveTo(x - w * 0.2, y + s * 0.02, x, y + s * 0.26);
+  cx.quadraticCurveTo(x + w * 0.2, y + s * 0.02, x + w * 0.42, y + s * 0.18);
+  cx.quadraticCurveTo(x + w * 0.6, y + s * 0.02, x + w, y - s * 0.2 * Math.sin(flap));
+  cx.quadraticCurveTo(x + w * 0.5, y - s * 0.55 * Math.sin(flap), x, y - s * 0.12);
+  cx.fill();
+}
+
+function sky() {
+  const g = cx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, "#090417"); g.addColorStop(0.6, "#1f0a3d"); g.addColorStop(1, "#3a1460");
+  cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+  const r = rng(77); cx.fillStyle = "#ddd6f0";
+  for (let i = 0; i < 90; i++) cx.fillRect(r() * W, r() * 620, 1 + r() * 2, 1 + r() * 2);
+  const mx = 1420, my = 250;
+  const glow = cx.createRadialGradient(mx, my, 120, mx, my, 420);
+  glow.addColorStop(0, "rgba(240,235,200,.32)"); glow.addColorStop(1, "rgba(240,235,200,0)");
+  cx.fillStyle = glow; cx.fillRect(0, 0, W, H);
+  cx.fillStyle = "#efe9c8"; cx.beginPath(); cx.arc(mx, my, 150, 0, 7); cx.fill();
+  cx.fillStyle = "#d6cfa8";
+  for (const [x, y, s] of [[-50, -40, 30], [40, 30, 44], [55, -70, 18], [-70, 70, 16]]) { cx.beginPath(); cx.arc(mx + x, my + y, s, 0, 7); cx.fill(); }
+}
+
+function ground() {
+  cx.fillStyle = "#07040f"; cx.beginPath(); cx.moveTo(0, H); cx.lineTo(0, 860);
+  cx.bezierCurveTo(400, 790, 700, 900, 1000, 850); cx.bezierCurveTo(1300, 800, 1600, 880, W, 830);
+  cx.lineTo(W, H); cx.fill();
+  for (const [x, y, h] of [[230, 800, 110], [1650, 770, 120]]) { // headstones
+    cx.beginPath(); cx.moveTo(x - 46, y + 60); cx.lineTo(x - 46, y - h + 60 + 46); cx.arc(x, y - h + 60 + 46, 46, Math.PI, 0); cx.lineTo(x + 46, y + 60); cx.fill();
+  }
+  for (const [x, y] of [[430, 800], [1500, 780]]) { cx.fillRect(x - 8, y - 70, 16, 130); cx.fillRect(x - 36, y - 40, 72, 16); }
+  cx.strokeStyle = "#07040f"; cx.lineCap = "round"; // bare tree
+  const branch = (x, y, a, l, w) => { if (l < 26) return; const X = x + Math.cos(a) * l, Y = y + Math.sin(a) * l; cx.lineWidth = w; cx.beginPath(); cx.moveTo(x, y); cx.lineTo(X, Y); cx.stroke(); branch(X, Y, a - 0.5, l * 0.72, w * 0.66); branch(X, Y, a + 0.42, l * 0.68, w * 0.66); };
+  branch(120, 860, -1.45, 210, 34);
+}
+
+// Jack-o-lantern robot: a pumpkin with an antenna, square eyes and a grille.
+function bot(x, y, s, lit, onColour) {
+  const body = onColour ? INK : "#1a0f08";
+  cx.save(); cx.translate(x, y); cx.scale(s, s);
+  cx.strokeStyle = body; cx.lineWidth = 16; cx.lineCap = "round";
+  cx.beginPath(); cx.moveTo(0, -150); cx.quadraticCurveTo(14, -200, 46, -214); cx.stroke();
+  cx.fillStyle = lit > 0.4 ? LIME : body; cx.beginPath(); cx.arc(50, -218, 18, 0, 7); cx.fill();
+  const shade = lit > 0 ? PUMPKIN : body;
+  for (const [ox, rx] of [[-132, 96], [132, 96], [-70, 104], [70, 104], [0, 104]]) {
+    cx.fillStyle = shade; cx.beginPath(); cx.ellipse(ox, 0, rx, 158, 0, 0, 7); cx.fill();
+    cx.strokeStyle = "rgba(0,0,0,.34)"; cx.lineWidth = 7; cx.stroke();
+  }
+  // Eyes and grille: dark until lit, then a flicker of candle glow.
+  cx.fillStyle = lit > 0 ? `rgba(255,${190 + 50 * lit | 0},70,${0.25 + 0.75 * lit})` : "#000";
+  cx.shadowColor = "#ffcf5a"; cx.shadowBlur = 60 * lit;
+  cx.fillRect(-120, -64, 84, 76); cx.fillRect(36, -64, 84, 76);
+  for (let i = -3; i <= 3; i++) cx.fillRect(i * 38 - 12, 58, 24, 44 + (i % 2 ? 0 : 14));
+  cx.shadowBlur = 0;
+  cx.fillStyle = "#1a0f08"; cx.fillRect(-92, -44, 28, 28); cx.fillRect(64, -44, 28, 28);
+  cx.restore();
+}
+
+function fog(t) {
+  for (let i = 0; i < 5; i++) {
+    const x = ((i * 520 + t * (26 + i * 8)) % 2500) - 300, y = 900 + (i % 3) * 50;
+    const g = cx.createRadialGradient(x, y, 20, x, y, 460);
+    g.addColorStop(0, "rgba(190,170,225,.16)"); g.addColorStop(1, "rgba(190,170,225,0)");
+    cx.fillStyle = g; cx.fillRect(x - 460, y - 460, 920, 920);
+  }
+}
+
+// Slime front: a wavy edge whose drips run ahead of it. p 0..1 fills the screen.
+function slime(x0, x1, p, color, seed) {
+  const r = rng(seed); const n = Math.round((x1 - x0) / 96);
+  const drip = []; for (let i = 0; i <= n; i++) drip.push([0.45 + r() * 0.55, r()]);
+  const level = (i) => { const [speed, lag] = drip[i]; return -160 + (H + 520) * ease(p * (1 + lag * 0.45) * speed + p * p * 0.7); };
+  const step = (x1 - x0) / n;
+  cx.fillStyle = color; cx.beginPath(); cx.moveTo(x0, -10);
+  for (let i = 0; i <= n; i++) {
+    const X = x0 + i * step, Y = level(i), hw = step * 0.3;
+    cx.lineTo(X - hw, Y - 120);
+    cx.bezierCurveTo(X - hw, Y + 30, X + hw, Y + 30, X + hw, Y - 120);
+    if (i < n) { const nx = X + step - hw; const m = Math.min(Y, level(i + 1)) - 150; cx.bezierCurveTo(X + hw, m, nx, m, nx, level(i + 1) - 120); }
+  }
+  cx.lineTo(x1, -10); cx.closePath(); cx.fill();
+}
+
+function rays(t, color) {
+  cx.save(); cx.translate(W / 2, 410); cx.rotate(t * 0.06); cx.fillStyle = color;
+  for (let i = 0; i < 16; i++) { cx.rotate(Math.PI / 8); cx.beginPath(); cx.moveTo(0, 0); cx.lineTo(1500, -130); cx.lineTo(1500, 130); cx.fill(); }
+  cx.restore();
+}
+
+function letters(text, y, size, t, t0, stagger) {
+  cx.font = `${size}px "BB Display"`; cx.textBaseline = "alphabetic"; cx.lineJoin = "round";
+  let x = (W - cx.measureText(text).width) / 2;
+  [...text].forEach((ch, i) => {
+    const w = cx.measureText(text.slice(0, i + 1)).width - cx.measureText(text.slice(0, i)).width;
+    const p = back((t - t0 - i * stagger) / 0.32);
+    if (p > 0) {
+      const yy = y + (1 - p) * 90;
+      cx.globalAlpha = clamp(p * 2);
+      cx.strokeStyle = INK; cx.lineWidth = size * 0.17; cx.strokeText(ch, x, yy);
+      cx.fillStyle = "#fff"; cx.fillText(ch, x, yy); cx.globalAlpha = 1;
+    }
+    x += w;
+  });
+}
+
+const MODE = new URLSearchParams(location.search).get("mode") || "red";
+window.draw = function (t) {
+  sky();
+  // Bats cross the moon from the start, one wing beat in view on frame 0.
+  const r = rng(9);
+  for (let i = 0; i < 9; i++) {
+    const sp = 200 + r() * 180, y0 = 90 + r() * 420, ph = r() * 7, x0 = r() * W;
+    const x = (x0 + t * sp) % (W + 200) - 100;
+    bat(x, y0 + Math.sin(t * 2 + ph) * 26, 26 + r() * 28, t * 15 + ph);
+  }
+  const rise = ease((t - 0.5) / 0.7);
+  bot(W / 2, 1210 - 450 * rise, 1.08, clamp((t - 1.25) / 0.2) * (0.72 + 0.28 * Math.sin(t * 31) * Math.sin(t * 13)), false);
+  ground(); fog(t);
+
+  // One lightning strike, two flashes well apart.
+  const flash = Math.max(0.65 * clamp(1 - (t - 1.75) / 0.2) * (t >= 1.75 ? 1 : 0), 0.4 * clamp(1 - (t - 2.1) / 0.28) * (t >= 2.1 ? 1 : 0));
+  if (flash > 0) { cx.fillStyle = `rgba(232,226,255,${flash})`; cx.fillRect(0, 0, W, H); }
+
+  const p = (t - 2.1) / 1.25;
+  if (p > 0) {
+    const drawSlime = (x0, x1, seed, mode) => {
+      slime(x0, x1, clamp(p), LIME, seed);
+      slime(x0, x1, clamp(p - 0.09), COL[mode][0], seed);
+    };
+    if (MODE === "tie") {
+      cx.save(); cx.beginPath(); cx.rect(0, 0, W / 2, H); cx.clip(); drawSlime(-100, W / 2 + 100, 21, "red"); cx.restore();
+      cx.save(); cx.beginPath(); cx.rect(W / 2, 0, W / 2, H); cx.clip(); drawSlime(W / 2 - 100, W + 100, 34, "blue"); cx.restore();
+    } else drawSlime(-100, W + 100, 21, MODE);
+  }
+  const reveal = ease((t - 3.05) / 0.3);
+  if (reveal > 0) {
+    cx.globalAlpha = reveal;
+    if (MODE === "tie") {
+      cx.fillStyle = COL.red[0]; cx.fillRect(0, 0, W / 2, H);
+      cx.fillStyle = COL.blue[0]; cx.fillRect(W / 2, 0, W / 2, H);
+      rays(t, "rgba(255,255,255,.07)");
+    } else { cx.fillStyle = COL[MODE][0]; cx.fillRect(0, 0, W, H); rays(t, COL[MODE][1] + "55"); }
+    // Bats scatter from behind the bot.
+    const b = rng(5);
+    for (let i = 0; i < 14; i++) {
+      const a = b() * 6.28, sp = 700 + b() * 900, d = Math.max(0, t - 3.1) * sp;
+      bat(W / 2 + Math.cos(a) * d, 400 + Math.sin(a) * d * 0.7, 30 + b() * 34, t * 16 + i, INK);
+    }
+    cx.globalAlpha = 1;
+    bot(W / 2, 400, 1.08 * (0.82 + 0.18 * back((t - 3.1) / 0.45)), reveal * (0.88 + 0.12 * Math.sin(t * 19)), true);
+    cx.globalAlpha = 1;
+  }
+  letters(MODE === "tie" ? "IT'S A TIE" : `${MODE.toUpperCase()} ALLIANCE WINS`, 860, 150, t, 3.6, 0.045);
+  if (t > 4.5) {
+    cx.globalAlpha = ease((t - 4.5) / 0.4);
+    cx.font = '56px "BB Display"'; cx.textAlign = "center"; cx.lineJoin = "round";
+    cx.strokeStyle = INK; cx.lineWidth = 10; cx.strokeText("BOT BASH", W / 2, 960);
+    cx.fillStyle = LIME; cx.fillText("BOT BASH", W / 2, 960);
+    cx.textAlign = "start"; cx.globalAlpha = 1;
+  }
+};
+</script>

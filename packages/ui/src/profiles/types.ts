@@ -64,5 +64,25 @@ export type ProfileDefinition = {
      * opening the shutter onto the results screen. Defaults to 500ms.
      */
     victoryRevealLeadMs?: number;
+    /**
+     * Match screens: shrink the top bar to a solid tab spanning these x positions
+     * (px on the 1920 canvas), for a vMix layout with cameras in both top corners.
+     * Only the logos and the match name fit, so the event name is dropped. Leave
+     * it unset for the stock full-width bar. Must stay under 80px tall, the
+     * distance the bar slides in from.
+     */
+    topBarBetween?: [number, number];
+    /** Art shown under the `topBarBetween` tab, as wide as the tab allows. */
+    topBarArt?: string;
+    /**
+     * Match screens: distance from the bottom of the screen to the score bug, in
+     * px, to clear something in a venue's camera shot. Defaults to 60.
+     */
+    scoreBarBottom?: number;
+    /**
+     * Match preview, waiting for scores and results: opacity of the red/blue
+     * shutter, 0 to 1, so the cameras show through it. Defaults to 1.
+     */
+    shutterOpacity?: number;
   };
 };

@@ -56,6 +56,11 @@ export type SponsorLogo = {
 
 export type ProfileAssets = {
   event?: string;
+  /**
+   * Art for the big logo spots (match preview, waiting for scores, results), when
+   * it should differ from the small `event` mark in headers. Falls back to `event`.
+   */
+  eventLarge?: string;
   livestream?: string;
   /**
    * Sponsor art rotated on the chrome screens. The entry whose src matches
