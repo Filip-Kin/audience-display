@@ -9,7 +9,7 @@
     "dev": "bun --watch src/index.ts"
   },
   "dependencies": {
-    "@microsoft/signalr": "^8.0.0",
+    "@microsoft/signalr": "8.0.0",
     "lib": "workspace:*"
   },
   "devDependencies": {
