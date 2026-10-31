@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "server",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["run", "server:dev"],
+      "port": 3001
+    },
+    {
+      "name": "ui",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["run", "ui:dev"],
+      "port": 5173
+    }
+  ]
+}

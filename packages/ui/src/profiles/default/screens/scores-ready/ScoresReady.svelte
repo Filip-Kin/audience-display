@@ -15,7 +15,7 @@
 	export let exit = false;
 
 	$: eventLabel = $eventDisplayName;
-	$: eventLogo = $activeProfile.assets.event;
+	$: eventLogo = $activeProfile.assets.eventLarge ?? $activeProfile.assets.event;
 
 	// FMS auto-loads the next match the moment scores post, and that must not
 	// rename this screen: track the current match only until commit, then hold.
@@ -41,6 +41,7 @@
 	{exit}
 	leftColor={$settings.invert ? "var(--primary)" : "var(--secondary)"}
 	rightColor={$settings.invert ? "var(--secondary)" : "var(--primary)"}
+	opacity={$activeProfile.options?.shutterOpacity ?? 1}
 	on:ready={() => { ready = true; }}
 	on:transitioned={() => dispatcher("transitioned")}
 />
@@ -70,7 +71,7 @@
 	{#if ready && !exit}
 		<div class="w-full flex justify-center" in:fly={{ y: 400, duration: 200 }} out:fly={{ y: 700, duration: 400 }}>
 			<div class:glint-wrapper={$state.screen === "scores-ready" && !!eventLogo} style={eventLogo ? `--glint-mask: url('${eventLogo}');` : ""}>
-				<Logo alt="Logo" class="mx-auto size-[480px] block {$state.screen === 'scores-ready' ? 'glint-image' : ''}" />
+				<Logo type="large" alt="Logo" class="mx-auto size-[480px] block object-contain {$state.screen === 'scores-ready' ? 'glint-image' : ''}" />
 			</div>
 		</div>
 	{/if}

@@ -1,0 +1,171 @@
+/* Great Lakes Bay Bot Bash: Halloween layer. "Somewhat spooky": the data stays
+   stock, the mood comes from a moonlit purple field, slime off the header rule,
+   a graveyard along the bottom, and a few bats. Every class is bb-prefixed and
+   only Chrome.svelte renders them, so nothing leaks into other profiles.
+
+   Fonts are BUNDLED because the venue may be offline. Lilita One takes the
+   screen titles only, not timers: it has no tabular figures, so a ticking clock
+   would wobble. Caveat Brush takes the event-name line. Both SIL OFL 1.1. */
+@font-face {
+	font-family: "BB Display";
+	src: url("/bot-bash/fonts/lilita-one-latin.woff2") format("woff2");
+	font-weight: 400 900;
+	font-display: block;
+}
+@font-face {
+	font-family: "BB Brush";
+	src: url("/bot-bash/fonts/caveat-brush-latin.woff2") format("woff2");
+	font-weight: 400;
+	font-display: block;
+}
+
+/* #region Art behind the full-screen pages */
+.bb-backdrop {
+	position: fixed;
+	inset: 0;
+	overflow: hidden;
+	pointer-events: none;
+	background:
+		radial-gradient(60% 60% at 100% 100%, oklch(0.42 0.16 305 / 0.55), transparent 70%),
+		radial-gradient(50% 45% at 0% 100%, oklch(0.55 0.15 130 / 0.2), transparent 70%),
+		var(--background);
+}
+.bb-moon {
+	position: absolute;
+	top: 26px;
+	right: 24.5%;
+	width: 150px;
+	height: 150px;
+	border-radius: 50%;
+	background:
+		radial-gradient(circle at 34% 40%, oklch(0.82 0.03 100) 0 9%, transparent 10%),
+		radial-gradient(circle at 62% 64%, oklch(0.82 0.03 100) 0 13%, transparent 14%),
+		radial-gradient(circle at 66% 28%, oklch(0.84 0.03 100) 0 6%, transparent 7%),
+		oklch(0.92 0.04 100);
+	box-shadow: 0 0 70px 26px oklch(0.92 0.06 100 / 0.22);
+}
+.bb-fog {
+	position: absolute;
+	left: -50%;
+	width: 200%;
+	bottom: 0;
+	height: 240px;
+	background:
+		radial-gradient(22% 60% at 20% 100%, oklch(0.8 0.04 300 / 0.2), transparent 70%),
+		radial-gradient(26% 70% at 58% 100%, oklch(0.8 0.04 300 / 0.16), transparent 70%),
+		radial-gradient(20% 50% at 88% 100%, oklch(0.8 0.04 300 / 0.18), transparent 70%);
+	animation: bb-fog 46s ease-in-out infinite alternate;
+}
+.bb-fog-b {
+	animation-duration: 67s;
+	animation-direction: alternate-reverse;
+}
+@keyframes bb-fog {
+	from { transform: translateX(-12%); }
+	to { transform: translateX(12%); }
+}
+.bb-grave {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: 100%;
+	height: 200px;
+	fill: oklch(0.07 0.02 300);
+}
+/* #endregion */
+
+/* #region Webs and bats */
+.bb-front {
+	position: fixed;
+	inset: 0;
+	overflow: hidden;
+	pointer-events: none;
+	transition: opacity 300ms;
+}
+.bb-front-out {
+	opacity: 0;
+}
+.bb-web {
+	position: absolute;
+	top: 0;
+	width: 210px;
+	height: 210px;
+	stroke: oklch(0.96 0.01 300 / 0.5);
+	stroke-width: 1.6;
+}
+.bb-web-l { left: 0; }
+.bb-web-r { right: 0; transform: scaleX(-1); }
+.bb-bats {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 1920px;
+	height: 230px;
+}
+/* #endregion */
+
+/* The big logo slots are square and the Bot Bash art is 2:1, so it takes more
+   width than the slot. */
+img[src="/bot-bash/versus-spooky.png"].size-64 {
+	width: 340px;
+	max-width: none;
+	margin-inline: -42px;
+}
+.glint-wrapper:has(img[src="/bot-bash/versus-spooky.png"]),
+img[src="/bot-bash/versus-spooky.png"].size-\[480px\] {
+	width: 960px;
+}
+img[src="/bot-bash/versus-spooky.png"].size-\[480px\] {
+	height: 470px;
+}
+
+/* #region Reused default page screens. These target the semantic <header> and a
+   few stable utility classes. If the default markup changes, a rule here stops
+   matching and that element falls back to the stock look. */
+.bb-backdrop ~ .fixed.inset-0.bg-background {
+	background: transparent;
+}
+.bb-backdrop ~ .fixed.inset-0 header.anim-top {
+	position: relative;
+	background: linear-gradient(180deg, oklch(0.1 0.03 300 / 0.5), oklch(0.16 0.07 305 / 0.42));
+}
+/* Slime off the header rule. The mask is the drip shape; --accent keeps it the
+   host region's lime. Short enough to clear the section labels. */
+.bb-backdrop ~ .fixed.inset-0 header.anim-top::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 100%;
+	height: 22px;
+	background: var(--accent);
+	mask: url("/bot-bash/slime.svg") left top / 960px 22px repeat-x;
+	-webkit-mask: url("/bot-bash/slime.svg") left top / 960px 22px repeat-x;
+	pointer-events: none;
+}
+.bb-backdrop ~ .fixed.inset-0 header .display:not(.tabular-nums) {
+	font-family: "BB Display", var(--font-display);
+	font-weight: 400;
+}
+/* Event-name line above the title. */
+.bb-backdrop ~ .fixed.inset-0 header .display.text-dim {
+	font-family: "BB Brush", var(--font-body);
+	text-transform: none;
+	letter-spacing: 0;
+	color: var(--accent);
+	font-size: 38px;
+}
+/* The event's own art, in its Halloween cut, in the game-logo panel. CSS content
+   keeps the default screen untouched; if the alt text changes, the stock logo
+   simply comes back. */
+.bb-backdrop ~ .fixed.inset-0 img[alt="FIRST Age: Rebuilt"] {
+	content: url("/bot-bash/versus-spooky.png");
+	width: 100%;
+}
+/* Body panels: the stock black takes the event purple and lets the night through. */
+.bb-backdrop ~ .fixed.inset-0 .bg-\[oklch\(0_0_0\/0\.55\)\],
+.bb-backdrop ~ .fixed.inset-0 .bg-\[oklch\(0_0_0\/0\.6\)\] {
+	background-color: oklch(0.12 0.04 300 / 0.72);
+}
+/* #endregion */

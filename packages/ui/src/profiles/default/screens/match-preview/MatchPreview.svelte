@@ -55,6 +55,7 @@
 			{exit}
 			leftColor={leftIsRed ? "var(--primary)" : "var(--secondary)"}
 			rightColor={leftIsRed ? "var(--secondary)" : "var(--primary)"}
+			opacity={$activeProfile.options?.shutterOpacity ?? 1}
 		/>
 
 		<!-- Header then body in ONE column, so the gap below the black match-title
@@ -96,7 +97,7 @@
 						VS
 					</div>
 					<div class="bg-accent h-2 w-40"></div>
-                    <Logo class="size-64 object-contain" />
+                    <Logo type="large" class="size-64 object-contain" />
 				</div>
 
 				<!-- Right alliance (mirrored) -->
